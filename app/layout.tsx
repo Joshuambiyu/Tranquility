@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { Lora, Manrope } from "next/font/google";
+import { Libre_Baskerville, Manrope } from "next/font/google";
+import { SiteHeader } from "@/app/components/SiteHeader";
+import { footerLinks } from "@/app/data/homepageData";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -7,14 +9,18 @@ const manrope = Manrope({
   subsets: ["latin"],
 });
 
-const lora = Lora({
-  variable: "--font-lora",
+const libreBaskerville = Libre_Baskerville({
+  variable: "--font-libre-baskerville",
+  weight: ["400", "700"],
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
   title: "TranquilityHub",
   description: "Pause. Reflect. Grow.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
@@ -25,10 +31,15 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${manrope.variable} ${lora.variable} h-full antialiased`}
+      className={`${manrope.variable} ${libreBaskerville.variable} h-full antialiased`}
     >
       <head />
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full bg-[#f7f8f4] text-slate-800">
+        <div className="flex min-h-full flex-col">
+          <SiteHeader links={footerLinks} />
+          <div className="flex-1">{children}</div>
+        </div>
+      </body>
     </html>
   );
 }

@@ -1,0 +1,21 @@
+<svg width="1200" height="320" viewBox="0 0 1200 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="320" rx="32" fill="#F7F8F4"/>
+  <g transform="translate(24,32)">
+    <defs>
+      <linearGradient id="wordLeaf" x1="40" y1="20" x2="200" y2="210" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#6E8F72"/>
+        <stop offset="1" stop-color="#4F6D53"/>
+      </linearGradient>
+      <linearGradient id="wordBlue" x1="24" y1="96" x2="198" y2="196" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#C9DBE8"/>
+        <stop offset="1" stop-color="#AFC8DB"/>
+      </linearGradient>
+    </defs>
+    <rect x="0" y="0" width="256" height="256" rx="56" fill="#F7F8F4"/>
+    <path d="M136 46C175 62 199 101 199 145C199 187 171 221 128 221C85 221 57 188 57 146C57 104 84 70 122 56C109 72 104 91 104 110C104 147 132 168 163 168C154 152 148 134 148 115C148 91 153 68 136 46Z" fill="url(#wordLeaf)"/>
+    <path d="M45 156C70 139 95 136 122 147C98 161 86 183 82 210C64 196 50 177 45 156Z" fill="url(#wordBlue)"/>
+    <circle cx="184" cy="72" r="10" fill="#C9DBE8"/>
+  </g>
+  <text x="320" y="164" fill="#1F2A2A" font-size="104" font-family="Libre Baskerville, Georgia, serif" letter-spacing="1">TranquilityHub</text>
+  <text x="324" y="214" fill="#5F6872" font-size="38" font-family="Manrope, Arial, sans-serif" letter-spacing="3">PAUSE · REFLECT · GROW</text>
+</svg>

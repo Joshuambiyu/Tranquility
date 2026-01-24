@@ -1,0 +1,16 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sageLeaf" x1="48" y1="24" x2="220" y2="220" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6E8F72"/>
+      <stop offset="1" stop-color="#4F6D53"/>
+    </linearGradient>
+    <linearGradient id="softBlue" x1="24" y1="88" x2="208" y2="216" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C9DBE8"/>
+      <stop offset="1" stop-color="#AFC8DB"/>
+    </linearGradient>
+  </defs>
+  <rect x="12" y="12" width="232" height="232" rx="64" fill="#F7F8F4"/>
+  <path d="M136 46C175 62 199 101 199 145C199 187 171 221 128 221C85 221 57 188 57 146C57 104 84 70 122 56C109 72 104 91 104 110C104 147 132 168 163 168C154 152 148 134 148 115C148 91 153 68 136 46Z" fill="url(#sageLeaf)"/>
+  <path d="M45 156C70 139 95 136 122 147C98 161 86 183 82 210C64 196 50 177 45 156Z" fill="url(#softBlue)"/>
+  <circle cx="184" cy="72" r="10" fill="#C9DBE8"/>
+</svg>

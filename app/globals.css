@@ -1,17 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fbff;
-  --foreground: #0f172a;
-  --sky-soft: #dbeafe;
-  --sun-soft: #ffedd5;
+  --background: #f7f8f4;
+  --foreground: #2e3737;
+  --sage-main: #6e8f72;
+  --sage-deep: #4f6d53;
+  --blue-soft: #c9dbe8;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand-sage: var(--sage-main);
+  --color-brand-sage-deep: var(--sage-deep);
+  --color-brand-blue-soft: var(--blue-soft);
   --font-sans: var(--font-manrope);
-  --font-serif: var(--font-lora);
+  --font-serif: var(--font-libre-baskerville);
 }
 
 body {
@@ -23,7 +27,7 @@ body {
 h1,
 h2,
 h3 {
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-libre-baskerville), serif;
 }
 
 @keyframes fadeInUp {

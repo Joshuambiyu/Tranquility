@@ -19,7 +19,7 @@ interface ActionLinkProps {
 
 export function SectionBlock({ children, className = "" }: SectionBlockProps) {
   return (
-    <section className={`grid gap-6 rounded-3xl bg-white/90 p-8 shadow-sm ring-1 ring-sky-100 ${className}`}>
+    <section className={`grid gap-6 rounded-3xl bg-white/90 p-8 shadow-sm ring-1 ring-emerald-100 ${className}`}>
       {children} {/* children for reusability in wrapper component */}
     </section>
   );
@@ -38,7 +38,7 @@ export function ActionLink({ href, label, fadeIn = false }: ActionLinkProps) {
   return (
     <Link
       href={href}
-      className={`inline-grid place-items-center rounded-full bg-sky-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700 ${fadeIn ? "animate-fade-in" : ""}`}
+      className={`inline-grid place-items-center rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800 ${fadeIn ? "animate-fade-in" : ""}`}
     >
       {label}
     </Link>

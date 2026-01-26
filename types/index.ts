@@ -35,6 +35,43 @@ export interface CommunityVoiceItem {
   href: string;
 }
 
+export interface VoiceReflectionItem {
+  id: string;
+  title: string;
+  reflection: string;
+  author: string;
+}
+
+export interface JournalingPromptItem {
+  id: string;
+  question: string;
+}
+
+export interface MindfulnessPracticeItem {
+  id: string;
+  title: string;
+  description: string;
+}
+
+export interface RecommendedBookItem {
+  id: string;
+  title: string;
+  author: string;
+  reason: string;
+}
+
+export interface BlogPostPreview {
+  id: string;
+  title: string;
+  author: string;
+  publishedOn: string;
+  imageSrc: string;
+  imageAlt: string;
+  excerpt: string;
+  reflectionMoment: string;
+  href: string;
+}
+
 export interface ReflectionResult {
   tone: ReflectionTone;
   title: string;

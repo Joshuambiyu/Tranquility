@@ -17,11 +17,11 @@ export function VoicesSection({ voices }: VoicesSectionProps) {
           <a
             key={voice.id}
             href={voice.href}
-            className="grid gap-2 rounded-2xl bg-white p-5 ring-1 ring-sky-100 transition hover:bg-sky-50"
+            className="grid gap-2 rounded-2xl bg-white p-5 ring-1 ring-emerald-100 transition hover:bg-emerald-50"
           >
             <h3 className="text-lg font-semibold text-slate-900">{voice.title}</h3>
             <p className="text-sm text-slate-700">{voice.description}</p>
-            <span className="text-sm font-semibold text-sky-700">Read More Voices</span>
+            <span className="text-sm font-semibold text-emerald-700">Read More Voices</span>
           </a>
         ))}
       </div>

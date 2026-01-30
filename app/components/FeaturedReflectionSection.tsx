@@ -18,7 +18,7 @@ export function FeaturedReflectionSection({ reflection }: FeaturedReflectionSect
             <ActionLink href={reflection.href} label="Read the Reflection" />
           </div>
         </div>
-        <div className="relative h-52 overflow-hidden rounded-2xl ring-1 ring-sky-100">
+        <div className="relative h-52 overflow-hidden rounded-2xl ring-1 ring-emerald-100">
           <Image
             src={reflection.imageSrc}
             alt={reflection.imageAlt}

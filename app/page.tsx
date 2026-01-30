@@ -47,7 +47,7 @@ export default function Home() {
   };
 
   return (
-    <div className="grid min-h-screen bg-[radial-gradient(circle_at_top_left,_#f0f9ff,_#fff7ed_45%,_#ffffff_75%)] text-slate-900">
+    <div className="grid min-h-screen bg-[radial-gradient(circle_at_top_left,_#dcebe2,_#eaf3fa_45%,_#f7f8f4_75%)] text-slate-800">
       <main className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
         <HeroSection
           siteName={heroContent.siteName}

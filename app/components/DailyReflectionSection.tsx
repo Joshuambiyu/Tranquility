@@ -33,7 +33,7 @@ export function DailyReflectionSection({
             onChange={(event) => onAnswerChange(event.target.value)}
             type="text"
             placeholder="Write a short thought..."
-            className="rounded-xl border border-sky-200 bg-white px-4 py-3 text-slate-900 outline-none ring-sky-300 transition focus:ring"
+            className="rounded-xl border border-emerald-200 bg-white px-4 py-3 text-slate-900 outline-none ring-emerald-300 transition focus:ring"
           />
         </label>
 
@@ -49,8 +49,8 @@ export function DailyReflectionSection({
                   onClick={() => onStressChange(option)}
                   className={`rounded-xl px-3 py-2 text-sm font-semibold capitalize transition ${
                     isSelected
-                      ? "bg-sky-600 text-white"
-                      : "bg-sky-50 text-slate-700 ring-1 ring-sky-200 hover:bg-sky-100"
+                      ? "bg-emerald-700 text-white"
+                      : "bg-cyan-50 text-slate-700 ring-1 ring-cyan-100 hover:bg-cyan-100"
                   }`}
                 >
                   {option}
@@ -65,13 +65,13 @@ export function DailyReflectionSection({
         <button
           type="button"
           onClick={onSubmit}
-          className="rounded-full bg-sky-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-700"
+          className="rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800"
         >
           Submit Reflection
         </button>
 
         {submissionState.status === "submitted" ? (
-          <p className="rounded-xl bg-sky-50 px-4 py-3 text-slate-700 ring-1 ring-sky-100">
+          <p className="rounded-xl bg-cyan-50 px-4 py-3 text-slate-700 ring-1 ring-cyan-100">
             <span className="font-semibold text-slate-900">{submissionState.result.title}:</span>{" "}
             {submissionState.result.message}
           </p>

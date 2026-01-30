@@ -11,7 +11,7 @@ export function HelpsSection({ items }: HelpsSectionProps) {
       <SectionTitle title="How TranquilityHub Helps You" />
       <div className="grid gap-4 md:grid-cols-3">
         {items.map((item) => (
-          <article key={item.title} className="grid gap-2 rounded-2xl bg-sky-50/80 p-5 ring-1 ring-sky-100">
+          <article key={item.title} className="grid gap-2 rounded-2xl bg-emerald-50/70 p-5 ring-1 ring-emerald-100">
             <h3 className="text-xl font-semibold text-slate-900">
               <span className="mr-2" aria-hidden>
                 {item.icon}

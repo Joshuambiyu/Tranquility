@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AuthControls } from "@/app/components/AuthControls";
 import type { NavLinkItem } from "@/types";
 
 interface SiteHeaderProps {
@@ -20,22 +21,25 @@ export function SiteHeader({ links }: SiteHeaderProps) {
           <span className="font-serif text-xl tracking-tight text-slate-800 sm:text-2xl">TranquilityHub</span>
         </Link>
 
-        <nav aria-label="Primary navigation" className="grid grid-flow-col auto-cols-max gap-4 overflow-x-auto">
-          {links.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`text-sm font-medium transition ${
-                  isActive ? "text-emerald-700" : "text-slate-600 hover:text-emerald-700"
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
+        <div className="flex items-center gap-4">
+          <nav aria-label="Primary navigation" className="grid grid-flow-col auto-cols-max gap-4 overflow-x-auto">
+            {links.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`text-sm font-medium transition ${
+                    isActive ? "text-emerald-700" : "text-slate-600 hover:text-emerald-700"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+          <AuthControls />
+        </div>
       </div>
     </header>
   );

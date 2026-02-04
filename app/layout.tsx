@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Libre_Baskerville, Manrope } from "next/font/google";
+import { Providers } from "@/app/providers";
 import { SiteHeader } from "@/app/components/SiteHeader";
 import { footerLinks } from "@/app/data/homepageData";
 import "./globals.css";
@@ -35,10 +36,12 @@ export default function RootLayout({
     >
       <head />
       <body className="min-h-full bg-[#f7f8f4] text-slate-800">
-        <div className="flex min-h-full flex-col">
-          <SiteHeader links={footerLinks} />
-          <div className="flex-1">{children}</div>
-        </div>
+        <Providers>
+          <div className="flex min-h-full flex-col">
+            <SiteHeader links={footerLinks} />
+            <div className="flex-1">{children}</div>
+          </div>
+        </Providers>
       </body>
     </html>
   );

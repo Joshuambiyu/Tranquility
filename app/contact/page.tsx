@@ -10,13 +10,44 @@ export default function ContactPage() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSubmitted(true);
-    setName("");
-    setEmail("");
-    setMessage("");
+
+    try {
+      setIsSubmitting(true);
+      setSubmitError("");
+      setSubmitted(false);
+
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          message,
+        }),
+      });
+
+      const result = (await response.json()) as { message?: string };
+
+      if (!response.ok) {
+        throw new Error(result.message ?? "Unable to send your message.");
+      }
+
+      setSubmitted(true);
+      setName("");
+      setEmail("");
+      setMessage("");
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Unable to send your message.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -60,9 +91,10 @@ export default function ContactPage() {
             </label>
             <button
               type="submit"
+              disabled={isSubmitting}
               className="inline-grid w-fit place-items-center rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800"
             >
-              Send Message
+              {isSubmitting ? "Sending..." : "Send Message"}
             </button>
           </form>
           <p className="text-sm text-slate-600">Email: {contactPageContent.email}</p>
@@ -70,6 +102,9 @@ export default function ContactPage() {
             <p className="rounded-xl bg-emerald-50 px-4 py-3 text-slate-700 ring-1 ring-emerald-100">
               Thank you for reaching out. We will respond soon.
             </p>
+          ) : null}
+          {submitError ? (
+            <p className="rounded-xl bg-rose-50 px-4 py-3 text-rose-700 ring-1 ring-rose-100">{submitError}</p>
           ) : null}
         </SectionBlock>
       </main>

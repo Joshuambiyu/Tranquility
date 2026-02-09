@@ -1,5 +1,6 @@
 import type {
   ArticleCardItem,
+  BlogArticle,
   BlogPostPreview,
   CommunityVoiceItem,
   FeaturedReflection,
@@ -298,6 +299,78 @@ export const blogPosts: BlogPostPreview[] = [
     href: "/blog/reset-rituals",
   },
 ];
+
+export const blogArticles: BlogArticle[] = [
+  {
+    slug: "quiet-morning-reset",
+    title: "A Quiet Morning Reset",
+    author: "TranquilityHub Team",
+    publishedOn: "March 20, 2026",
+    imageSrc: "/featured-reflection.svg",
+    imageAlt: "Sunrise over soft clouds",
+    content: [
+      "When your mornings begin with urgency, your thoughts can stay scattered all day. A quiet reset does not need to be long to be effective.",
+      "Start by placing your phone face down and taking five steady breaths. Let your body settle before your inbox takes over your attention.",
+      "Write one sentence in your journal: What matters most today? This single sentence creates direction and reduces decision fatigue.",
+      "Close with one practical commitment such as drinking water, stretching, or reviewing your top priority for ten focused minutes.",
+    ],
+    reflectionMoment:
+      "Which part of your morning most affects your mindset for the rest of the day?",
+    relatedSlugs: ["mindful-study-breaks", "clarity-journaling"],
+  },
+  {
+    slug: "mindful-study-breaks",
+    title: "Mindful study breaks that actually work",
+    author: "Editorial",
+    publishedOn: "March 12, 2026",
+    imageSrc: "/featured-reflection.svg",
+    imageAlt: "Notebook and coffee on a desk",
+    content: [
+      "Most breaks fail because they are unplanned. Mindful breaks work when they are intentional and short.",
+      "Try a 4-4-6 breathing cycle for one minute, then stand and stretch your shoulders and neck for two minutes.",
+      "Before returning to work, write the next tiny step of your task. This reduces friction and helps you restart quickly.",
+      "Consistency matters more than duration. Three mindful breaks in a day can improve focus more than one long break.",
+    ],
+    reflectionMoment: "What does a productive break look like for you?",
+    relatedSlugs: ["clarity-journaling", "reset-rituals"],
+  },
+  {
+    slug: "clarity-journaling",
+    title: "Clarity journaling for busy minds",
+    author: "Guest Writer",
+    publishedOn: "March 8, 2026",
+    imageSrc: "/featured-reflection.svg",
+    imageAlt: "Person writing in journal",
+    content: [
+      "Journaling is not about writing perfectly. It is about turning mental noise into visible words you can work with.",
+      "Use a three-line structure: What am I feeling? What is making this hard? What is one helpful next step?",
+      "When thoughts repeat, name them directly. Naming often lowers their intensity and helps you move forward with clarity.",
+      "Keep entries short but frequent. A few honest lines each day are more valuable than occasional long entries.",
+    ],
+    reflectionMoment: "What thought are you ready to write down and release?",
+    relatedSlugs: ["quiet-morning-reset", "reset-rituals"],
+  },
+  {
+    slug: "reset-rituals",
+    title: "Reset rituals after a long day",
+    author: "Community",
+    publishedOn: "March 2, 2026",
+    imageSrc: "/featured-reflection.svg",
+    imageAlt: "Warm light in a calm room",
+    content: [
+      "Ending your day with intention helps your mind transition from pressure to rest.",
+      "Start with a two-minute brain dump. Place unfinished tasks on paper so your mind does not carry them overnight.",
+      "Choose one calming signal: warm tea, light stretching, or soft music. Repeat it nightly to create a reliable wind-down cue.",
+      "Finish by noting one thing that went well today. This builds emotional balance and perspective over time.",
+    ],
+    reflectionMoment: "How do you want to feel before you sleep tonight?",
+    relatedSlugs: ["mindful-study-breaks", "quiet-morning-reset"],
+  },
+];
+
+export const blogArticleBySlug = Object.fromEntries(
+  blogArticles.map((article) => [article.slug, article]),
+) as Record<string, BlogArticle>;
 
 export const aboutPageContent = {
   mission:

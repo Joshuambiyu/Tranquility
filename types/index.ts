@@ -72,6 +72,18 @@ export interface BlogPostPreview {
   href: string;
 }
 
+export interface BlogArticle {
+  slug: string;
+  title: string;
+  author: string;
+  publishedOn: string;
+  imageSrc: string;
+  imageAlt: string;
+  content: string[];
+  reflectionMoment: string;
+  relatedSlugs: string[];
+}
+
 export interface ReflectionResult {
   tone: ReflectionTone;
   title: string;

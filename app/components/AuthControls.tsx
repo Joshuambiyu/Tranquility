@@ -12,12 +12,12 @@ export function AuthControls() {
 
   if (status === "authenticated" && session.user) {
     return (
-      <div className="inline-flex items-center gap-2">
+      <div className="flex w-full flex-col items-stretch gap-2 sm:inline-flex sm:w-auto sm:flex-row sm:items-center">
         <p className="hidden text-xs text-slate-600 sm:block">{session.user.name ?? session.user.email}</p>
         <button
           type="button"
           onClick={() => signOut({ callbackUrl: "/" })}
-          className="rounded-full border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50"
+          className="inline-flex w-full items-center justify-center rounded-full border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 sm:w-auto sm:py-1.5"
         >
           Sign out
         </button>
@@ -26,12 +26,12 @@ export function AuthControls() {
   }
 
   return (
-    <div className="inline-flex items-center gap-2">
+    <div className="flex w-full flex-col items-stretch gap-2 sm:inline-flex sm:w-auto sm:flex-row sm:items-center">
       <GoogleOneTap />
       <button
         type="button"
         onClick={() => signIn("google")}
-        className="rounded-full border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50"
+        className="inline-flex w-full items-center justify-center rounded-full border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 sm:w-auto sm:py-1.5"
       >
         Sign in with Google
       </button>

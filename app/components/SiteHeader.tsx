@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { AuthControls } from "@/app/components/AuthControls";
 import type { NavLinkItem } from "@/types";
@@ -14,6 +15,11 @@ interface SiteHeaderProps {
 export function SiteHeader({ links }: SiteHeaderProps) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -77,59 +83,66 @@ export function SiteHeader({ links }: SiteHeaderProps) {
 
       </div>
 
-      <div
-        className={`fixed inset-0 z-40 bg-slate-900/20 transition-opacity duration-300 md:hidden ${
-          isMobileMenuOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
-        }`}
-        aria-hidden={!isMobileMenuOpen}
-        onClick={() => setIsMobileMenuOpen(false)}
-      />
-
-      <div
-        id="mobile-site-menu"
-        className={`fixed inset-y-0 right-0 z-50 flex w-[min(86vw,22rem)] flex-col border-l border-emerald-100 bg-[#f7f8f4] px-5 pb-6 pt-5 shadow-2xl transition-transform duration-300 md:hidden ${
-          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-        aria-hidden={!isMobileMenuOpen}
-      >
-        <div className="flex items-center justify-between gap-4 border-b border-emerald-100 pb-4">
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-700">Navigate</p>
-            <p className="truncate pt-1 font-serif text-xl text-slate-800">TranquilityHub</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-emerald-200 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700 transition hover:bg-emerald-50"
-            aria-label="Close navigation menu"
-          >
-            Close
-          </button>
-        </div>
-
-        <nav aria-label="Mobile primary navigation" className="grid gap-2 py-5">
-          {links.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`rounded-2xl px-4 py-3 text-sm font-medium transition ${
-                  isActive
-                    ? "bg-emerald-50 text-emerald-700"
-                    : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"
+      {isMounted
+        ? createPortal(
+            <>
+              <div
+                className={`fixed inset-0 z-[70] bg-slate-900/30 transition-opacity duration-300 md:hidden ${
+                  isMobileMenuOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
                 }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
+                aria-hidden={!isMobileMenuOpen}
+                onClick={() => setIsMobileMenuOpen(false)}
+              />
 
-        <div className="mt-auto border-t border-emerald-100 pt-5">
-          <AuthControls />
-        </div>
-      </div>
+              <div
+                id="mobile-site-menu"
+                className={`fixed inset-y-0 right-0 z-[80] flex h-dvh w-[min(88vw,22rem)] flex-col bg-[#f7f8f4] px-5 pb-6 pt-5 shadow-[0_24px_80px_rgba(15,23,42,0.22)] transition-transform duration-300 md:hidden ${
+                  isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+                }`}
+                aria-hidden={!isMobileMenuOpen}
+              >
+                <div className="flex items-center justify-between gap-4 border-b border-emerald-100 pb-4">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-700">Navigate</p>
+                    <p className="truncate pt-1 font-serif text-xl text-slate-800">TranquilityHub</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="inline-flex h-11 items-center justify-center rounded-full border border-emerald-200 px-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-700 transition hover:bg-emerald-50"
+                    aria-label="Close navigation menu"
+                  >
+                    Close
+                  </button>
+                </div>
+
+                <nav aria-label="Mobile primary navigation" className="grid gap-2 py-5">
+                  {links.map((link) => {
+                    const isActive = pathname === link.href;
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className={`rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                          isActive
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    );
+                  })}
+                </nav>
+
+                <div className="mt-auto border-t border-emerald-100 pt-5">
+                  <AuthControls />
+                </div>
+              </div>
+            </>,
+            document.body,
+          )
+        : null}
     </header>
   );
 }

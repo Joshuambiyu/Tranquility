@@ -55,8 +55,10 @@ export function SiteHeader({ links }: SiteHeaderProps) {
             aria-controls="mobile-site-menu"
             aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
           >
-            <span className="text-[11px] font-semibold uppercase tracking-[0.22em]">
-              {isMobileMenuOpen ? "Close" : "Menu"}
+            <span className="flex w-4 flex-col gap-1" aria-hidden="true">
+              <span className="h-0.5 w-full rounded-full bg-current" />
+              <span className="h-0.5 w-full rounded-full bg-current" />
+              <span className="h-0.5 w-full rounded-full bg-current" />
             </span>
           </button>
 
@@ -109,10 +111,13 @@ export function SiteHeader({ links }: SiteHeaderProps) {
                   <button
                     type="button"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="inline-flex h-11 items-center justify-center rounded-full border border-emerald-200 px-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-700 transition hover:bg-emerald-50"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-emerald-200 text-slate-700 transition hover:bg-emerald-50"
                     aria-label="Close navigation menu"
                   >
-                    Close
+                    <span className="relative block h-4 w-4" aria-hidden="true">
+                      <span className="absolute left-1/2 top-1/2 block h-0.5 w-4 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full bg-current" />
+                      <span className="absolute left-1/2 top-1/2 block h-0.5 w-4 -translate-x-1/2 -translate-y-1/2 -rotate-45 rounded-full bg-current" />
+                    </span>
                   </button>
                 </div>
 

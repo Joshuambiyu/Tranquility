@@ -66,6 +66,8 @@ export default function ContactPage() {
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 required
+                minLength={2}
+                maxLength={100}
                 className="rounded-xl border border-emerald-200 bg-white px-4 py-3 text-slate-800 outline-none ring-emerald-300 transition focus:ring"
               />
             </label>
@@ -86,8 +88,11 @@ export default function ContactPage() {
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
                 required
+                minLength={10}
+                maxLength={4000}
                 className="rounded-xl border border-emerald-200 bg-white px-4 py-3 text-slate-800 outline-none ring-emerald-300 transition focus:ring"
               />
+              <span className="text-xs text-slate-500">Minimum 10 characters.</span>
             </label>
             <button
               type="submit"

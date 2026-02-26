@@ -17,8 +17,11 @@ export async function POST(request: Request) {
     const parsed = contactSubmissionSchema.safeParse(payload);
 
     if (!parsed.success) {
+      const validationMessage =
+        parsed.error.issues[0]?.message ?? "Please check your name, email, and message and try again.";
+
       return NextResponse.json(
-        { message: "Please provide a valid name, email, and message." },
+        { message: validationMessage },
         { status: 400 },
       );
     }

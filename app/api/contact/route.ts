@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { ApiError, logServerError, toErrorResponse } from "@/lib/errors/api-error";
 import { prisma } from "@/lib/prisma";
 import { contactSubmissionSchema } from "@/lib/validators";
 import { Resend } from "resend";
@@ -17,18 +18,15 @@ export async function POST(request: Request) {
     const parsed = contactSubmissionSchema.safeParse(payload);
 
     if (!parsed.success) {
-      const validationMessage =
-        parsed.error.issues[0]?.message ?? "Please check your name, email, and message and try again.";
-
-      return NextResponse.json(
-        { message: validationMessage },
-        { status: 400 },
-      );
+      return toErrorResponse(parsed.error, {
+        fallbackMessage: "Please check your name, email, and message and try again.",
+        route: "POST /api/contact",
+      });
     }
 
     const session = await getServerSession(authOptions);
 
-    await prisma.contactSubmission.create({
+    const submission = await prisma.contactSubmission.create({
       data: {
         name: parsed.data.name,
         email: parsed.data.email,
@@ -37,27 +35,62 @@ export async function POST(request: Request) {
       },
     });
 
+    let emailSent = false;
+
     if (resend && contactRecipient && fromEmail) {
-      await resend.emails.send({
-        from: fromEmail,
-        to: contactRecipient,
-        replyTo: parsed.data.email,
-        subject: `New contact message from ${parsed.data.name}`,
-        text: [
-          `Name: ${parsed.data.name}`,
-          `Email: ${parsed.data.email}`,
-          "",
-          "Message:",
-          parsed.data.message,
-        ].join("\n"),
-      });
+      try {
+        await resend.emails.send({
+          from: fromEmail,
+          to: contactRecipient,
+          replyTo: parsed.data.email,
+          subject: `New contact message from ${parsed.data.name}`,
+          text: [
+            `Name: ${parsed.data.name}`,
+            `Email: ${parsed.data.email}`,
+            "",
+            "Message:",
+            parsed.data.message,
+          ].join("\n"),
+        });
+        emailSent = true;
+      } catch (error) {
+        logServerError(error, {
+          route: "POST /api/contact",
+          stage: "resend.send",
+          extra: {
+            submissionId: submission.id,
+          },
+        });
+      }
+    } else {
+      logServerError(
+        new ApiError("Email notification skipped due to missing configuration.", {
+          statusCode: 500,
+          code: "INTERNAL_ERROR",
+        }),
+        {
+          route: "POST /api/contact",
+          stage: "resend.config",
+          extra: {
+            hasApiKey: Boolean(resendApiKey),
+            hasRecipient: Boolean(contactRecipient),
+            hasFromEmail: Boolean(fromEmail),
+          },
+        },
+      );
     }
 
-    return NextResponse.json({ message: "Thanks for your message." }, { status: 201 });
-  } catch {
     return NextResponse.json(
-      { message: "Something went wrong while sending your message." },
-      { status: 500 },
+      {
+        message: "Thanks for your message.",
+        emailSent,
+      },
+      { status: 201 },
     );
+  } catch (error) {
+    return toErrorResponse(error, {
+      fallbackMessage: "Something went wrong while sending your message.",
+      route: "POST /api/contact",
+    });
   }
 }

@@ -1,33 +1,47 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { ApiError, toErrorResponse } from "@/lib/errors/api-error";
 import { prisma } from "@/lib/prisma";
 import { voiceSubmissionSchema } from "@/lib/validators";
 
 export async function GET() {
-  const approvedVoices = await prisma.voiceSubmission.findMany({
-    where: { status: "approved" },
-    orderBy: { createdAt: "desc" },
-    take: 6,
-    select: {
-      id: true,
-      title: true,
-      reflection: true,
-      author: true,
-      createdAt: true,
-    },
-  });
+  try {
+    const approvedVoices = await prisma.voiceSubmission.findMany({
+      where: { status: "approved" },
+      orderBy: { createdAt: "desc" },
+      take: 6,
+      select: {
+        id: true,
+        title: true,
+        reflection: true,
+        author: true,
+        createdAt: true,
+      },
+    });
 
-  return NextResponse.json({ voices: approvedVoices });
+    return NextResponse.json({ voices: approvedVoices });
+  } catch (error) {
+    return toErrorResponse(error, {
+      fallbackMessage: "Something went wrong while loading voices.",
+      route: "GET /api/voices",
+    });
+  }
 }
 
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json(
-        { message: "You need to sign in with Google to submit your voice." },
-        { status: 401 },
+      return toErrorResponse(
+        new ApiError("You need to sign in with Google to submit your voice.", {
+          statusCode: 401,
+          code: "AUTH_REQUIRED",
+        }),
+        {
+          fallbackMessage: "You need to sign in with Google to submit your voice.",
+          route: "POST /api/voices",
+        },
       );
     }
 
@@ -35,10 +49,10 @@ export async function POST(request: Request) {
     const parsed = voiceSubmissionSchema.safeParse(payload);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { message: "Please provide a title and reflection with enough detail." },
-        { status: 400 },
-      );
+      return toErrorResponse(parsed.error, {
+        fallbackMessage: "Please provide a title and reflection with enough detail.",
+        route: "POST /api/voices",
+      });
     }
 
     await prisma.voiceSubmission.create({
@@ -58,10 +72,10 @@ export async function POST(request: Request) {
       },
       { status: 201 },
     );
-  } catch {
-    return NextResponse.json(
-      { message: "Something went wrong while submitting your reflection." },
-      { status: 500 },
-    );
+  } catch (error) {
+    return toErrorResponse(error, {
+      fallbackMessage: "Something went wrong while submitting your reflection.",
+      route: "POST /api/voices",
+    });
   }
 }

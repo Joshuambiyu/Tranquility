@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { SectionBlock, SectionTitle } from "@/app/components/ui";
 import { FooterSection } from "@/app/components/FooterSection";
+import { logClientError, parseApiError } from "@/lib/errors/client-error";
 import {
   footerLinks,
   voiceOfWeek,
@@ -33,12 +34,18 @@ export default function VoicesPage() {
       try {
         const response = await fetch("/api/voices", { cache: "no-store" });
         if (!response.ok) {
+          logClientError(await parseApiError(response, "Unable to load voices right now."), {
+            scope: "voices.load",
+          });
           return;
         }
 
         const result = (await response.json()) as { voices: PersistedVoice[] };
         setApprovedVoices(result.voices ?? []);
       } catch {
+        logClientError("Unable to load voices right now.", {
+          scope: "voices.load",
+        });
         setApprovedVoices([]);
       }
     };
@@ -76,16 +83,23 @@ export default function VoicesPage() {
         }),
       });
 
-      const result = (await response.json()) as { message?: string };
-
       if (!response.ok) {
         if (response.status === 401) {
-          setSubmitError(result.message ?? "Please sign in to submit your reflection.");
+          const authError = await parseApiError(
+            response,
+            "Please sign in to submit your reflection.",
+          );
+          setSubmitError(authError.message);
+          logClientError(authError, {
+            scope: "voices.submit.auth",
+          });
           return;
         }
 
-        throw new Error(result.message ?? "Unable to submit reflection.");
+        throw await parseApiError(response, "Unable to submit reflection.");
       }
+
+      const result = (await response.json()) as { message?: string };
 
       setSubmitSuccess(
         result.message ?? "Your reflection has been submitted and is pending review.",
@@ -93,6 +107,9 @@ export default function VoicesPage() {
       setTitle("");
       setReflection("");
     } catch (error) {
+      logClientError(error, {
+        scope: "voices.submit",
+      });
       setSubmitError(error instanceof Error ? error.message : "Unable to submit reflection.");
     } finally {
       setIsSubmitting(false);

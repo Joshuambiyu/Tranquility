@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FooterSection } from "@/app/components/FooterSection";
 import { SectionBlock, SectionTitle } from "@/app/components/ui";
+import { logClientError, parseApiError } from "@/lib/errors/client-error";
 import { contactPageContent, footerLinks } from "@/app/data/homepageData";
 
 export default function ContactPage() {
@@ -33,17 +34,23 @@ export default function ContactPage() {
         }),
       });
 
-      const result = (await response.json()) as { message?: string };
-
       if (!response.ok) {
-        throw new Error(result.message ?? "Unable to send your message.");
+        throw await parseApiError(response, "Unable to send your message.");
       }
 
+      const result = (await response.json()) as { message?: string; emailSent?: boolean };
+
       setSubmitted(true);
+      if (result.emailSent === false) {
+        setSubmitError("Your message was saved, but email notification is currently unavailable.");
+      }
       setName("");
       setEmail("");
       setMessage("");
     } catch (error) {
+      logClientError(error, {
+        scope: "contact.submit",
+      });
       setSubmitError(error instanceof Error ? error.message : "Unable to send your message.");
     } finally {
       setIsSubmitting(false);

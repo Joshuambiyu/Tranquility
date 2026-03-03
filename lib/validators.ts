@@ -16,6 +16,7 @@ export const contactSubmissionSchema = z.object({
     .trim()
     .min(10, { message: "Message is too short. Please write at least 10 characters." })
     .max(4000, { message: "Message must be 4000 characters or fewer." }),
+  website: z.string().trim().max(200).optional().default(""),
 });
 
 export const voiceSubmissionSchema = z.object({

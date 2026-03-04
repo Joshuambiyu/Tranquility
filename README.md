@@ -1,36 +1,103 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TranquilityHub
 
-## Getting Started
+TranquilityHub is a Next.js app with Google authentication, a contact flow with DB persistence and optional email notifications, and a protected admin view for contact submissions.
 
-First, run the development server:
+## Local setup
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Copy env file and configure values:
+
+```bash
+cp .env.example .env
+```
+
+3. Run Prisma migrations:
+
+```bash
+npm run prisma:migrate
+```
+
+4. Start development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Required environment variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Authentication and DB:
+- DATABASE_URL
+- NEXTAUTH_URL
+- NEXTAUTH_SECRET
+- GOOGLE_CLIENT_ID
+- GOOGLE_CLIENT_SECRET
+- NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Contact and email:
+- RESEND_API_KEY
+- RESEND_FROM_EMAIL
+- CONTACT_NOTIFY_TO
 
-## Learn More
+Admin dashboard:
+- ADMIN_EMAILS (comma-separated list)
 
-To learn more about Next.js, take a look at the following resources:
+Anti-spam tuning:
+- CONTACT_RATE_LIMIT_WINDOW_MS (default 60000)
+- CONTACT_RATE_LIMIT_MAX (default 5)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Contact flow behavior
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Contact submissions are always written to DB first.
+2. Email notification runs after DB save and is non-blocking.
+3. If email fails, user still gets success and you can review entries at the admin page.
+4. Anti-spam protections include a honeypot field and per-IP rate limiting.
 
-## Deploy on Vercel
+## Admin submissions view
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Route:
+- /admin/contact-submissions
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Access policy:
+- User must be signed in.
+- User email must exist in ADMIN_EMAILS or CONTACT_NOTIFY_TO.
+
+## Production safety checks
+
+Run preflight env checks before deploying:
+
+```bash
+npm run check:prod-env
+```
+
+This checks required env vars and warns about common production issues.
+
+## Smoke test
+
+Run contact API smoke test against local or deployed URL:
+
+```bash
+SMOKE_BASE_URL=http://localhost:3000 npm run smoke:contact
+```
+
+On PowerShell:
+
+```powershell
+$env:SMOKE_BASE_URL="http://localhost:3000"; npm run smoke:contact
+```
+
+## Useful scripts
+
+- npm run dev
+- npm run build
+- npm run start
+- npm run lint
+- npm run test:integration
+- npm run check:prod-env
+- npm run smoke:contact
+- npm run prisma:migrate
+- npm run prisma:studio

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { AuthControls } from "@/app/components/AuthControls";
@@ -12,18 +12,18 @@ interface SiteHeaderProps {
   links: NavLinkItem[];
 }
 
+function subscribeToClientRender() {
+  return () => {};
+}
+
 export function SiteHeader({ links }: SiteHeaderProps) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const isClient = useSyncExternalStore(subscribeToClientRender, () => true, () => false);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
+  const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
-  }, [pathname]);
+  };
 
   useEffect(() => {
     if (!isMobileMenuOpen) {
@@ -42,7 +42,12 @@ export function SiteHeader({ links }: SiteHeaderProps) {
     <header className="sticky top-0 z-50 border-b border-emerald-100/80 bg-[#f7f8f4]/90 backdrop-blur">
       <div className="mx-auto w-full max-w-6xl px-5 py-4 sm:px-8 lg:px-10">
         <div className="flex items-center justify-between gap-4">
-          <Link href="/" className="inline-flex min-w-0 items-center gap-3" aria-label="TranquilityHub home">
+          <Link
+            href="/"
+            onClick={closeMobileMenu}
+            className="inline-flex min-w-0 items-center gap-3"
+            aria-label="TranquilityHub home"
+          >
             <Image src="/tranquilityhub-mark.svg" alt="TranquilityHub logo" width={38} height={38} priority />
             <span className="truncate font-serif text-lg tracking-tight text-slate-800 sm:text-2xl">TranquilityHub</span>
           </Link>
@@ -70,6 +75,7 @@ export function SiteHeader({ links }: SiteHeaderProps) {
                   <Link
                     key={link.href}
                     href={link.href}
+                    onClick={closeMobileMenu}
                     className={`text-sm font-medium transition ${
                       isActive ? "text-emerald-700" : "text-slate-600 hover:text-emerald-700"
                     }`}
@@ -85,7 +91,7 @@ export function SiteHeader({ links }: SiteHeaderProps) {
 
       </div>
 
-      {isMounted
+      {isClient
         ? createPortal(
             <>
               <div
@@ -128,6 +134,7 @@ export function SiteHeader({ links }: SiteHeaderProps) {
                       <Link
                         key={link.href}
                         href={link.href}
+                        onClick={closeMobileMenu}
                         className={`rounded-2xl px-4 py-3 text-sm font-medium transition ${
                           isActive
                             ? "bg-emerald-50 text-emerald-700"

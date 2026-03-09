@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { FooterSection } from "@/app/components/FooterSection";
 import { SectionBlock, SectionTitle } from "@/app/components/ui";
 import {
-  footerLinks,
   journalingPrompts,
   mindfulnessIntro,
   mindfulnessPractices,
@@ -75,10 +73,6 @@ export default function ResourcesPage() {
           <p className="text-slate-700">{resourceOfMonth.description}</p>
         </SectionBlock>
       </main>
-
-      <div className="mx-auto grid w-full max-w-6xl px-5 pb-8 sm:px-8 lg:px-10">
-        <FooterSection links={footerLinks} />
-      </div>
     </div>
   );
 }

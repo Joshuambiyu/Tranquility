@@ -3,10 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { SectionBlock, SectionTitle } from "@/app/components/ui";
-import { FooterSection } from "@/app/components/FooterSection";
 import { logClientError, parseApiError } from "@/lib/errors/client-error";
 import {
-  footerLinks,
   voiceOfWeek,
   voiceReflections,
   voicesIntro,
@@ -205,10 +203,6 @@ export default function VoicesPage() {
           ) : null}
         </SectionBlock>
       </main>
-
-      <div className="mx-auto grid w-full max-w-6xl px-5 pb-8 sm:px-8 lg:px-10">
-        <FooterSection links={footerLinks} />
-      </div>
     </div>
   );
 }

@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { FooterSection } from "@/app/components/FooterSection";
 import { SectionBlock, SectionTitle } from "@/app/components/ui";
 import { logClientError, parseApiError } from "@/lib/errors/client-error";
-import { contactPageContent, footerLinks } from "@/app/data/homepageData";
+import { contactPageContent } from "@/app/data/homepageData";
 
 const MESSAGE_MAX_LENGTH = 4000;
 
@@ -235,10 +234,6 @@ export default function ContactPage() {
           ) : null}
         </SectionBlock>
       </main>
-
-      <div className="mx-auto grid w-full max-w-6xl px-5 pb-8 sm:px-8 lg:px-10">
-        <FooterSection links={footerLinks} />
-      </div>
     </div>
   );
 }

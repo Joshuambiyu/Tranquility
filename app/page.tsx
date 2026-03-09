@@ -5,7 +5,6 @@ import { useState } from "react";
 import { AboutSection } from "@/app/components/AboutSection";
 import { DailyReflectionSection } from "@/app/components/DailyReflectionSection";
 import { FeaturedReflectionSection } from "@/app/components/FeaturedReflectionSection";
-import { FooterSection } from "@/app/components/FooterSection";
 import { HelpsSection } from "@/app/components/HelpsSection";
 import { HeroSection } from "@/app/components/HeroSection";
 import { MissionSection } from "@/app/components/MissionSection";
@@ -15,7 +14,6 @@ import {
   aboutSnippet,
   communityVoices,
   featuredReflection,
-  footerLinks,
   helpItems,
   heroContent,
   missionText,
@@ -74,10 +72,6 @@ export default function Home() {
         <RecentArticlesSection articles={recentArticles} />
         <AboutSection description={aboutSnippet} />
       </main>
-
-      <div className="mx-auto grid w-full max-w-6xl px-5 pb-8 sm:px-8 lg:px-10">
-        <FooterSection links={footerLinks} />
-      </div>
     </div>
   );
 }

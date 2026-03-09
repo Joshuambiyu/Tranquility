@@ -3,9 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { FooterSection } from "@/app/components/FooterSection";
 import { SectionBlock, SectionTitle } from "@/app/components/ui";
-import { blogPageIntro, blogPosts, featuredBlogPost, footerLinks } from "@/app/data/homepageData";
+import { blogPageIntro, blogPosts, featuredBlogPost } from "@/app/data/homepageData";
 
 export default function BlogPage() {
   const [query, setQuery] = useState("");
@@ -103,10 +102,6 @@ export default function BlogPage() {
           ) : null}
         </SectionBlock>
       </main>
-
-      <div className="mx-auto grid w-full max-w-6xl px-5 pb-8 sm:px-8 lg:px-10">
-        <FooterSection links={footerLinks} />
-      </div>
     </div>
   );
 }

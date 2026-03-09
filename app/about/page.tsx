@@ -1,7 +1,6 @@
 import Image from "next/image";
-import { FooterSection } from "@/app/components/FooterSection";
 import { SectionBlock, SectionTitle } from "@/app/components/ui";
-import { aboutPageContent, footerLinks } from "@/app/data/homepageData";
+import { aboutPageContent } from "@/app/data/homepageData";
 
 export default function AboutPage() {
   return (
@@ -38,10 +37,6 @@ export default function AboutPage() {
           <p className="text-slate-700">{aboutPageContent.closing}</p>
         </SectionBlock>
       </main>
-
-      <div className="mx-auto grid w-full max-w-6xl px-5 pb-8 sm:px-8 lg:px-10">
-        <FooterSection links={footerLinks} />
-      </div>
     </div>
   );
 }

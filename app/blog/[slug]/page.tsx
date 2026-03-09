@@ -1,9 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FooterSection } from "@/app/components/FooterSection";
 import { SectionBlock, SectionTitle } from "@/app/components/ui";
-import { blogArticleBySlug, footerLinks } from "@/app/data/homepageData";
+import { blogArticleBySlug } from "@/app/data/homepageData";
 
 interface BlogArticlePageProps {
   params: Promise<{ slug: string }>;
@@ -79,10 +78,6 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           </div>
         </SectionBlock>
       </main>
-
-      <div className="mx-auto grid w-full max-w-6xl px-5 pb-8 sm:px-8 lg:px-10">
-        <FooterSection links={footerLinks} />
-      </div>
     </div>
   );
 }

@@ -19,7 +19,7 @@ interface ActionLinkProps {
 
 export function SectionBlock({ children, className = "" }: SectionBlockProps) {
   return (
-    <section className={`grid gap-6 rounded-3xl bg-white/90 p-8 shadow-sm ring-1 ring-emerald-100 ${className}`}>
+    <section className={`grid gap-6 rounded-2xl bg-white/90 p-8 shadow-sm ring-1 ring-emerald-100 ${className}`}>
       {children} {/* children for reusability in wrapper component */}
     </section>
   );

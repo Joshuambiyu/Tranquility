@@ -6,6 +6,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { AuthControls } from "@/app/components/AuthControls";
+import { useTheme } from "@/app/theme-provider";
 import type { NavLinkItem } from "@/types";
 
 interface SiteHeaderProps {
@@ -16,8 +17,43 @@ function subscribeToClientRender() {
   return () => {};
 }
 
+interface ThemeToggleButtonProps {
+  theme: "light" | "dark";
+  onToggle: () => void;
+  className?: string;
+}
+
+function ThemeToggleButton({ theme, onToggle, className = "" }: ThemeToggleButtonProps) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={`inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border-muted)] text-[var(--text-muted)] transition hover:bg-[var(--surface-muted)] ${className}`}
+      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      title={theme === "dark" ? "Switch to day mode" : "Switch to night mode"}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5"
+        aria-hidden="true"
+      >
+        <path
+          d="M20 15.5A8.5 8.5 0 0 1 8.5 4a8.5 8.5 0 1 0 11.5 11.5Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
+  );
+}
+
 export function SiteHeader({ links }: SiteHeaderProps) {
   const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isClient = useSyncExternalStore(subscribeToClientRender, () => true, () => false);
 
@@ -39,7 +75,7 @@ export function SiteHeader({ links }: SiteHeaderProps) {
   }, [isMobileMenuOpen]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-emerald-100/80 bg-[#f7f8f4]/90 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-[var(--border-muted)] bg-[var(--header-bg)] backdrop-blur">
       <div className="mx-auto w-full max-w-6xl px-5 py-4 sm:px-8 lg:px-10">
         <div className="flex items-center justify-between gap-4">
           <Link
@@ -49,25 +85,29 @@ export function SiteHeader({ links }: SiteHeaderProps) {
             aria-label="TranquilityHub home"
           >
             <Image src="/tranquilityhub-mark.svg" alt="TranquilityHub logo" width={38} height={38} priority />
-            <span className="truncate font-serif text-lg tracking-tight text-slate-800 sm:text-2xl">TranquilityHub</span>
+            <span className="truncate font-serif text-lg tracking-tight text-[var(--text-strong)] sm:text-2xl">TranquilityHub</span>
           </Link>
 
-          <button
-            type="button"
-            onClick={() => setIsMobileMenuOpen((current) => !current)}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-emerald-200 text-slate-700 transition hover:bg-emerald-50 md:hidden"
-            aria-expanded={isMobileMenuOpen}
-            aria-controls="mobile-site-menu"
-            aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-          >
-            <span className="flex w-4 flex-col gap-1" aria-hidden="true">
-              <span className="h-0.5 w-full rounded-full bg-current" />
-              <span className="h-0.5 w-full rounded-full bg-current" />
-              <span className="h-0.5 w-full rounded-full bg-current" />
-            </span>
-          </button>
+          <div className="flex items-center gap-2 md:hidden">
+            <ThemeToggleButton theme={theme} onToggle={toggleTheme} />
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen((current) => !current)}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border-muted)] text-[var(--text-muted)] transition hover:bg-[var(--surface-muted)]"
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-site-menu"
+              aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            >
+              <span className="flex w-4 flex-col gap-1" aria-hidden="true">
+                <span className="h-0.5 w-full rounded-full bg-current" />
+                <span className="h-0.5 w-full rounded-full bg-current" />
+                <span className="h-0.5 w-full rounded-full bg-current" />
+              </span>
+            </button>
+          </div>
 
           <div className="hidden items-center gap-4 md:flex">
+            <ThemeToggleButton theme={theme} onToggle={toggleTheme} />
             <nav aria-label="Primary navigation" className="grid grid-flow-col auto-cols-max gap-4 overflow-x-auto">
               {links.map((link) => {
                 const isActive = pathname === link.href;
@@ -77,7 +117,7 @@ export function SiteHeader({ links }: SiteHeaderProps) {
                     href={link.href}
                     onClick={closeMobileMenu}
                     className={`text-sm font-medium transition ${
-                      isActive ? "text-emerald-700" : "text-slate-600 hover:text-emerald-700"
+                      isActive ? "text-emerald-700" : "text-[var(--text-muted)] hover:text-emerald-700"
                     }`}
                   >
                     {link.label}
@@ -104,20 +144,20 @@ export function SiteHeader({ links }: SiteHeaderProps) {
 
               <div
                 id="mobile-site-menu"
-                className={`fixed inset-y-0 right-0 z-[80] flex h-dvh w-[min(88vw,22rem)] flex-col bg-[#f7f8f4] px-5 pb-6 pt-5 shadow-[0_24px_80px_rgba(15,23,42,0.22)] transition-transform duration-300 md:hidden ${
+                className={`fixed inset-y-0 right-0 z-[80] flex h-dvh w-[min(88vw,22rem)] flex-col bg-[var(--surface)] px-5 pb-6 pt-5 shadow-[0_24px_80px_rgba(15,23,42,0.22)] transition-transform duration-300 md:hidden ${
                   isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
                 }`}
                 aria-hidden={!isMobileMenuOpen}
               >
-                <div className="flex items-center justify-between gap-4 border-b border-emerald-100 pb-4">
+                <div className="flex items-center justify-between gap-4 border-b border-[var(--border-muted)] pb-4">
                   <div className="min-w-0">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-700">Navigate</p>
-                    <p className="truncate pt-1 font-serif text-xl text-slate-800">TranquilityHub</p>
+                    <p className="truncate pt-1 font-serif text-xl text-[var(--text-strong)]">TranquilityHub</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-emerald-200 text-slate-700 transition hover:bg-emerald-50"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border-muted)] text-[var(--text-muted)] transition hover:bg-[var(--surface-muted)]"
                     aria-label="Close navigation menu"
                   >
                     <span className="relative block h-4 w-4" aria-hidden="true">
@@ -138,7 +178,7 @@ export function SiteHeader({ links }: SiteHeaderProps) {
                         className={`rounded-2xl px-4 py-3 text-sm font-medium transition ${
                           isActive
                             ? "bg-emerald-50 text-emerald-700"
-                            : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"
+                            : "text-[var(--text-muted)] hover:bg-emerald-50 hover:text-emerald-700"
                         }`}
                       >
                         {link.label}
@@ -147,7 +187,7 @@ export function SiteHeader({ links }: SiteHeaderProps) {
                   })}
                 </nav>
 
-                <div className="mt-auto border-t border-emerald-100 pt-5">
+                <div className="mt-auto border-t border-[var(--border-muted)] pt-5">
                   <AuthControls />
                 </div>
               </div>

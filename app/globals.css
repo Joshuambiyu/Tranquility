@@ -3,9 +3,32 @@
 :root {
   --background: #f7f8f4;
   --foreground: #2e3737;
+  --surface: #ffffff;
+  --surface-muted: #f3f6f4;
+  --border-muted: #d9ece0;
+  --header-bg: rgba(247, 248, 244, 0.9);
+  --footer-bg: #0f1d3a;
+  --footer-fg: #e8eef9;
+  --footer-link: #bfdbfe;
+  --text-strong: #0f172a;
+  --text-muted: #334155;
   --sage-main: #6e8f72;
   --sage-deep: #4f6d53;
   --blue-soft: #c9dbe8;
+}
+
+html[data-theme="dark"] {
+  --background: #0e151a;
+  --foreground: #d9e2e7;
+  --surface: #182229;
+  --surface-muted: #111b22;
+  --border-muted: #30424e;
+  --header-bg: rgba(14, 21, 26, 0.92);
+  --footer-bg: #090f24;
+  --footer-fg: #dae5ff;
+  --footer-link: #9cc7ff;
+  --text-strong: #f1f5f9;
+  --text-muted: #cbd5e1;
 }
 
 @theme inline {
@@ -22,6 +45,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-manrope), sans-serif;
+  transition: background-color 220ms ease, color 220ms ease;
 }
 
 h1,

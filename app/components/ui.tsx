@@ -19,7 +19,9 @@ interface ActionLinkProps {
 
 export function SectionBlock({ children, className = "" }: SectionBlockProps) {
   return (
-    <section className={`grid gap-6 rounded-2xl bg-white/90 p-8 shadow-sm ring-1 ring-emerald-100 ${className}`}>
+    <section
+      className={`grid gap-6 rounded-xl bg-[var(--surface)] p-8 shadow-sm ring-1 ring-[var(--border-muted)] ${className}`}
+    >
       {children} {/* children for reusability in wrapper component */}
     </section>
   );
@@ -28,8 +30,8 @@ export function SectionBlock({ children, className = "" }: SectionBlockProps) {
 export function SectionTitle({ title, description }: SectionTitleProps) {
   return (
     <header className="grid gap-2">
-      <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">{title}</h2>
-      {description ? <p className="max-w-3xl text-slate-700">{description}</p> : null}
+      <h2 className="text-2xl font-semibold tracking-tight text-[var(--text-strong)] sm:text-3xl">{title}</h2>
+      {description ? <p className="max-w-3xl text-[var(--text-muted)]">{description}</p> : null}
     </header>
   );
 }

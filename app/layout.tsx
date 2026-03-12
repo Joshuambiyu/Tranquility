@@ -36,7 +36,7 @@ export default function RootLayout({
       className={`${manrope.variable} ${libreBaskerville.variable} h-full antialiased`}
     >
       <head />
-      <body className="min-h-full bg-[#f7f8f4] text-slate-800">
+      <body className="min-h-full bg-background text-foreground">
         <Providers>
           <div className="flex min-h-full flex-col">
             <SiteHeader links={footerLinks} />

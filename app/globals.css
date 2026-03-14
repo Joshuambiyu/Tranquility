@@ -12,6 +12,8 @@
   --footer-link: #bfdbfe;
   --text-strong: #0f172a;
   --text-muted: #334155;
+  --accent-soft: #eef6f2;
+  --accent-soft-2: #edf4f8;
   --sage-main: #6e8f72;
   --sage-deep: #4f6d53;
   --blue-soft: #c9dbe8;
@@ -29,6 +31,8 @@ html[data-theme="dark"] {
   --footer-link: #9cc7ff;
   --text-strong: #f1f5f9;
   --text-muted: #cbd5e1;
+  --accent-soft: #23333a;
+  --accent-soft-2: #253742;
 }
 
 @theme inline {

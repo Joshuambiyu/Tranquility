@@ -19,7 +19,7 @@ export default function ResourcesPage() {
   };
 
   return (
-    <div className="grid min-h-screen bg-[radial-gradient(circle_at_top_right,_#dbe9f3,_#f0f6f2_40%,_#f7f8f4_75%)] text-slate-800">
+    <div className="grid min-h-screen bg-background text-foreground">
       <main className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
         <SectionBlock className="gap-4">
           <SectionTitle title="Resources for Reflection and Growth" description={resourcesIntro} />
@@ -29,14 +29,17 @@ export default function ResourcesPage() {
           <SectionTitle title="Journaling Prompts" description="Take a minute to answer one question and notice what comes up." />
           <div className="grid gap-4">
             {journalingPrompts.map((prompt) => (
-              <article key={prompt.id} className="grid gap-3 rounded-2xl bg-white p-5 ring-1 ring-emerald-100">
-                <h3 className="text-lg font-semibold text-slate-900">{prompt.question}</h3>
+              <article
+                key={prompt.id}
+                className="grid gap-3 rounded-xl bg-[var(--surface-muted)] p-5 ring-1 ring-[var(--border-muted)]"
+              >
+                <h3 className="text-lg font-semibold text-[var(--text-strong)]">{prompt.question}</h3>
                 <textarea
                   value={answers[prompt.id] ?? ""}
                   onChange={(event) => updateAnswer(prompt.id, event.target.value)}
                   rows={3}
                   placeholder="Write your response here..."
-                  className="rounded-xl border border-emerald-200 bg-emerald-50/20 px-4 py-3 text-slate-800 outline-none ring-emerald-300 transition focus:ring"
+                  className="rounded-xl border border-[var(--border-muted)] bg-[var(--surface)] px-4 py-3 text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
                 />
               </article>
             ))}
@@ -47,9 +50,12 @@ export default function ResourcesPage() {
           <SectionTitle title="Mindfulness Practices" description={mindfulnessIntro} />
           <div className="grid gap-4 md:grid-cols-3">
             {mindfulnessPractices.map((practice) => (
-              <article key={practice.id} className="grid gap-2 rounded-2xl bg-cyan-50/60 p-5 ring-1 ring-cyan-100">
-                <h3 className="text-lg font-semibold text-slate-900">{practice.title}</h3>
-                <p className="text-slate-700">{practice.description}</p>
+              <article
+                key={practice.id}
+                className="grid gap-2 rounded-xl bg-[var(--accent-soft-2)] p-5 ring-1 ring-[var(--border-muted)]"
+              >
+                <h3 className="text-lg font-semibold text-[var(--text-strong)]">{practice.title}</h3>
+                <p className="text-[var(--text-muted)]">{practice.description}</p>
               </article>
             ))}
           </div>
@@ -59,18 +65,21 @@ export default function ResourcesPage() {
           <SectionTitle title="Recommended Books" />
           <div className="grid gap-4 md:grid-cols-3">
             {recommendedBooks.map((book) => (
-              <article key={book.id} className="grid gap-2 rounded-2xl bg-emerald-50/60 p-5 ring-1 ring-emerald-100">
-                <h3 className="text-lg font-semibold text-slate-900">{book.title}</h3>
-                <p className="text-sm text-slate-700">By {book.author}</p>
-                <p className="text-slate-700">{book.reason}</p>
+              <article
+                key={book.id}
+                className="grid gap-2 rounded-xl bg-[var(--accent-soft)] p-5 ring-1 ring-[var(--border-muted)]"
+              >
+                <h3 className="text-lg font-semibold text-[var(--text-strong)]">{book.title}</h3>
+                <p className="text-sm text-[var(--text-muted)]">By {book.author}</p>
+                <p className="text-[var(--text-muted)]">{book.reason}</p>
               </article>
             ))}
           </div>
         </SectionBlock>
 
-        <SectionBlock className="bg-gradient-to-r from-white via-cyan-50/50 to-emerald-50/50">
+        <SectionBlock className="bg-[var(--surface-muted)]">
           <SectionTitle title={resourceOfMonth.title} />
-          <p className="text-slate-700">{resourceOfMonth.description}</p>
+          <p className="text-[var(--text-muted)]">{resourceOfMonth.description}</p>
         </SectionBlock>
       </main>
     </div>

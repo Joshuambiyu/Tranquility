@@ -26,19 +26,19 @@ export function DailyReflectionSection({
     <SectionBlock>
       <SectionTitle title="Daily Reflection" description={prompt} />
       <div className="grid gap-5 md:grid-cols-2">
-        <label className="grid gap-2 text-sm font-medium text-slate-700">
+        <label className="grid gap-2 text-sm font-medium text-[var(--text-muted)]">
           Your short reflection
           <input
             value={answer}
             onChange={(event) => onAnswerChange(event.target.value)}
             type="text"
             placeholder="Write a short thought..."
-            className="rounded-xl border border-emerald-200 bg-white px-4 py-3 text-slate-900 outline-none ring-emerald-300 transition focus:ring"
+            className="rounded-xl border border-[var(--border-muted)] bg-[var(--surface)] px-4 py-3 text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
           />
         </label>
 
         <fieldset className="grid gap-2">
-          <legend className="text-sm font-medium text-slate-700">How stressed are you today?</legend>
+          <legend className="text-sm font-medium text-[var(--text-muted)]">How stressed are you today?</legend>
           <div className="grid grid-cols-3 gap-2">
             {stressOptions.map((option) => {
               const isSelected = stressLevel === option;
@@ -50,7 +50,7 @@ export function DailyReflectionSection({
                   className={`rounded-xl px-3 py-2 text-sm font-semibold capitalize transition ${
                     isSelected
                       ? "bg-emerald-700 text-white"
-                      : "bg-cyan-50 text-slate-700 ring-1 ring-cyan-100 hover:bg-cyan-100"
+                      : "bg-[var(--accent-soft-2)] text-[var(--text-muted)] ring-1 ring-[var(--border-muted)] hover:bg-[var(--accent-soft)]"
                   }`}
                 >
                   {option}
@@ -71,12 +71,12 @@ export function DailyReflectionSection({
         </button>
 
         {submissionState.status === "submitted" ? (
-          <p className="rounded-xl bg-cyan-50 px-4 py-3 text-slate-700 ring-1 ring-cyan-100">
-            <span className="font-semibold text-slate-900">{submissionState.result.title}:</span>{" "}
+          <p className="rounded-xl bg-[var(--accent-soft-2)] px-4 py-3 text-[var(--text-muted)] ring-1 ring-[var(--border-muted)]">
+            <span className="font-semibold text-[var(--text-strong)]">{submissionState.result.title}:</span>{" "}
             {submissionState.result.message}
           </p>
         ) : (
-          <p className="text-sm text-slate-600">Submit to receive a gentle quote or journaling encouragement.</p>
+          <p className="text-sm text-[var(--text-muted)]">Submit to receive a gentle quote or journaling encouragement.</p>
         )}
       </div>
     </SectionBlock>

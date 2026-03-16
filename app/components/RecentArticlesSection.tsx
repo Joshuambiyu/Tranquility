@@ -11,9 +11,12 @@ export function RecentArticlesSection({ articles }: RecentArticlesSectionProps) 
       <SectionTitle title="Recent Articles" />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {articles.map((article) => (
-          <article key={article.id} className="grid gap-3 rounded-2xl bg-cyan-50/60 p-5 ring-1 ring-cyan-100">
-            <h3 className="text-lg font-semibold text-slate-900">{article.title}</h3>
-            <p className="text-sm text-slate-700">{article.description}</p>
+          <article
+            key={article.id}
+            className="grid gap-3 rounded-xl bg-[var(--accent-soft-2)] p-5 ring-1 ring-[var(--border-muted)]"
+          >
+            <h3 className="text-lg font-semibold text-[var(--text-strong)] lg:text-xl">{article.title}</h3>
+            <p className="text-sm leading-relaxed text-[var(--text-muted)] lg:text-base">{article.description}</p>
             <a
               href={article.href}
               className="text-sm font-semibold text-emerald-700 transition hover:text-emerald-800"

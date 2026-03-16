@@ -11,14 +11,17 @@ export function HelpsSection({ items }: HelpsSectionProps) {
       <SectionTitle title="How TranquilityHub Helps You" />
       <div className="grid gap-4 md:grid-cols-3">
         {items.map((item) => (
-          <article key={item.title} className="grid gap-2 rounded-2xl bg-emerald-50/70 p-5 ring-1 ring-emerald-100">
-            <h3 className="text-xl font-semibold text-slate-900">
+          <article
+            key={item.title}
+            className="grid gap-2 rounded-xl bg-[var(--accent-soft)] p-5 ring-1 ring-[var(--border-muted)]"
+          >
+            <h3 className="text-xl font-semibold text-[var(--text-strong)] lg:text-2xl">
               <span className="mr-2" aria-hidden>
                 {item.icon}
               </span>
               {item.title}
             </h3>
-            <p className="text-slate-700">{item.description}</p>
+            <p className="text-[15px] leading-relaxed text-[var(--text-muted)] lg:text-base">{item.description}</p>
           </article>
         ))}
       </div>

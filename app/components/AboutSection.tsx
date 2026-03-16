@@ -8,7 +8,7 @@ export function AboutSection({ description }: AboutSectionProps) {
   return (
     <SectionBlock>
       <SectionTitle title="About TranquilityHub" />
-      <p className="text-slate-700">{description}</p>
+      <p className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">{description}</p>
       <div>
         <ActionLink href="/about" label="Read Full About Page" />
       </div>

@@ -115,7 +115,7 @@ export default function VoicesPage() {
   };
 
   return (
-    <div className="grid min-h-screen bg-[radial-gradient(circle_at_top_left,_#e3f0ea,_#eef6fb_40%,_#f7f8f4_75%)] text-slate-800">
+    <div className="grid min-h-screen bg-background text-foreground">
       <main className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
         <SectionBlock className="gap-4">
           <SectionTitle title="Voices" description={voicesIntro} />
@@ -123,9 +123,9 @@ export default function VoicesPage() {
 
         <SectionBlock>
           <SectionTitle title="Voice of the Week" />
-          <article className="grid gap-3 rounded-2xl bg-gradient-to-br from-emerald-50 via-cyan-50 to-white p-6 ring-1 ring-emerald-100">
-            <h3 className="text-2xl font-semibold text-slate-900">{voiceOfWeek.title}</h3>
-            <p className="text-slate-700">{voiceOfWeek.reflection}</p>
+          <article className="grid gap-3 rounded-xl bg-[var(--accent-soft)] p-6 ring-1 ring-[var(--border-muted)]">
+            <h3 className="text-2xl font-semibold text-[var(--text-strong)] lg:text-3xl">{voiceOfWeek.title}</h3>
+            <p className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">{voiceOfWeek.reflection}</p>
             <p className="text-sm font-medium text-emerald-700">- {voiceOfWeek.author}</p>
           </article>
         </SectionBlock>
@@ -136,33 +136,33 @@ export default function VoicesPage() {
             {mergedVoices.map((voice) => (
               <article
                 key={voice.id}
-                className="grid gap-3 rounded-2xl bg-emerald-50/60 p-6 ring-1 ring-emerald-100"
+                className="grid gap-3 rounded-xl bg-[var(--surface-muted)] p-6 ring-1 ring-[var(--border-muted)]"
               >
-                <h3 className="text-xl font-semibold text-slate-900">{voice.title}</h3>
-                <p className="text-slate-700">{voice.reflection}</p>
+                <h3 className="text-xl font-semibold text-[var(--text-strong)] lg:text-2xl">{voice.title}</h3>
+                <p className="text-base leading-relaxed text-[var(--text-muted)]">{voice.reflection}</p>
                 <p className="text-sm font-medium text-emerald-700">- {voice.author}</p>
               </article>
             ))}
           </div>
         </SectionBlock>
 
-        <SectionBlock className="gap-4 bg-gradient-to-r from-white via-emerald-50/40 to-cyan-50/40">
+        <SectionBlock className="gap-4 bg-[var(--surface-muted)]">
           <SectionTitle title="Share your voice" />
-          <p className="max-w-3xl text-slate-700">
+          <p className="max-w-3xl text-[var(--text-muted)]">
             Do you have a reflection or thought you would like to share? TranquilityHub welcomes thoughtful perspectives from readers.
           </p>
           <form className="grid gap-4" onSubmit={handleSubmit}>
-            <label className="grid gap-2 text-sm font-medium text-slate-700">
+            <label className="grid gap-2 text-sm font-medium text-[var(--text-muted)]">
               Reflection title
               <input
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 required
                 maxLength={140}
-                className="rounded-xl border border-emerald-200 bg-white px-4 py-3 text-slate-800 outline-none ring-emerald-300 transition focus:ring"
+                className="rounded-xl border border-[var(--border-muted)] bg-[var(--surface)] px-4 py-3 text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
               />
             </label>
-            <label className="grid gap-2 text-sm font-medium text-slate-700">
+            <label className="grid gap-2 text-sm font-medium text-[var(--text-muted)]">
               Your reflection
               <textarea
                 rows={4}
@@ -170,7 +170,7 @@ export default function VoicesPage() {
                 onChange={(event) => setReflection(event.target.value)}
                 required
                 maxLength={2000}
-                className="rounded-xl border border-emerald-200 bg-white px-4 py-3 text-slate-800 outline-none ring-emerald-300 transition focus:ring"
+                className="rounded-xl border border-[var(--border-muted)] bg-[var(--surface)] px-4 py-3 text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
               />
             </label>
 
@@ -178,7 +178,7 @@ export default function VoicesPage() {
               <button
                 type="button"
                 onClick={() => signIn("google", { callbackUrl: "/voices" })}
-                className="inline-grid w-fit place-items-center rounded-full border border-emerald-200 px-5 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
+                className="inline-grid w-fit place-items-center rounded-full border border-[var(--border-muted)] px-5 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-[var(--accent-soft)]"
               >
                 Sign in with Google to Submit
               </button>
@@ -194,7 +194,7 @@ export default function VoicesPage() {
           </form>
 
           {submitSuccess ? (
-            <p className="rounded-xl bg-emerald-50 px-4 py-3 text-slate-700 ring-1 ring-emerald-100">
+            <p className="rounded-xl bg-[var(--accent-soft)] px-4 py-3 text-[var(--text-muted)] ring-1 ring-[var(--border-muted)]">
               {submitSuccess}
             </p>
           ) : null}

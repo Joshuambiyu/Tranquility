@@ -1,9 +1,8 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
-interface SectionBlockProps {
+interface SectionBlockProps extends ComponentPropsWithoutRef<"section"> {
   children: ReactNode;
-  className?: string;
 }
 
 interface SectionTitleProps {
@@ -17,9 +16,10 @@ interface ActionLinkProps {
   fadeIn?: boolean;
 }
 
-export function SectionBlock({ children, className = "" }: SectionBlockProps) {
+export function SectionBlock({ children, className = "", ...props }: SectionBlockProps) {
   return (
     <section
+      {...props}
       className={`grid gap-6 rounded-xl bg-[var(--surface)] p-6 shadow-sm ring-1 ring-[var(--border-muted)] sm:p-8 lg:p-10 ${className}`}
     >
       {children} {/* children for reusability in wrapper component */}

@@ -30,33 +30,6 @@
   --blue-soft: #c9dbe8;
 }
 
-html[data-theme="dark"] {
-  --background: #0e151a;
-  --foreground: #d9e2e7;
-  --surface: #182229;
-  --surface-muted: #111b22;
-  --border-muted: #30424e;
-  --header-bg: rgba(14, 21, 26, 0.92);
-  --footer-bg: #090f24;
-  --footer-fg: #dae5ff;
-  --footer-link: #9cc7ff;
-  --text-strong: #f1f5f9;
-  --text-muted: #cbd5e1;
-  --accent-soft: #23333a;
-  --accent-soft-2: #253742;
-  --hero-from: #162127;
-  --hero-via: #162127;
-  --hero-to: #162127;
-  --hero-glow-a: transparent;
-  --hero-glow-b: transparent;
-  --hero-glow-c: transparent;
-  --mission-from: #162127;
-  --mission-via: #162127;
-  --mission-to: #162127;
-  --mission-glow-a: transparent;
-  --mission-glow-b: transparent;
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

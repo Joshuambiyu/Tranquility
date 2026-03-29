@@ -6,7 +6,6 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { AuthControls } from "@/app/components/AuthControls";
-import { useTheme } from "@/app/theme-provider";
 import type { NavLinkItem } from "@/types";
 
 interface SiteHeaderProps {
@@ -17,43 +16,8 @@ function subscribeToClientRender() {
   return () => {};
 }
 
-interface ThemeToggleButtonProps {
-  theme: "light" | "dark";
-  onToggle: () => void;
-  className?: string;
-}
-
-function ThemeToggleButton({ theme, onToggle, className = "" }: ThemeToggleButtonProps) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      className={`inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border-muted)] text-[var(--text-muted)] transition hover:bg-[var(--surface-muted)] ${className}`}
-      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-      title={theme === "dark" ? "Switch to day mode" : "Switch to night mode"}
-    >
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-5 w-5"
-        aria-hidden="true"
-      >
-        <path
-          d="M20 15.5A8.5 8.5 0 0 1 8.5 4a8.5 8.5 0 1 0 11.5 11.5Z"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </button>
-  );
-}
-
 export function SiteHeader({ links }: SiteHeaderProps) {
   const pathname = usePathname();
-  const { theme, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isClient = useSyncExternalStore(subscribeToClientRender, () => true, () => false);
 
@@ -89,7 +53,6 @@ export function SiteHeader({ links }: SiteHeaderProps) {
           </Link>
 
           <div className="flex items-center gap-2 md:hidden">
-            <ThemeToggleButton theme={theme} onToggle={toggleTheme} />
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen((current) => !current)}
@@ -107,7 +70,6 @@ export function SiteHeader({ links }: SiteHeaderProps) {
           </div>
 
           <div className="hidden items-center gap-4 md:flex">
-            <ThemeToggleButton theme={theme} onToggle={toggleTheme} />
             <nav aria-label="Primary navigation" className="grid grid-flow-col auto-cols-max gap-4 overflow-x-auto">
               {links.map((link) => {
                 const isActive = pathname === link.href;

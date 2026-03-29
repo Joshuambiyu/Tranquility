@@ -38,6 +38,9 @@ Authentication and DB:
 - GOOGLE_CLIENT_SECRET
 - NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
+For production with this domain:
+- NEXTAUTH_URL=https://www.tranquilityhub.co.ke
+
 Contact and email:
 - RESEND_API_KEY
 - RESEND_FROM_EMAIL
@@ -65,6 +68,18 @@ Route:
 Access policy:
 - User must be signed in.
 - User email must exist in ADMIN_EMAILS or CONTACT_NOTIFY_TO.
+
+## Google OAuth Console setup
+
+In Google Cloud Console (APIs & Services > Credentials > OAuth 2.0 Client), add:
+
+Authorized JavaScript origins:
+- http://localhost:3000
+- https://www.tranquilityhub.co.ke
+
+Authorized redirect URIs:
+- http://localhost:3000/api/auth/callback/google
+- https://www.tranquilityhub.co.ke/api/auth/callback/google
 
 ## Production safety checks
 

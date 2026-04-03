@@ -10,7 +10,7 @@ export function AboutSection({ description }: AboutSectionProps) {
       <SectionTitle title="About TranquilityHub" />
       <p className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">{description}</p>
       <div>
-        <ActionLink href="/about" label="Read Full About Page" />
+        <ActionLink href="/about" label="Learn more about the founder" />
       </div>
     </SectionBlock>
   );

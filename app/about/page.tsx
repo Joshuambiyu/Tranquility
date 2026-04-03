@@ -6,38 +6,39 @@ export default function AboutPage() {
   return (
     <div className="grid min-h-screen bg-background text-foreground">
       <main className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
+
         <SectionBlock>
-          <SectionTitle title="About" />
-          <p className="max-w-4xl text-base leading-relaxed text-[var(--text-muted)] lg:text-xl">
-            {aboutPageContent.mission}
-          </p>
+          <h1 className="font-serif text-3xl font-semibold tracking-tight text-[#4A7FA5] sm:text-4xl lg:text-5xl">
+            About TranquilityHub
+          </h1>
+          <div className="grid gap-5">
+            {aboutPageContent.paragraphs.map((para, i) => (
+              <p key={i} className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">
+                {para}
+              </p>
+            ))}
+          </div>
         </SectionBlock>
 
         <SectionBlock>
-          <SectionTitle title="Our Story" />
-          <div className="grid gap-6 md:grid-cols-[1fr_1fr] md:items-center">
-            <p className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">{aboutPageContent.story}</p>
-            <div className="relative h-52 overflow-hidden rounded-xl ring-1 ring-[var(--border-muted)] sm:h-60">
-              <Image
-                src="/featured-reflection.svg"
-                alt="Calm sunrise symbolizing reflection and growth"
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover"
-              />
-            </div>
+          <div className="relative aspect-[16/7] w-full overflow-hidden rounded-xl ring-2 ring-[var(--border-muted)]">
+            <Image
+              src="/featured-reflection.svg"
+              alt="A journal and coffee on a calm, softly lit desk"
+              fill
+              sizes="100vw"
+              className="object-cover"
+            />
           </div>
         </SectionBlock>
 
         <SectionBlock>
           <SectionTitle title="From the Founder" />
-          <p className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">{aboutPageContent.founderNote}</p>
+          <p className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">
+            {aboutPageContent.founderNote}
+          </p>
         </SectionBlock>
 
-        <SectionBlock className="bg-[var(--surface-muted)]">
-          <SectionTitle title="Closing Reflection" />
-          <p className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">{aboutPageContent.closing}</p>
-        </SectionBlock>
       </main>
     </div>
   );

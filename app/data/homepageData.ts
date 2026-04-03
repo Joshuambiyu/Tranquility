@@ -25,7 +25,7 @@ export const missionText =
   "TranquilityHub seeks to create a calm digital space where people can pause, reflect, and grow in a fast-moving world.";
 
 export const aboutSnippet =
-  "TranquilityHub is a mindful space designed to help you reset, reflect, and grow through intentional digital experiences.";
+  "TranquilityHub is a space created for reflection in a fast-moving world. Through thoughtful ideas, shared voices and meaningful resources, it encourages people to pause, think deeply and grow.";
 
 export const reflectionPrompt = "What's one thing you can do today to feel calmer?";
 
@@ -373,14 +373,15 @@ export const blogArticleBySlug = Object.fromEntries(
 ) as Record<string, BlogArticle>;
 
 export const aboutPageContent = {
-  mission:
-    "TranquilityHub exists to create digital spaces that make people feel calmer, clearer, and more grounded.",
-  story:
-    "What began as a small journaling idea became a shared platform where mindful reflection can live online without noise.",
+  paragraphs: [
+    "TranquilityHub was created with a simple idea in mind: in a world that moves faster every day, people deserve a moment to pause, reflect and reconnect with themselves.",
+    "As technology continues to reshape how we live, study and communicate, it has also become easier to overlook something essential — our mental well-being. Many of us move from one responsibility to the next without taking time to breathe, think and understand what we are truly feeling.",
+    "TranquilityHub exists to create a small digital space for reflection, balance and thoughtful growth. Through articles, reflections, and practical resources, the platform encourages readers to slow down and think more intentionally about their lives, their goals, and their well-being.",
+    "This website is especially aimed at students and young people who often face pressure from academics, expectations, and the fast pace of modern life. TranquilityHub hopes to offer ideas and perspectives that make that journey a little clearer and a little calmer.",
+    "At its heart, TranquilityHub is not just about mental wellness — it is about creating moments of clarity in a noisy world.",
+  ],
   founderNote:
-    "From the founder: We believe that even one honest reflection can change the direction of a day.",
-  closing:
-    "Take a breath. Keep what serves you. Let go of what does not.",
+    "I created TranquilityHub because I believe reflection is one of the most powerful tools we have for growth. As a student, I've seen how easy it is for people our age to feel overwhelmed by expectations and the fast pace of life. TranquilityHub is my attempt to create a space where reflection and mental clarity are encouraged.",
 };
 
 export const contactPageContent = {

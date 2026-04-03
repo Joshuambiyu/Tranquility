@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   title: "TranquilityHub",
   description: "Pause. Reflect. Grow.",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/icon.svg",
   },
 };
 

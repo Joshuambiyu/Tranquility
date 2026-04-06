@@ -18,7 +18,6 @@ import {
   helpItems,
   heroContent,
   missionText,
-  recentArticles,
   reflectionPrompt,
 } from "@/app/data/homepageData";
 import { submitJournalReflection } from "@/lib/journal-submission";
@@ -94,7 +93,7 @@ export default function Home() {
 
         <FeaturedReflectionSection reflection={featuredReflection} />
         <VoicesSection voices={communityVoices} />
-        <RecentArticlesSection articles={recentArticles} />
+        <RecentArticlesSection />
         <AboutSection description={aboutSnippet} />
       </main>
     </div>

@@ -10,6 +10,7 @@
     "test:integration": "vitest run",
     "check:prod-env": "node scripts/production-safety-check.js",
     "smoke:contact": "node scripts/contact-smoke-test.js",
+    "seed:articles": "node scripts/seed-articles.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"

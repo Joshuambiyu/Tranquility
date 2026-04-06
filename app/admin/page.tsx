@@ -73,6 +73,21 @@ export default async function AdminHomePage() {
           </Link>
         </article>
       </section>
+
+      <section className="grid gap-4 md:grid-cols-2">
+        <article className="grid gap-3 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+          <h2 className="text-xl font-semibold text-slate-900">Editorial Articles</h2>
+          <p className="text-sm text-slate-700">
+            Publish and feature blog articles directly from the admin panel.
+          </p>
+          <Link
+            href="/admin/articles"
+            className="inline-grid w-fit place-items-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
+          >
+            Open Articles Admin
+          </Link>
+        </article>
+      </section>
     </main>
   );
 }

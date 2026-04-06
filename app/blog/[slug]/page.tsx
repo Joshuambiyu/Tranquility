@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SectionBlock, SectionTitle } from "@/app/components/ui";
-import { blogArticleBySlug } from "@/app/data/homepageData";
+import { getPublishedArticleBySlug, getRelatedPublishedArticles } from "@/lib/articles";
 
 interface BlogArticlePageProps {
   params: Promise<{ slug: string }>;
@@ -10,22 +10,20 @@ interface BlogArticlePageProps {
 
 export default async function BlogArticlePage({ params }: BlogArticlePageProps) {
   const { slug } = await params;
-  const article = blogArticleBySlug[slug];
+  const article = await getPublishedArticleBySlug(slug);
 
   if (!article) {
     notFound();
   }
 
-  const relatedArticles = article.relatedSlugs
-    .map((relatedSlug) => blogArticleBySlug[relatedSlug])
-    .filter((candidate) => Boolean(candidate));
+  const relatedArticles = await getRelatedPublishedArticles(article.id, 2);
 
   return (
     <div className="grid min-h-screen bg-[radial-gradient(circle_at_top_left,_#d9e8f5,_#eaf4ee_40%,_#f7f8f4_75%)] text-slate-800">
       <main className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
         <SectionBlock className="gap-4">
           <p className="text-sm font-medium text-emerald-700">
-            By {article.author} • {article.publishedOn}
+            By {article.author} • {new Date(article.publishedAt).toLocaleDateString()}
           </p>
           <SectionTitle title={article.title} />
           <div className="relative h-56 overflow-hidden rounded-2xl ring-1 ring-emerald-100 sm:h-72">
@@ -43,7 +41,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           <SectionTitle title="Article" />
           <div className="grid gap-4">
             {article.content.map((paragraph, index) => (
-              <p key={`${article.slug}-${index}`} className="text-slate-700">
+              <p key={`${article.id}-${index}`} className="text-slate-700">
                 {paragraph}
               </p>
             ))}
@@ -57,10 +55,10 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           <SectionTitle title="Related Articles" />
           <div className="grid gap-4 md:grid-cols-2">
             {relatedArticles.map((related) => (
-              <article key={related.slug} className="grid gap-2 rounded-2xl bg-white p-5 ring-1 ring-emerald-100">
+              <article key={related.id} className="grid gap-2 rounded-2xl bg-white p-5 ring-1 ring-emerald-100">
                 <h3 className="text-lg font-semibold text-slate-900">{related.title}</h3>
                 <p className="text-sm text-slate-600">
-                  By {related.author} • {related.publishedOn}
+                  By {related.author} • {new Date(related.publishedAt).toLocaleDateString()}
                 </p>
                 <Link
                   href={`/blog/${related.slug}`}

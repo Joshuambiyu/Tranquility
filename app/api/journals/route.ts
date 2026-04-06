@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { ApiError, toErrorResponse } from "@/lib/errors/api-error";
 import { prisma } from "@/lib/prisma";
+import { generateReflectionResult } from "@/lib/reflection-generator";
 import { journalSubmissionSchema } from "@/lib/validators";
 
 export async function GET() {
@@ -72,15 +73,21 @@ export async function POST(request: Request) {
       });
     }
 
+    const result = generateReflectionResult({
+      prompt: parsed.data.prompt,
+      answer: parsed.data.answer,
+      stressLevel: parsed.data.stressLevel,
+    });
+
     const created = await prisma.userJournal.create({
       data: {
         userId: session.user.id,
         prompt: parsed.data.prompt,
         answer: parsed.data.answer,
         stressLevel: parsed.data.stressLevel,
-        resultTone: parsed.data.result.tone,
-        resultTitle: parsed.data.result.title,
-        resultMessage: parsed.data.result.message,
+        resultTone: result.tone,
+        resultTitle: result.title,
+        resultMessage: result.message,
       },
       select: {
         id: true,
@@ -93,6 +100,7 @@ export async function POST(request: Request) {
         id: created.id,
         createdAt: created.createdAt,
         message: "Your reflection was saved to your journal.",
+        result,
       },
       { status: 201 },
     );

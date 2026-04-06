@@ -20,7 +20,6 @@ import {
   missionText,
   recentArticles,
   reflectionPrompt,
-  stressGuidance,
 } from "@/app/data/homepageData";
 import type { ReflectionResult, ReflectionSubmissionState, StressLevel } from "@/types";
 
@@ -51,14 +50,6 @@ export default function Home() {
 
     setSubmissionState({ status: "saving" });
 
-    const baseResult = stressGuidance[stressLevel];
-
-    const result: ReflectionResult =
-      {
-        ...baseResult,
-        message: `${baseResult.message} Your focus for today: \"${trimmed}\".`,
-      };
-
     try {
       const response = await fetch("/api/journals", {
         method: "POST",
@@ -69,7 +60,6 @@ export default function Home() {
           prompt: reflectionPrompt,
           answer: trimmed,
           stressLevel,
-          result,
         }),
       });
 
@@ -78,7 +68,11 @@ export default function Home() {
         throw new Error(data?.message ?? "Unable to save your reflection. Please try again.");
       }
 
-      setSubmissionState({ status: "submitted", result });
+      const data = (await response.json()) as {
+        result: ReflectionResult;
+      };
+
+      setSubmissionState({ status: "submitted", result: data.result });
       setReflectionAnswer("");
     } catch (error) {
       setSubmissionState({
@@ -86,7 +80,6 @@ export default function Home() {
         message: error instanceof Error ? error.message : "Unable to save your reflection. Please try again.",
       });
     }
-
   };
 
   return (

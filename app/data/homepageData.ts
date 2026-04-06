@@ -9,8 +9,6 @@ import type {
   MindfulnessPracticeItem,
   NavLinkItem,
   RecommendedBookItem,
-  ReflectionResult,
-  StressLevel,
   VoiceReflectionItem,
 } from "@/types";
 
@@ -116,27 +114,6 @@ export const footerLinks: NavLinkItem[] = [
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
-
-export const stressGuidance: Record<StressLevel, ReflectionResult> = {
-  low: {
-    tone: "quote",
-    title: "Steady Energy",
-    message:
-      "\"Peace comes from tiny choices repeated with care.\" Try journaling one gratitude before lunch.",
-  },
-  medium: {
-    tone: "encouragement",
-    title: "Gentle Reminder",
-    message:
-      "You are carrying a lot. Pause for two calm breaths, then write one sentence about what matters most today.",
-  },
-  high: {
-    tone: "encouragement",
-    title: "Take It Slowly",
-    message:
-      "Your feelings are valid. Start with a two-minute brain dump, then pick a single next step.",
-  },
-};
 
 export const voicesIntro =
   "Voices is a space where different reflections and perspectives come together. Here thoughts from readers and contributors are shared to inspire calm thinking, growth and understanding.";

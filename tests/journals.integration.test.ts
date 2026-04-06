@@ -64,11 +64,6 @@ describe("journals integration", () => {
           prompt: journalPrompt,
           answer: "Vitest journal entry without auth",
           stressLevel: "medium",
-          result: {
-            tone: "encouragement",
-            title: "Gentle Reminder",
-            message: "Take one slow breath.",
-          },
         }),
       }),
     );
@@ -109,11 +104,6 @@ describe("journals integration", () => {
           prompt: journalPrompt,
           answer,
           stressLevel: "high",
-          result: {
-            tone: "encouragement",
-            title: "Take It Slowly",
-            message: "Start with one tiny next step.",
-          },
         }),
       }),
     );
@@ -122,6 +112,10 @@ describe("journals integration", () => {
 
     expect(saveResponse.status).toBe(201);
     expect(saveBody.message).toContain("saved");
+    expect(saveBody.result).toBeDefined();
+    expect(saveBody.result.tone).toBe("encouragement");
+    expect(typeof saveBody.result.title).toBe("string");
+    expect(saveBody.result.message).toContain("Return to");
 
     const dbRow = await prisma.userJournal.findFirst({
       where: {
@@ -131,7 +125,9 @@ describe("journals integration", () => {
     });
 
     expect(dbRow).not.toBeNull();
-    expect(dbRow?.resultTitle).toBe("Take It Slowly");
+    expect(dbRow?.resultTone).toBe(saveBody.result.tone);
+    expect(dbRow?.resultTitle).toBe(saveBody.result.title);
+    expect(dbRow?.resultMessage).toBe(saveBody.result.message);
 
     const getResponse = await getJournals();
     const getBody = await getResponse.json();

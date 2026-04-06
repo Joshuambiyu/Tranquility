@@ -24,5 +24,17 @@ export const voiceSubmissionSchema = z.object({
   reflection: z.string().trim().min(20).max(2000),
 });
 
+export const journalSubmissionSchema = z.object({
+  prompt: z.string().trim().min(5).max(300),
+  answer: z.string().trim().min(1).max(2000),
+  stressLevel: z.enum(["low", "medium", "high"]),
+  result: z.object({
+    tone: z.enum(["quote", "encouragement"]),
+    title: z.string().trim().min(1).max(120),
+    message: z.string().trim().min(1).max(600),
+  }),
+});
+
 export type ContactSubmissionInput = z.infer<typeof contactSubmissionSchema>;
 export type VoiceSubmissionInput = z.infer<typeof voiceSubmissionSchema>;
+export type JournalSubmissionInput = z.infer<typeof journalSubmissionSchema>;

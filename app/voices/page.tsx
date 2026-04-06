@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
-import { SectionBlock, SectionTitle } from "@/app/components/ui";
+import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import { logClientError, parseApiError } from "@/lib/errors/client-error";
 import {
   voiceOfWeek,
@@ -123,30 +123,30 @@ export default function VoicesPage() {
 
         <SectionBlock>
           <SectionTitle title="Voice of the Week" />
-          <article className="grid gap-3 rounded-xl bg-[var(--accent-soft)] p-6 ring-1 ring-[var(--border-muted)]">
+          <Card className="gap-3 p-6">
             <h3 className="text-2xl font-semibold text-[var(--text-strong)] lg:text-3xl">{voiceOfWeek.title}</h3>
             <p className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">{voiceOfWeek.reflection}</p>
             <p className="text-sm font-medium text-emerald-700">- {voiceOfWeek.author}</p>
-          </article>
+          </Card>
         </SectionBlock>
 
         <SectionBlock>
           <SectionTitle title="Community Reflections" description="Short reflections shared by our readers and contributors." />
           <div className="grid gap-4 md:grid-cols-2">
             {mergedVoices.map((voice) => (
-              <article
+              <Card
                 key={voice.id}
-                className="grid gap-3 rounded-xl bg-[var(--surface-muted)] p-6 ring-1 ring-[var(--border-muted)]"
+                className="gap-3 p-6"
               >
                 <h3 className="text-xl font-semibold text-[var(--text-strong)] lg:text-2xl">{voice.title}</h3>
                 <p className="text-base leading-relaxed text-[var(--text-muted)]">{voice.reflection}</p>
                 <p className="text-sm font-medium text-emerald-700">- {voice.author}</p>
-              </article>
+              </Card>
             ))}
           </div>
         </SectionBlock>
 
-        <SectionBlock className="gap-4 bg-[var(--surface-muted)]">
+        <SectionBlock className="gap-4">
           <SectionTitle title="Share your voice" />
           <p className="max-w-3xl text-[var(--text-muted)]">
             Do you have a reflection or thought you would like to share? TranquilityHub welcomes thoughtful perspectives from readers.

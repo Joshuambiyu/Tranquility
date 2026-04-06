@@ -12,7 +12,29 @@ const publicVoiceSelect = {
   createdAt: true,
 } as const;
 
-export async function getPublicVoiceFeed() {
+const DEFAULT_COMMUNITY_PAGE_SIZE = 4;
+const MAX_COMMUNITY_PAGE_SIZE = 12;
+
+function normalizePositiveInteger(value: number, fallback: number) {
+  if (!Number.isFinite(value)) {
+    return fallback;
+  }
+
+  const rounded = Math.floor(value);
+  return rounded >= 1 ? rounded : fallback;
+}
+
+export async function getPublicVoiceFeed(options?: {
+  communityPage?: number;
+  pageSize?: number;
+}) {
+  const communityPage = normalizePositiveInteger(options?.communityPage ?? 1, 1);
+  const requestedPageSize = normalizePositiveInteger(
+    options?.pageSize ?? DEFAULT_COMMUNITY_PAGE_SIZE,
+    DEFAULT_COMMUNITY_PAGE_SIZE,
+  );
+  const pageSize = Math.min(requestedPageSize, MAX_COMMUNITY_PAGE_SIZE);
+
   const voiceOfWeek = await prisma.voiceSubmission.findFirst({
     where: {
       status: "approved",
@@ -22,19 +44,37 @@ export async function getPublicVoiceFeed() {
     select: publicVoiceSelect,
   });
 
-  const voices = await prisma.voiceSubmission.findMany({
-    where: {
-      status: "approved",
-      ...(voiceOfWeek ? { id: { not: voiceOfWeek.id } } : {}),
-    },
-    orderBy: [{ approvedAt: "desc" }, { createdAt: "desc" }],
-    take: 6,
-    select: publicVoiceSelect,
-  });
+  const communityWhere = {
+    status: "approved",
+    ...(voiceOfWeek ? { id: { not: voiceOfWeek.id } } : {}),
+  } as const;
+
+  const skip = (communityPage - 1) * pageSize;
+
+  const [voices, totalCommunityVoices] = await prisma.$transaction([
+    prisma.voiceSubmission.findMany({
+      where: communityWhere,
+      orderBy: [{ approvedAt: "desc" }, { createdAt: "desc" }],
+      skip,
+      take: pageSize,
+      select: publicVoiceSelect,
+    }),
+    prisma.voiceSubmission.count({
+      where: communityWhere,
+    }),
+  ]);
+
+  const hasMore = skip + voices.length < totalCommunityVoices;
 
   return {
     voiceOfWeek,
     voices,
+    pagination: {
+      communityPage,
+      pageSize,
+      totalCommunityVoices,
+      hasMore,
+    },
   };
 }
 

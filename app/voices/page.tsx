@@ -18,6 +18,8 @@ interface PersistedVoice {
   isVoiceOfWeek: boolean;
 }
 
+const COMMUNITY_PAGE_SIZE = 4;
+
 function ReflectionPreview({
   voice,
   maxChars,
@@ -71,6 +73,9 @@ export default function VoicesPage() {
   const [descriptor, setDescriptor] = useState("");
   const [selectedVoiceOfWeek, setSelectedVoiceOfWeek] = useState<PersistedVoice | null>(null);
   const [approvedVoices, setApprovedVoices] = useState<PersistedVoice[]>([]);
+  const [communityPage, setCommunityPage] = useState(1);
+  const [hasMoreCommunityVoices, setHasMoreCommunityVoices] = useState(false);
+  const [isLoadingMoreCommunityVoices, setIsLoadingMoreCommunityVoices] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
@@ -84,34 +89,73 @@ export default function VoicesPage() {
     };
   }, []);
 
-  useEffect(() => {
-    const loadApprovedVoices = async () => {
-      try {
-        const response = await fetch("/api/voices", { cache: "no-store" });
-        if (!response.ok) {
-          logClientError(await parseApiError(response, "Unable to load voices right now."), {
-            scope: "voices.load",
-          });
-          return;
-        }
+  const loadApprovedVoices = async (page: number, append: boolean) => {
+    try {
+      if (append) {
+        setIsLoadingMoreCommunityVoices(true);
+      }
 
-        const result = (await response.json()) as {
-          voiceOfWeek: PersistedVoice | null;
-          voices: PersistedVoice[];
-        };
-        setSelectedVoiceOfWeek(result.voiceOfWeek ?? null);
-        setApprovedVoices(result.voices ?? []);
-      } catch {
-        logClientError("Unable to load voices right now.", {
+      const response = await fetch(
+        `/api/voices?communityPage=${page}&pageSize=${COMMUNITY_PAGE_SIZE}`,
+        { cache: "no-store" },
+      );
+      if (!response.ok) {
+        logClientError(await parseApiError(response, "Unable to load voices right now."), {
           scope: "voices.load",
         });
+        return;
+      }
+
+      const result = (await response.json()) as {
+        voiceOfWeek: PersistedVoice | null;
+        voices: PersistedVoice[];
+        pagination?: {
+          communityPage?: number;
+          hasMore?: boolean;
+        };
+      };
+
+      setSelectedVoiceOfWeek(result.voiceOfWeek ?? null);
+      setApprovedVoices((current) => {
+        if (!append) {
+          return result.voices ?? [];
+        }
+
+        const existingIds = new Set(current.map((voice) => voice.id));
+        const nextItems = (result.voices ?? []).filter((voice) => !existingIds.has(voice.id));
+        return [...current, ...nextItems];
+      });
+      setCommunityPage(result.pagination?.communityPage ?? page);
+      setHasMoreCommunityVoices(Boolean(result.pagination?.hasMore));
+    } catch {
+      logClientError("Unable to load voices right now.", {
+        scope: "voices.load",
+      });
+
+      if (!append) {
         setSelectedVoiceOfWeek(null);
         setApprovedVoices([]);
+        setCommunityPage(1);
+        setHasMoreCommunityVoices(false);
       }
-    };
+    } finally {
+      if (append) {
+        setIsLoadingMoreCommunityVoices(false);
+      }
+    }
+  };
 
-    void loadApprovedVoices();
+  useEffect(() => {
+    void loadApprovedVoices(1, false);
   }, []);
+
+  const handleLoadMoreCommunityVoices = async () => {
+    if (isLoadingMoreCommunityVoices || !hasMoreCommunityVoices) {
+      return;
+    }
+
+    await loadApprovedVoices(communityPage + 1, true);
+  };
 
   const mergedVoices = useMemo<VoiceReflectionItem[]>(() => {
     return approvedVoices.map((voice) => ({
@@ -227,17 +271,32 @@ export default function VoicesPage() {
               </p>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
-              {mergedVoices.map((voice) => (
-                <Card
-                  key={voice.id}
-                  className="h-full gap-3 p-6"
-                >
-                  <h3 className="text-xl font-semibold text-[var(--text-strong)] lg:text-2xl">{voice.title}</h3>
-                  <ReflectionPreview voice={voice} maxChars={communityPreviewChars} />
-                </Card>
-              ))}
-            </div>
+            <>
+              <div className="grid gap-4 md:grid-cols-2">
+                {mergedVoices.map((voice) => (
+                  <Card
+                    key={voice.id}
+                    className="h-full gap-3 p-6"
+                  >
+                    <h3 className="text-xl font-semibold text-[var(--text-strong)] lg:text-2xl">{voice.title}</h3>
+                    <ReflectionPreview voice={voice} maxChars={communityPreviewChars} />
+                  </Card>
+                ))}
+              </div>
+
+              {hasMoreCommunityVoices ? (
+                <div className="flex justify-center">
+                  <button
+                    type="button"
+                    onClick={handleLoadMoreCommunityVoices}
+                    disabled={isLoadingMoreCommunityVoices}
+                    className="rounded-full border border-[var(--border-muted)] px-5 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-[var(--accent-soft)] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isLoadingMoreCommunityVoices ? "Loading voices..." : "See more voices"}
+                  </button>
+                </div>
+              ) : null}
+            </>
           )}
         </SectionBlock>
 

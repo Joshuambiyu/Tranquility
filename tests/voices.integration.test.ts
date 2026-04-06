@@ -61,10 +61,11 @@ describe("voices integration", () => {
       },
     });
 
-    const response = await getVoices();
+    const response = await getVoices(new Request("http://localhost:3000/api/voices"));
     const body = (await response.json()) as {
       voiceOfWeek: { id: string; visibility: string; descriptor?: string | null } | null;
       voices: Array<{ id: string; visibility: string; descriptor?: string | null }>;
+      pagination?: { pageSize?: number };
     };
 
     expect(response.status).toBe(200);
@@ -73,6 +74,58 @@ describe("voices integration", () => {
     expect(body.voiceOfWeek?.descriptor).toBe("Shared quietly");
     expect(body.voices.map((voice) => voice.id)).toContain(community.id);
     expect(body.voices.map((voice) => voice.id)).not.toContain(featured.id);
+    expect(body.pagination?.pageSize).toBe(4);
+  });
+
+  it("returns community reflections in pages of four", async () => {
+    await prisma.voiceSubmission.create({
+      data: {
+        title: `Vitest voice featured ${randomUUID()}`,
+        reflection: "Vitest featured reflection content excluded from community feed listing.",
+        author: "Vitest Featured Author",
+        visibility: "anonymous",
+        status: "approved",
+        isVoiceOfWeek: true,
+        approvedAt: new Date(),
+      },
+    });
+
+    for (let index = 0; index < 5; index += 1) {
+      await prisma.voiceSubmission.create({
+        data: {
+          title: `Vitest voice community page ${index} ${randomUUID()}`,
+          reflection: `Vitest reflection content ${index} used for pagination tests.`,
+          author: `Vitest Page Author ${index}`,
+          visibility: "open",
+          status: "approved",
+          approvedAt: new Date(),
+        },
+      });
+    }
+
+    const firstPage = await getVoices(new Request("http://localhost:3000/api/voices?communityPage=1&pageSize=4"));
+    const firstBody = (await firstPage.json()) as {
+      voices: Array<{ id: string }>;
+      pagination?: { hasMore?: boolean; communityPage?: number; pageSize?: number; totalCommunityVoices?: number };
+    };
+
+    const secondPage = await getVoices(new Request("http://localhost:3000/api/voices?communityPage=2&pageSize=4"));
+    const secondBody = (await secondPage.json()) as {
+      voices: Array<{ id: string }>;
+      pagination?: { hasMore?: boolean; communityPage?: number; pageSize?: number; totalCommunityVoices?: number };
+    };
+
+    expect(firstPage.status).toBe(200);
+    expect(firstBody.voices).toHaveLength(4);
+    expect(firstBody.pagination?.communityPage).toBe(1);
+    expect(firstBody.pagination?.pageSize).toBe(4);
+    expect(firstBody.pagination?.totalCommunityVoices).toBeGreaterThanOrEqual(5);
+    expect(firstBody.pagination?.hasMore).toBe(true);
+
+    expect(secondPage.status).toBe(200);
+    expect(secondBody.voices.length).toBeGreaterThan(0);
+    expect(secondBody.voices.length).toBeLessThanOrEqual(4);
+    expect(secondBody.pagination?.communityPage).toBe(2);
   });
 
   it("approves pending submissions and keeps only one featured voice at a time", async () => {

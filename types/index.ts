@@ -92,4 +92,6 @@ export interface ReflectionResult {
 
 export type ReflectionSubmissionState =
   | { status: "idle" }
+  | { status: "saving" }
+  | { status: "error"; message: string }
   | { status: "submitted"; result: ReflectionResult };

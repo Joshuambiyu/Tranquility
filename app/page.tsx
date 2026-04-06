@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { AboutSection } from "@/app/components/AboutSection";
 import { DailyReflectionSection } from "@/app/components/DailyReflectionSection";
 import { FeaturedReflectionSection } from "@/app/components/FeaturedReflectionSection";
@@ -24,24 +25,68 @@ import {
 import type { ReflectionResult, ReflectionSubmissionState, StressLevel } from "@/types";
 
 export default function Home() {
+  const { status: authStatus } = useSession();
   const [reflectionAnswer, setReflectionAnswer] = useState("");
   const [stressLevel, setStressLevel] = useState<StressLevel>("medium");
   const [submissionState, setSubmissionState] =
     useState<ReflectionSubmissionState>({ status: "idle" });
 
-  const handleReflectionSubmit = () => {
+  const handleReflectionSubmit = async () => {
+    if (authStatus !== "authenticated") {
+      setSubmissionState({
+        status: "error",
+        message: "Please sign in with Google before submitting a journal reflection.",
+      });
+      return;
+    }
+
     const trimmed = reflectionAnswer.trim();
+    if (!trimmed) {
+      setSubmissionState({
+        status: "error",
+        message: "Please write a short reflection before submitting.",
+      });
+      return;
+    }
+
+    setSubmissionState({ status: "saving" });
+
     const baseResult = stressGuidance[stressLevel];
 
     const result: ReflectionResult =
-      trimmed.length > 0
-        ? {
-            ...baseResult,
-            message: `${baseResult.message} Your focus for today: \"${trimmed}\".`,
-          }
-        : baseResult;
+      {
+        ...baseResult,
+        message: `${baseResult.message} Your focus for today: \"${trimmed}\".`,
+      };
 
-    setSubmissionState({ status: "submitted", result });
+    try {
+      const response = await fetch("/api/journals", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: reflectionPrompt,
+          answer: trimmed,
+          stressLevel,
+          result,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = (await response.json().catch(() => null)) as { message?: string } | null;
+        throw new Error(data?.message ?? "Unable to save your reflection. Please try again.");
+      }
+
+      setSubmissionState({ status: "submitted", result });
+      setReflectionAnswer("");
+    } catch (error) {
+      setSubmissionState({
+        status: "error",
+        message: error instanceof Error ? error.message : "Unable to save your reflection. Please try again.",
+      });
+    }
+
   };
 
   return (
@@ -62,6 +107,7 @@ export default function Home() {
           answer={reflectionAnswer}
           stressLevel={stressLevel}
           submissionState={submissionState}
+          isSignedIn={authStatus === "authenticated"}
           onAnswerChange={setReflectionAnswer}
           onStressChange={setStressLevel}
           onSubmit={handleReflectionSubmit}

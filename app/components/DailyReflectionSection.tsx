@@ -6,6 +6,7 @@ interface DailyReflectionSectionProps {
   answer: string;
   stressLevel: StressLevel;
   submissionState: ReflectionSubmissionState;
+  isSignedIn: boolean;
   onAnswerChange: (value: string) => void;
   onStressChange: (value: StressLevel) => void;
   onSubmit: () => void;
@@ -18,10 +19,13 @@ export function DailyReflectionSection({
   answer,
   stressLevel,
   submissionState,
+  isSignedIn,
   onAnswerChange,
   onStressChange,
   onSubmit,
 }: DailyReflectionSectionProps) {
+  const isSaving = submissionState.status === "saving";
+
   return (
     <SectionBlock>
       <SectionTitle title="Daily Reflection" description={prompt} />
@@ -65,9 +69,10 @@ export function DailyReflectionSection({
         <button
           type="button"
           onClick={onSubmit}
+          disabled={isSaving}
           className="rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800"
         >
-          Submit Reflection
+          {isSaving ? "Saving..." : "Submit Reflection"}
         </button>
 
         {submissionState.status === "submitted" ? (
@@ -75,6 +80,10 @@ export function DailyReflectionSection({
             <span className="font-semibold text-[var(--text-strong)]">{submissionState.result.title}:</span>{" "}
             {submissionState.result.message}
           </p>
+        ) : submissionState.status === "error" ? (
+          <p className="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700 ring-1 ring-rose-100">{submissionState.message}</p>
+        ) : !isSignedIn ? (
+          <p className="text-sm text-[var(--text-muted)]">Sign in with Google to save your reflections to your journal.</p>
         ) : (
           <p className="text-sm text-[var(--text-muted)]">Submit to receive a gentle quote or journaling encouragement.</p>
         )}

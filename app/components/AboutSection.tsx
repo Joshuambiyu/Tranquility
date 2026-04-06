@@ -6,7 +6,7 @@ interface AboutSectionProps {
 
 export function AboutSection({ description }: AboutSectionProps) {
   return (
-    <SectionBlock>
+    <SectionBlock bgVariant="sectionBlockBg">
       <SectionTitle title="About TranquilityHub" />
       <p className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">{description}</p>
       <div>

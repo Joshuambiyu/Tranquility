@@ -1,4 +1,4 @@
-import { ActionLink, SectionBlock, SectionTitle } from "@/app/components/ui";
+import { ActionLink, SectionBlock, SectionTitle, CARD_BG_VARIANTS } from "@/app/components/ui";
 import type { CommunityVoiceItem } from "@/types";
 
 interface VoicesSectionProps {
@@ -7,7 +7,7 @@ interface VoicesSectionProps {
 
 export function VoicesSection({ voices }: VoicesSectionProps) {
   return (
-    <SectionBlock>
+    <SectionBlock bgVariant="sectionBlockBg">
       <SectionTitle
         title="Voices of our Community"
         description="Read reflections from students navigating growth, stress and self-discovery."
@@ -17,7 +17,7 @@ export function VoicesSection({ voices }: VoicesSectionProps) {
           <a
             key={voice.id}
             href={voice.href}
-            className="grid gap-2 rounded-xl bg-[var(--surface-muted)] p-5 ring-1 ring-[var(--border-muted)] transition hover:bg-[var(--accent-soft)]"
+            className="grid gap-2 rounded-xl bg-[var(--accent-soft-2)] p-5 ring-1 ring-[var(--border-muted)] transition hover:bg-[var(--accent-soft)]"
           >
             <h3 className="text-lg font-semibold text-[var(--text-strong)] lg:text-xl">{voice.title}</h3>
             <p className="text-sm leading-relaxed text-[var(--text-muted)] lg:text-base">{voice.description}</p>

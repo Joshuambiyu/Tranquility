@@ -1,8 +1,35 @@
 import Link from "next/link";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
+// Background variants for sections
+// To change the gradient across all sections, update --section-from/via/to in globals.css
+export const SECTION_BG_VARIANTS = {
+  sectionBlockBg: {
+    className: "relative overflow-hidden",
+    style: {
+      background: "linear-gradient(135deg, var(--section-from) 0%, var(--section-via) 52%, var(--section-to) 100%)",
+    },
+  },
+  default: {
+    className: "",
+    style: {},
+  },
+};
+
+// Background variants for cards
+export const CARD_BG_VARIANTS = {
+  cardInSectionBg: "bg-[var(--accent-soft-2)]",
+  muted: "bg-[var(--surface-muted)]",
+  soft: "bg-[var(--accent-soft)]",
+  surface: "bg-[var(--surface)]",
+};
+
+type SectionBgVariant = keyof typeof SECTION_BG_VARIANTS;
+type CardBgVariant = keyof typeof CARD_BG_VARIANTS;
+
 interface SectionBlockProps extends ComponentPropsWithoutRef<"section"> {
   children: ReactNode;
+  bgVariant?: SectionBgVariant;
 }
 
 interface SectionTitleProps {
@@ -16,13 +43,28 @@ interface ActionLinkProps {
   fadeIn?: boolean;
 }
 
-export function SectionBlock({ children, className = "", ...props }: SectionBlockProps) {
+export function SectionBlock({
+  children,
+  className = "",
+  bgVariant = "default",
+  ...props
+}: SectionBlockProps) {
+  const bgConfig = SECTION_BG_VARIANTS[bgVariant];
+  const baseClass = `grid gap-6 rounded-xl p-6 shadow-sm ring-1 ring-[var(--border-muted)] sm:p-8 lg:p-10`;
+
+  // For default variant, include the default background
+  const sectionClass =
+    bgVariant === "default"
+      ? `${baseClass} bg-[var(--surface)] ${bgConfig.className}`
+      : `${baseClass} ${bgConfig.className}`;
+
   return (
     <section
       {...props}
-      className={`grid gap-6 rounded-xl bg-[var(--surface)] p-6 shadow-sm ring-1 ring-[var(--border-muted)] sm:p-8 lg:p-10 ${className}`}
+      className={`${sectionClass} ${className}`}
+      style={bgVariant === "default" ? undefined : bgConfig.style}
     >
-      {children} {/* children for reusability in wrapper component */}
+      {children}
     </section>
   );
 }
@@ -48,5 +90,34 @@ export function ActionLink({ href, label, fadeIn = false }: ActionLinkProps) {
     >
       {label}
     </Link>
+  );
+}
+
+interface CardProps extends ComponentPropsWithoutRef<"div"> {
+  children: ReactNode;
+  bgVariant?: CardBgVariant;
+  href?: string;
+}
+
+export function Card({ children, bgVariant = "cardInSectionBg", href, className = "", ...props }: CardProps) {
+  const bgClass = CARD_BG_VARIANTS[bgVariant];
+  const baseClass = `grid gap-2 rounded-xl p-5 ring-1 ring-[var(--border-muted)] transition`;
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        {...(props as ComponentPropsWithoutRef<"a">)}
+        className={`${baseClass} ${bgClass} hover:bg-[var(--accent-soft)] ${className}`}
+      >
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <div {...props} className={`${baseClass} ${bgClass} ${className}`}>
+      {children}
+    </div>
   );
 }

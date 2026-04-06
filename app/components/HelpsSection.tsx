@@ -1,4 +1,4 @@
-import { SectionBlock, SectionTitle } from "@/app/components/ui";
+import { SectionBlock, SectionTitle, CARD_BG_VARIANTS } from "@/app/components/ui";
 import type { HelpItem } from "@/types";
 
 interface HelpsSectionProps {
@@ -7,13 +7,13 @@ interface HelpsSectionProps {
 
 export function HelpsSection({ items }: HelpsSectionProps) {
   return (
-    <SectionBlock>
+    <SectionBlock bgVariant="sectionBlockBg">
       <SectionTitle title="How TranquilityHub Helps You" />
       <div className="grid gap-4 md:grid-cols-3">
         {items.map((item) => (
           <article
             key={item.title}
-            className="grid gap-2 rounded-xl bg-[var(--accent-soft)] p-5 ring-1 ring-[var(--border-muted)]"
+            className={`grid gap-2 rounded-xl p-5 ring-1 ring-[var(--border-muted)] ${CARD_BG_VARIANTS.cardInSectionBg}`}
           >
             <h3 className="text-xl font-semibold text-[var(--text-strong)] lg:text-2xl">
               <span className="mr-2" aria-hidden>

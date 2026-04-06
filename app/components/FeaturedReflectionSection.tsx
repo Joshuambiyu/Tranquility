@@ -8,7 +8,7 @@ interface FeaturedReflectionSectionProps {
 
 export function FeaturedReflectionSection({ reflection }: FeaturedReflectionSectionProps) {
   return (
-    <SectionBlock>
+    <SectionBlock bgVariant="sectionBlockBg">
       <SectionTitle title="Featured Reflection of the Week" />
       <div className="grid gap-6 md:grid-cols-[1.2fr_1fr] md:items-center">
         <div className="grid gap-4">

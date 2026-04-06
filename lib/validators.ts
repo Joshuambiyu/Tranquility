@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+const voiceSubmissionTypeSchema = z.enum(["idea", "quote", "book-read", "inspiration"]);
+const voiceVisibilitySchema = z.enum(["open", "anonymous"]);
+
 export const contactSubmissionSchema = z.object({
   name: z
     .string()
@@ -22,6 +25,16 @@ export const contactSubmissionSchema = z.object({
 export const voiceSubmissionSchema = z.object({
   title: z.string().trim().min(4).max(140),
   reflection: z.string().trim().min(20).max(2000),
+  submissionType: voiceSubmissionTypeSchema,
+  visibility: voiceVisibilitySchema,
+  descriptor: z
+    .string()
+    .trim()
+    .min(2)
+    .max(80)
+    .optional()
+    .or(z.literal(""))
+    .transform((value) => value?.trim() || undefined),
 });
 
 export const journalSubmissionSchema = z.object({

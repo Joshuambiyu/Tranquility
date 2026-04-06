@@ -35,11 +35,18 @@ export interface CommunityVoiceItem {
   href: string;
 }
 
+export type VoiceSubmissionType = "idea" | "quote" | "book-read" | "inspiration";
+
+export type VoiceVisibility = "open" | "anonymous";
+
 export interface VoiceReflectionItem {
   id: string;
   title: string;
   reflection: string;
   author: string;
+  submissionType?: VoiceSubmissionType;
+  visibility?: VoiceVisibility;
+  descriptor?: string | null;
 }
 
 export interface JournalingPromptItem {

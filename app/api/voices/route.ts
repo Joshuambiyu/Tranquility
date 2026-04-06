@@ -16,6 +16,10 @@ export async function GET() {
         title: true,
         reflection: true,
         author: true,
+        submissionType: true,
+        visibility: true,
+        descriptor: true,
+        isVoiceOfWeek: true,
         createdAt: true,
       },
     });
@@ -55,11 +59,19 @@ export async function POST(request: Request) {
       });
     }
 
+    const author =
+      parsed.data.visibility === "anonymous"
+        ? "Anonymous"
+        : session.user.name ?? session.user.email ?? "Community member";
+
     await prisma.voiceSubmission.create({
       data: {
         title: parsed.data.title,
         reflection: parsed.data.reflection,
-        author: session.user.name ?? session.user.email ?? "Community member",
+        author,
+        submissionType: parsed.data.submissionType,
+        visibility: parsed.data.visibility,
+        descriptor: parsed.data.descriptor,
         userId: session.user.id,
         status: "pending",
       },
@@ -68,13 +80,13 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         message:
-          "Your reflection was submitted and is now pending review before it appears publicly.",
+          "Your voice was submitted and is now pending review before it appears publicly.",
       },
       { status: 201 },
     );
   } catch (error) {
     return toErrorResponse(error, {
-      fallbackMessage: "Something went wrong while submitting your reflection.",
+      fallbackMessage: "Something went wrong while submitting your voice.",
       route: "POST /api/voices",
     });
   }

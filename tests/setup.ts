@@ -8,11 +8,7 @@ config({
   quiet: true,
 });
 
-Object.defineProperty(process.env, "NODE_ENV", {
-  value: "test",
-  configurable: true,
-  writable: true,
-});
+process.env.NODE_ENV = process.env.NODE_ENV ?? "test";
 
 afterAll(async () => {
   const { prisma } = await import("@/lib/prisma");

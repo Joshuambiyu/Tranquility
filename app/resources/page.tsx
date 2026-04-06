@@ -29,7 +29,7 @@ export default function ResourcesPage() {
           <SectionTitle title="Journaling Prompts" description="Take a minute to answer one question and notice what comes up." />
           <div className="grid gap-4">
             {journalingPrompts.map((prompt) => (
-              <Card key={prompt.id} bgVariant="muted" className="gap-3">
+              <Card key={prompt.id} className="gap-3">
                 <h3 className="text-lg font-semibold text-[var(--text-strong)]">{prompt.question}</h3>
                 <textarea
                   value={answers[prompt.id] ?? ""}
@@ -59,7 +59,7 @@ export default function ResourcesPage() {
           <SectionTitle title="Recommended Books" />
           <div className="grid gap-4 md:grid-cols-3">
             {recommendedBooks.map((book) => (
-              <Card key={book.id} bgVariant="soft" className="gap-2">
+              <Card key={book.id} className="gap-2">
                 <h3 className="text-lg font-semibold text-[var(--text-strong)]">{book.title}</h3>
                 <p className="text-sm text-[var(--text-muted)]">By {book.author}</p>
                 <p className="text-[var(--text-muted)]">{book.reason}</p>

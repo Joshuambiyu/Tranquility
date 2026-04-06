@@ -7,6 +7,24 @@ type ExternalQuote = {
   author?: string;
 };
 
+const themeTags: Record<ReflectionTheme, string[]> = {
+  rest: ["wisdom", "inspirational"],
+  focus: ["success", "inspirational"],
+  gratitude: ["wisdom", "friendship"],
+  connection: ["friendship", "wisdom"],
+  courage: ["inspirational", "success"],
+  clarity: ["wisdom", "inspirational"],
+};
+
+const themeKeywords: Record<ReflectionTheme, string[]> = {
+  rest: ["rest", "calm", "peace", "slow", "breathe", "quiet"],
+  focus: ["focus", "priority", "discipline", "goal", "attention", "work"],
+  gratitude: ["gratitude", "grateful", "thankful", "appreciate", "blessing"],
+  connection: ["friend", "family", "support", "community", "share", "care"],
+  courage: ["courage", "brave", "fear", "strength", "difficult", "risk"],
+  clarity: ["clarity", "understand", "direction", "truth", "mind", "reflect"],
+};
+
 const encouragementLibrary: Record<ReflectionTheme, string[]> = {
   rest: [
     "Let your answer become permission to slow one part of the day down. Choose one calming action and protect it.",
@@ -88,8 +106,26 @@ function normalizeQuote(rawText: string, rawAuthor?: string): ExternalQuote | nu
   };
 }
 
-async function fetchFromQuotable(signal: AbortSignal): Promise<ExternalQuote | null> {
-  const response = await fetch("https://api.quotable.io/random", {
+function tokenize(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((token) => token.length >= 4);
+}
+
+function scoreQuoteRelevance(quote: ExternalQuote, answer: string, theme: ReflectionTheme) {
+  const quoteTokens = new Set(tokenize(quote.text));
+  const answerTokens = tokenize(answer);
+  const answerOverlap = answerTokens.filter((token) => quoteTokens.has(token)).length;
+  const themeOverlap = themeKeywords[theme].filter((token) => quoteTokens.has(token)).length;
+
+  return answerOverlap * 2 + themeOverlap;
+}
+
+async function fetchFromQuotable(theme: ReflectionTheme, signal: AbortSignal): Promise<ExternalQuote | null> {
+  const tags = themeTags[theme].join("|");
+  const response = await fetch(`https://api.quotable.io/random?tags=${encodeURIComponent(tags)}&maxLength=180`, {
     cache: "no-store",
     signal,
   });
@@ -125,26 +161,45 @@ async function fetchFromZenQuotes(signal: AbortSignal): Promise<ExternalQuote | 
   return normalizeQuote(first.q, first.a);
 }
 
-async function fetchExternalQuote(): Promise<ExternalQuote | null> {
-  const timeout = AbortSignal.timeout(3000);
+async function fetchRelatedQuote(input: { theme: ReflectionTheme; answer: string }): Promise<ExternalQuote | null> {
+  const quotableTimeout = AbortSignal.timeout(3500);
 
-  const providers: Array<() => Promise<ExternalQuote | null>> = [
-    () => fetchFromQuotable(timeout),
-    () => fetchFromZenQuotes(timeout),
-  ];
+  // Try multiple themed quotes and keep the one most related to the journal answer.
+  let bestMatch: ExternalQuote | null = null;
+  let bestScore = -1;
 
-  for (const provider of providers) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
-      const quote = await provider();
-      if (quote) {
-        return quote;
+      const candidate = await fetchFromQuotable(input.theme, quotableTimeout);
+      if (candidate) {
+        const score = scoreQuoteRelevance(candidate, input.answer, input.theme);
+        if (score > bestScore) {
+          bestScore = score;
+          bestMatch = candidate;
+        }
       }
     } catch {
-      // Ignore provider failure and try the next provider.
+      // Ignore provider failure and continue.
     }
   }
 
-  return null;
+  if (bestMatch) {
+    return bestMatch;
+  }
+
+  const zenTimeout = AbortSignal.timeout(2500);
+  try {
+    const zenQuote = await fetchFromZenQuotes(zenTimeout);
+    if (!zenQuote) {
+      return null;
+    }
+
+    // Keep fallback quotes only when they loosely match the topic.
+    const score = scoreQuoteRelevance(zenQuote, input.answer, input.theme);
+    return score > 0 ? zenQuote : null;
+  } catch {
+    return null;
+  }
 }
 
 function inferTheme(answer: string): ReflectionTheme {
@@ -204,7 +259,7 @@ export async function generateReflectionResult(input: {
   const title = titleMap[input.stressLevel][theme];
 
   if (tone === "quote") {
-    const quote = await fetchExternalQuote();
+    const quote = await fetchRelatedQuote({ theme, answer: input.answer });
 
     if (quote) {
       const attributedQuote = quote.author ? `"${quote.text}" — ${quote.author}` : `"${quote.text}"`;

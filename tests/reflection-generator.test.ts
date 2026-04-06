@@ -28,9 +28,13 @@ describe("reflection generator", () => {
 
   it("can return quote-led guidance for lower stress gratitude reflections", async () => {
     const originalFetch = global.fetch;
+    const calls: string[] = [];
 
-    global.fetch = (async () =>
-      new Response(
+    global.fetch = (async (input) => {
+      const url = String(input);
+      calls.push(url);
+
+      return new Response(
         JSON.stringify({
           content: "Stay close to what helps you breathe.",
           author: "Tranquility Test",
@@ -41,7 +45,8 @@ describe("reflection generator", () => {
             "content-type": "application/json",
           },
         },
-      )) as typeof fetch;
+      );
+    }) as typeof fetch;
 
     const result = await generateReflectionResult({
       prompt: "What's one thing you can do today to feel calmer?",
@@ -54,5 +59,7 @@ describe("reflection generator", () => {
     expect(result.tone).toBe("quote");
     expect(result.message).toContain("Stay close to what helps you breathe.");
     expect(result.message).toContain("Let your focus stay close to");
+    expect(calls[0]).toContain("api.quotable.io/random?tags=");
+    expect(calls[0]).toContain("wisdom%7C");
   });
 });

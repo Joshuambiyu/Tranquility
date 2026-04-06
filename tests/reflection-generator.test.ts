@@ -1,5 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { generateReflectionResult } from "@/lib/reflection-generator";
+import { prisma } from "@/lib/prisma";
+
+beforeEach(async () => {
+  await prisma.cachedQuote.deleteMany();
+});
+
+afterEach(async () => {
+  await prisma.cachedQuote.deleteMany();
+});
 
 describe("reflection generator", () => {
   it("returns deterministic results for the same input", async () => {
@@ -127,6 +136,45 @@ describe("reflection generator", () => {
       expect(result.tone).toBe("quote");
       expect(result.message).not.toContain("Winners never quit.");
       expect(result.message).toContain("Let your focus stay close to");
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  it("reuses the persisted cache on repeated quote requests", async () => {
+    const originalFetch = global.fetch;
+    let fetchCalls = 0;
+
+    global.fetch = (async () => {
+      fetchCalls += 1;
+
+      return new Response(
+        JSON.stringify({
+          content: "Quiet rest and breathing can steady the whole day.",
+          author: "Cache Test",
+        }),
+        {
+          status: 200,
+          headers: {
+            "content-type": "application/json",
+          },
+        },
+      );
+    }) as typeof fetch;
+
+    try {
+      const input = {
+        prompt: "What's one thing you can do today to feel calmer?",
+        answer: "I want to breathe and protect quiet rest tonight.",
+        stressLevel: "low" as const,
+      };
+
+      const first = await generateReflectionResult(input);
+      const second = await generateReflectionResult(input);
+
+      expect(first.message).toContain("Quiet rest and breathing can steady the whole day.");
+      expect(second.message).toContain("Quiet rest and breathing can steady the whole day.");
+      expect(fetchCalls).toBe(1);
     } finally {
       global.fetch = originalFetch;
     }

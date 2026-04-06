@@ -1,10 +1,12 @@
 import type { ReflectionResult, ReflectionTone, StressLevel } from "@/types";
+import { prisma } from "@/lib/prisma";
 
 type ReflectionTheme = "rest" | "focus" | "gratitude" | "connection" | "courage" | "clarity";
 
 type ExternalQuote = {
   text: string;
   author?: string;
+  source?: "quotable" | "zenquotes" | "cache";
 };
 
 const themeTags: Record<ReflectionTheme, string[]> = {
@@ -28,6 +30,8 @@ const themeKeywords: Record<ReflectionTheme, string[]> = {
 const QUOTABLE_ATTEMPTS = 5;
 const QUOTABLE_TIMEOUT_MS = 2200;
 const ZEN_TIMEOUT_MS = 1800;
+const QUOTE_CACHE_TTL_MS = 1000 * 60 * 60 * 6;
+const ANSWER_SIGNATURE_TOKEN_LIMIT = 6;
 
 const encouragementLibrary: Record<ReflectionTheme, string[]> = {
   rest: [
@@ -118,6 +122,12 @@ function tokenize(value: string) {
     .filter((token) => token.length >= 4);
 }
 
+function buildAnswerSignature(answer: string) {
+  const uniqueTokens = Array.from(new Set(tokenize(answer))).sort();
+  const signature = uniqueTokens.slice(0, ANSWER_SIGNATURE_TOKEN_LIMIT).join(":");
+  return signature || "generic";
+}
+
 function scoreQuoteRelevance(quote: ExternalQuote, answer: string, theme: ReflectionTheme) {
   const quoteTokens = new Set(tokenize(quote.text));
   const answerTokens = tokenize(answer);
@@ -170,8 +180,85 @@ async function fetchFromZenQuotes(signal: AbortSignal): Promise<ExternalQuote | 
   return normalizeQuote(first.q, first.a);
 }
 
+async function getCachedQuote(input: { theme: ReflectionTheme; answer: string }): Promise<ExternalQuote | null> {
+  const answerSignature = buildAnswerSignature(input.answer);
+
+  try {
+    const cachedQuote = await prisma.cachedQuote.findUnique({
+      where: {
+        theme_answerSignature: {
+          theme: input.theme,
+          answerSignature,
+        },
+      },
+    });
+
+    if (!cachedQuote) {
+      return null;
+    }
+
+    if (cachedQuote.expiresAt <= new Date()) {
+      void prisma.cachedQuote.delete({
+        where: {
+          id: cachedQuote.id,
+        },
+      }).catch(() => undefined);
+
+      return null;
+    }
+
+    return {
+      text: cachedQuote.text,
+      ...(cachedQuote.author ? { author: cachedQuote.author } : {}),
+      source: "cache",
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function cacheQuote(input: {
+  theme: ReflectionTheme;
+  answer: string;
+  quote: ExternalQuote;
+}) {
+  const answerSignature = buildAnswerSignature(input.answer);
+
+  try {
+    await prisma.cachedQuote.upsert({
+      where: {
+        theme_answerSignature: {
+          theme: input.theme,
+          answerSignature,
+        },
+      },
+      create: {
+        theme: input.theme,
+        answerSignature,
+        text: input.quote.text,
+        author: input.quote.author,
+        source: input.quote.source ?? "quotable",
+        expiresAt: new Date(Date.now() + QUOTE_CACHE_TTL_MS),
+      },
+      update: {
+        text: input.quote.text,
+        author: input.quote.author,
+        source: input.quote.source ?? "quotable",
+        expiresAt: new Date(Date.now() + QUOTE_CACHE_TTL_MS),
+      },
+    });
+  } catch {
+    // Cache writes should not break reflection generation.
+  }
+}
+
 async function fetchRelatedQuote(input: { theme: ReflectionTheme; answer: string }): Promise<ExternalQuote | null> {
   const threshold = minimumRelevanceScore(input.answer);
+  const cachedQuote = await getCachedQuote(input);
+
+  if (cachedQuote) {
+    return cachedQuote;
+  }
 
   // Try multiple themed quotes and keep the most related candidate.
   let bestMatch: ExternalQuote | null = null;
@@ -182,6 +269,7 @@ async function fetchRelatedQuote(input: { theme: ReflectionTheme; answer: string
       const timeout = AbortSignal.timeout(QUOTABLE_TIMEOUT_MS);
       const candidate = await fetchFromQuotable(input.theme, timeout);
       if (candidate) {
+        candidate.source = "quotable";
         const score = scoreQuoteRelevance(candidate, input.answer, input.theme);
 
         if (score > bestScore) {
@@ -190,6 +278,11 @@ async function fetchRelatedQuote(input: { theme: ReflectionTheme; answer: string
         }
 
         if (score >= threshold) {
+          await cacheQuote({
+            theme: input.theme,
+            answer: input.answer,
+            quote: candidate,
+          });
           return candidate;
         }
       }
@@ -199,6 +292,11 @@ async function fetchRelatedQuote(input: { theme: ReflectionTheme; answer: string
   }
 
   if (bestMatch && bestScore >= threshold) {
+    await cacheQuote({
+      theme: input.theme,
+      answer: input.answer,
+      quote: bestMatch,
+    });
     return bestMatch;
   }
 
@@ -209,8 +307,19 @@ async function fetchRelatedQuote(input: { theme: ReflectionTheme; answer: string
       return null;
     }
 
+    zenQuote.source = "zenquotes";
     const score = scoreQuoteRelevance(zenQuote, input.answer, input.theme);
-    return score >= threshold ? zenQuote : null;
+    if (score < threshold) {
+      return null;
+    }
+
+    await cacheQuote({
+      theme: input.theme,
+      answer: input.answer,
+      quote: zenQuote,
+    });
+
+    return zenQuote;
   } catch {
     return null;
   }

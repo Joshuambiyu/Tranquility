@@ -41,7 +41,7 @@ function ReflectionPreview({
         <button
           type="button"
           onClick={() => setExpanded((current) => !current)}
-          className="w-fit text-sm font-semibold text-emerald-700 transition hover:text-emerald-800"
+          className="justify-self-end text-right text-sm font-semibold text-emerald-700 transition hover:text-emerald-800"
         >
           {expanded ? "See less" : "See more"}
         </button>

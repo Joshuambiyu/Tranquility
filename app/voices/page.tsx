@@ -36,16 +36,16 @@ function ReflectionPreview({
       <p className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">
         &quot;{visibleText}&quot;
       </p>
-      <VoiceAttribution voice={voice} />
       {isLong ? (
         <button
           type="button"
           onClick={() => setExpanded((current) => !current)}
-          className="justify-self-end text-right text-sm font-semibold text-emerald-700 transition hover:text-emerald-800"
+          className="w-fit text-xs font-medium text-emerald-700 transition hover:text-emerald-800"
         >
           {expanded ? "See less" : "See more"}
         </button>
       ) : null}
+      <VoiceAttribution voice={voice} />
     </div>
   );
 }

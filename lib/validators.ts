@@ -23,15 +23,23 @@ export const contactSubmissionSchema = z.object({
 });
 
 export const voiceSubmissionSchema = z.object({
-  title: z.string().trim().min(4).max(140),
-  reflection: z.string().trim().min(20).max(2000),
+  title: z
+    .string()
+    .trim()
+    .min(4, { message: "Title must be at least 4 characters." })
+    .max(140, { message: "Title must be 140 characters or fewer." }),
+  reflection: z
+    .string()
+    .trim()
+    .min(7, { message: "Reflection must be at least 7 characters." })
+    .max(2000, { message: "Reflection must be 2000 characters or fewer." }),
   submissionType: voiceSubmissionTypeSchema,
   visibility: voiceVisibilitySchema,
   descriptor: z
     .string()
     .trim()
-    .min(2)
-    .max(80)
+    .min(2, { message: "Descriptor must be at least 2 characters when provided." })
+    .max(80, { message: "Descriptor must be 80 characters or fewer." })
     .optional()
     .or(z.literal(""))
     .transform((value) => value?.trim() || undefined),

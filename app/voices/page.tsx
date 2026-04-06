@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
+import { AppError } from "@/lib/errors/app-error";
 import { logClientError, parseApiError } from "@/lib/errors/client-error";
 import {
   voiceOfWeek,
@@ -157,13 +158,10 @@ export default function VoicesPage() {
             "Please sign in to submit your reflection.",
           );
           setSubmitError(authError.message);
-          logClientError(authError, {
-            scope: "voices.submit.auth",
-          });
           return;
         }
 
-        throw await parseApiError(response, "Unable to submit reflection.");
+        throw await parseApiError(response, "Unable to submit voice.");
       }
 
       const result = (await response.json()) as { message?: string };
@@ -177,10 +175,14 @@ export default function VoicesPage() {
       setSubmissionType("idea");
       setVisibility("open");
     } catch (error) {
-      logClientError(error, {
-        scope: "voices.submit",
-      });
-      setSubmitError(error instanceof Error ? error.message : "Unable to submit reflection.");
+      const message = error instanceof Error ? error.message : "Unable to submit voice.";
+      setSubmitError(message);
+
+      if (!(error instanceof AppError) || error.code === "INTERNAL_ERROR") {
+        logClientError(error, {
+          scope: "voices.submit",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }

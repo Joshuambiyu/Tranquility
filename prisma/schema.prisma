@@ -97,3 +97,18 @@ model UserJournal {
 
   @@index([userId, createdAt])
 }
+
+model CachedQuote {
+  id              String   @id @default(cuid())
+  theme           String
+  answerSignature String
+  text            String   @db.Text
+  author          String?
+  source          String
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([theme, answerSignature])
+  @@index([expiresAt])
+}

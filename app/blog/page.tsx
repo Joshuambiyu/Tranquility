@@ -27,7 +27,7 @@ export default function BlogPage() {
   return (
     <div className="grid min-h-screen bg-background text-foreground">
       <main className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
-        <SectionBlock bgVariant="sectionBlockBg" className="gap-4">
+        <SectionBlock className="gap-4">
           <SectionTitle title="Reflection" description={blogPageIntro} />
           <label className="grid gap-2 text-sm font-medium text-[var(--text-muted)]">
             Search reflections
@@ -41,7 +41,7 @@ export default function BlogPage() {
           </label>
         </SectionBlock>
 
-        <SectionBlock bgVariant="sectionBlockBg">
+        <SectionBlock>
           <SectionTitle title="Featured Reflection" />
           <article className="grid gap-5 md:grid-cols-[1.1fr_1fr] md:items-center">
             <div className="grid gap-3">
@@ -50,7 +50,7 @@ export default function BlogPage() {
               </p>
               <h3 className="text-2xl font-semibold text-[var(--text-strong)]">{featuredBlogPost.title}</h3>
               <p className="text-[var(--text-muted)]">{featuredBlogPost.excerpt}</p>
-              <p className="rounded-xl bg-[var(--accent-soft-2)] px-4 py-3 text-sm text-[var(--text-muted)] ring-1 ring-[var(--border-muted)]">
+              <p className="rounded-xl bg-[var(--card-in-section-bg)] px-4 py-3 text-sm text-[var(--text-muted)] ring-1 ring-[var(--border-muted)]">
                 Reflection moment: {featuredBlogPost.reflectionMoment}
               </p>
               <Link href={featuredBlogPost.href} className="text-sm font-semibold text-emerald-700 hover:text-emerald-800">
@@ -69,7 +69,7 @@ export default function BlogPage() {
           </article>
         </SectionBlock>
 
-        <SectionBlock bgVariant="sectionBlockBg">
+        <SectionBlock>
           <SectionTitle title="Latest Posts" />
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredPosts.map((post, index) => {
@@ -82,7 +82,7 @@ export default function BlogPage() {
                   </p>
                   <h3 className="text-xl font-semibold text-[var(--text-strong)]">{post.title}</h3>
                   <p className="text-[var(--text-muted)]">{post.excerpt}</p>
-                  <p className="rounded-xl bg-[var(--accent-soft-2)] px-3 py-2 text-sm text-[var(--text-muted)] ring-1 ring-[var(--border-muted)]">
+                  <p className="rounded-xl bg-[var(--card-in-section-bg)] px-3 py-2 text-sm text-[var(--text-muted)] ring-1 ring-[var(--border-muted)]">
                     Reflection moment: {post.reflectionMoment}
                   </p>
                   <p className="text-sm text-[var(--text-muted)]">
@@ -96,9 +96,9 @@ export default function BlogPage() {
             })}
           </div>
           {filteredPosts.length === 0 ? (
-            <p className="rounded-xl bg-[var(--accent-soft-2)] px-4 py-3 text-[var(--text-muted)] ring-1 ring-[var(--border-muted)]">
-              No reflections matched your search yet. Try another keyword.
-            </p>
+            <Card>
+              <p className="text-[var(--text-muted)]">No reflections matched your search yet. Try another keyword.</p>
+            </Card>
           ) : null}
         </SectionBlock>
       </main>

@@ -28,9 +28,9 @@ export default function BlogPage() {
     <div className="grid min-h-screen bg-background text-foreground">
       <main className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
         <SectionBlock className="gap-4">
-          <SectionTitle title="Reflection" description={blogPageIntro} />
+          <SectionTitle title="Articles" description={blogPageIntro} />
           <label className="grid gap-2 text-sm font-medium text-[var(--text-muted)]">
-            Search reflections
+            Search articles
             <input
               type="search"
               value={query}
@@ -42,7 +42,7 @@ export default function BlogPage() {
         </SectionBlock>
 
         <SectionBlock>
-          <SectionTitle title="Featured Reflection" />
+          <SectionTitle title="Featured Article" />
           <article className="grid gap-5 md:grid-cols-[1.1fr_1fr] md:items-center">
             <div className="grid gap-3">
               <p className="text-sm font-medium text-emerald-700">
@@ -70,7 +70,7 @@ export default function BlogPage() {
         </SectionBlock>
 
         <SectionBlock>
-          <SectionTitle title="Latest Posts" />
+          <SectionTitle title="Latest Articles" />
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredPosts.map((post, index) => {
               const relatedA = filteredPosts[(index + 1) % filteredPosts.length];
@@ -97,7 +97,7 @@ export default function BlogPage() {
           </div>
           {filteredPosts.length === 0 ? (
             <Card>
-              <p className="text-[var(--text-muted)]">No reflections matched your search yet. Try another keyword.</p>
+              <p className="text-[var(--text-muted)]">No articles matched your search yet. Try another keyword.</p>
             </Card>
           ) : null}
         </SectionBlock>

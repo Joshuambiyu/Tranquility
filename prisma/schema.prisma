@@ -75,12 +75,18 @@ model VoiceSubmission {
   title      String
   reflection String   @db.Text
   author     String
+  submissionType String
+  visibility String
+  descriptor String?
   status     String   @default("pending")
+  isVoiceOfWeek Boolean @default(false)
+  approvedAt DateTime?
   createdAt  DateTime @default(now())
   userId     String?
   user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([status, createdAt])
+  @@index([isVoiceOfWeek])
 }
 
 model UserJournal {

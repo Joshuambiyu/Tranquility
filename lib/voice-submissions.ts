@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { VoiceSubmissionStatus } from "@/types";
 
 const publicVoiceSelect = {
   id: true,
@@ -36,4 +37,79 @@ export async function getPublicVoiceFeed() {
     voiceOfWeek,
     voices,
   };
+}
+
+export async function updateVoiceSubmissionStatus(
+  voiceId: string,
+  status: VoiceSubmissionStatus,
+) {
+  const existingVoice = await prisma.voiceSubmission.findUnique({
+    where: { id: voiceId },
+    select: {
+      id: true,
+      status: true,
+      approvedAt: true,
+      isVoiceOfWeek: true,
+    },
+  });
+
+  if (!existingVoice) {
+    throw new Error("Voice submission not found.");
+  }
+
+  if (status === "approved") {
+    return prisma.voiceSubmission.update({
+      where: { id: voiceId },
+      data: {
+        status,
+        approvedAt: existingVoice.approvedAt ?? new Date(),
+      },
+    });
+  }
+
+  return prisma.voiceSubmission.update({
+    where: { id: voiceId },
+    data: {
+      status,
+      approvedAt: null,
+      isVoiceOfWeek: false,
+    },
+  });
+}
+
+export async function setVoiceOfWeek(voiceId: string) {
+  return prisma.$transaction(async (transaction) => {
+    const existingVoice = await transaction.voiceSubmission.findUnique({
+      where: { id: voiceId },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+
+    if (!existingVoice) {
+      throw new Error("Voice submission not found.");
+    }
+
+    if (existingVoice.status !== "approved") {
+      throw new Error("Only approved voices can be selected as Voice of the Week.");
+    }
+
+    await transaction.voiceSubmission.updateMany({
+      where: { isVoiceOfWeek: true },
+      data: { isVoiceOfWeek: false },
+    });
+
+    return transaction.voiceSubmission.update({
+      where: { id: voiceId },
+      data: { isVoiceOfWeek: true },
+    });
+  });
+}
+
+export async function clearVoiceOfWeek(voiceId: string) {
+  return prisma.voiceSubmission.update({
+    where: { id: voiceId },
+    data: { isVoiceOfWeek: false },
+  });
 }

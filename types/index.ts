@@ -39,6 +39,8 @@ export type VoiceSubmissionType = "idea" | "quote" | "book-read" | "inspiration"
 
 export type VoiceVisibility = "open" | "anonymous";
 
+export type VoiceSubmissionStatus = "pending" | "approved" | "rejected";
+
 export interface VoiceReflectionItem {
   id: string;
   title: string;

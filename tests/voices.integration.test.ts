@@ -3,6 +3,10 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { GET as getVoices } from "@/app/api/voices/route";
 import { prisma } from "@/lib/prisma";
+import {
+  setVoiceOfWeek,
+  updateVoiceSubmissionStatus,
+} from "@/lib/voice-submissions";
 
 async function cleanupTestData() {
   await prisma.voiceSubmission.deleteMany({
@@ -72,5 +76,42 @@ describe("voices integration", () => {
     expect(body.voiceOfWeek?.descriptor).toBe("Shared quietly");
     expect(body.voices.map((voice) => voice.id)).toContain(community.id);
     expect(body.voices.map((voice) => voice.id)).not.toContain(featured.id);
+  });
+
+  it("approves pending submissions and keeps only one featured voice at a time", async () => {
+    const first = await prisma.voiceSubmission.create({
+      data: {
+        title: `Vitest voice first ${randomUUID()}`,
+        reflection: "Vitest first approved reflection content that is long enough for public display.",
+        author: "Vitest First Author",
+        submissionType: "idea",
+        visibility: "open",
+        status: "approved",
+        approvedAt: new Date(),
+      },
+    });
+
+    const second = await prisma.voiceSubmission.create({
+      data: {
+        title: `Vitest voice second ${randomUUID()}`,
+        reflection: "Vitest second reflection content that should become featured after approval.",
+        author: "Vitest Second Author",
+        submissionType: "inspiration",
+        visibility: "anonymous",
+        status: "pending",
+      },
+    });
+
+    await setVoiceOfWeek(first.id);
+    await updateVoiceSubmissionStatus(second.id, "approved");
+    await setVoiceOfWeek(second.id);
+
+    const refreshedFirst = await prisma.voiceSubmission.findUnique({ where: { id: first.id } });
+    const refreshedSecond = await prisma.voiceSubmission.findUnique({ where: { id: second.id } });
+
+    expect(refreshedFirst?.isVoiceOfWeek).toBe(false);
+    expect(refreshedSecond?.status).toBe("approved");
+    expect(refreshedSecond?.approvedAt).not.toBeNull();
+    expect(refreshedSecond?.isVoiceOfWeek).toBe(true);
   });
 });

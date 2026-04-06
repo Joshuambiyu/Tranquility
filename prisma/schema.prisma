@@ -75,7 +75,6 @@ model VoiceSubmission {
   title      String
   reflection String   @db.Text
   author     String
-  submissionType String
   visibility String
   descriptor String?
   status     String   @default("pending")

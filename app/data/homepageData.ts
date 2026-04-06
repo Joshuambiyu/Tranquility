@@ -124,7 +124,6 @@ export const voiceOfWeek: VoiceReflectionItem = {
   reflection:
     "Sometimes clarity appears in the small pauses between our responsibilities.",
   author: "Anonymous",
-  submissionType: "inspiration",
   visibility: "anonymous",
   descriptor: "Shared by a community member",
 };
@@ -136,7 +135,6 @@ export const voiceReflections: VoiceReflectionItem[] = [
     reflection:
       "I started taking ten silent minutes before touching my phone and it changed the tone of my day.",
     author: "A reader in Nairobi",
-    submissionType: "idea",
     visibility: "open",
     descriptor: "Nairobi reader",
   },
@@ -146,7 +144,6 @@ export const voiceReflections: VoiceReflectionItem[] = [
     reflection:
       "My most practical growth habit has been one deep breath before difficult conversations.",
     author: "Campus contributor",
-    submissionType: "quote",
     visibility: "open",
     descriptor: "Campus contributor",
   },
@@ -156,7 +153,6 @@ export const voiceReflections: VoiceReflectionItem[] = [
     reflection:
       "Writing one line each night helps me end the day with gratitude instead of pressure.",
     author: "Anonymous",
-    submissionType: "book-read",
     visibility: "anonymous",
     descriptor: "Shared anonymously",
   },
@@ -166,7 +162,6 @@ export const voiceReflections: VoiceReflectionItem[] = [
     reflection:
       "A short walk without headphones helps me sort out noisy thoughts into useful priorities.",
     author: "Guest writer",
-    submissionType: "inspiration",
     visibility: "open",
     descriptor: "Guest writer",
   },

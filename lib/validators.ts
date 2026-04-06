@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-const voiceSubmissionTypeSchema = z.enum(["idea", "quote", "book-read", "inspiration"]);
 const voiceVisibilitySchema = z.enum(["open", "anonymous"]);
 
 export const contactSubmissionSchema = z.object({
@@ -33,7 +32,6 @@ export const voiceSubmissionSchema = z.object({
     .trim()
     .min(7, { message: "Reflection must be at least 7 characters." })
     .max(2000, { message: "Reflection must be 2000 characters or fewer." }),
-  submissionType: voiceSubmissionTypeSchema,
   visibility: voiceVisibilitySchema,
   descriptor: z
     .string()

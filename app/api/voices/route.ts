@@ -55,7 +55,6 @@ export async function POST(request: Request) {
         title: parsed.data.title,
         reflection: parsed.data.reflection,
         author,
-        submissionType: parsed.data.submissionType,
         visibility: parsed.data.visibility,
         descriptor: parsed.data.descriptor,
         userId: session.user.id,

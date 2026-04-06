@@ -11,13 +11,6 @@ import { isAdminEmail } from "@/lib/admin";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-const submissionTypeLabels = {
-  idea: "Idea",
-  quote: "Quote",
-  "book-read": "Book Read",
-  inspiration: "Inspiration",
-} as const;
-
 const visibilityLabels = {
   open: "Open",
   anonymous: "Anonymous",
@@ -51,7 +44,6 @@ export default async function VoicesAdminPage() {
       title: true,
       reflection: true,
       author: true,
-      submissionType: true,
       visibility: true,
       descriptor: true,
       status: true,
@@ -90,9 +82,6 @@ export default async function VoicesAdminPage() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="grid gap-2">
                   <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
-                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
-                      {submissionTypeLabels[submission.submissionType as keyof typeof submissionTypeLabels]}
-                    </span>
                     <span className="rounded-full border border-slate-200 px-3 py-1 text-slate-600">
                       {visibilityLabels[submission.visibility as keyof typeof visibilityLabels]}
                     </span>

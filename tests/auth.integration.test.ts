@@ -132,7 +132,6 @@ describe("auth integration", () => {
           title,
           reflection:
             "Vitest reflection content is long enough to satisfy validation and prove the protected route writes to the database.",
-          submissionType: "idea",
           visibility: "anonymous",
           descriptor: "Vitest Nairobi student",
         }),
@@ -149,7 +148,6 @@ describe("auth integration", () => {
     expect(createdSubmission).not.toBeNull();
     expect(createdSubmission?.status).toBe("pending");
     expect(createdSubmission?.author).toBe("Anonymous");
-    expect(createdSubmission?.submissionType).toBe("idea");
     expect(createdSubmission?.visibility).toBe("anonymous");
     expect(createdSubmission?.descriptor).toBe("Vitest Nairobi student");
     expect(createdSubmission?.isVoiceOfWeek).toBe(false);

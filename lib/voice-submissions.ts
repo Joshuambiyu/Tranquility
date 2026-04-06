@@ -6,7 +6,6 @@ const publicVoiceSelect = {
   title: true,
   reflection: true,
   author: true,
-  submissionType: true,
   visibility: true,
   descriptor: true,
   isVoiceOfWeek: true,

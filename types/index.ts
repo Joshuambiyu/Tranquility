@@ -35,8 +35,6 @@ export interface CommunityVoiceItem {
   href: string;
 }
 
-export type VoiceSubmissionType = "idea" | "quote" | "book-read" | "inspiration";
-
 export type VoiceVisibility = "open" | "anonymous";
 
 export type VoiceSubmissionStatus = "pending" | "approved" | "rejected";
@@ -46,7 +44,6 @@ export interface VoiceReflectionItem {
   title: string;
   reflection: string;
   author: string;
-  submissionType?: VoiceSubmissionType;
   visibility?: VoiceVisibility;
   descriptor?: string | null;
 }

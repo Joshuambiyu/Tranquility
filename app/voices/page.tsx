@@ -6,46 +6,16 @@ import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import { AppError } from "@/lib/errors/app-error";
 import { logClientError, parseApiError } from "@/lib/errors/client-error";
 import { voicesIntro } from "@/app/data/homepageData";
-import type { VoiceReflectionItem, VoiceSubmissionType, VoiceVisibility } from "@/types";
+import type { VoiceReflectionItem, VoiceVisibility } from "@/types";
 
 interface PersistedVoice {
   id: string;
   title: string;
   reflection: string;
   author: string;
-  submissionType: VoiceSubmissionType;
   visibility: VoiceVisibility;
   descriptor?: string | null;
   isVoiceOfWeek: boolean;
-}
-
-const submissionTypeLabels: Record<VoiceSubmissionType, string> = {
-  idea: "Idea",
-  quote: "Quote",
-  "book-read": "Book Read",
-  inspiration: "Inspiration",
-};
-
-const visibilityLabels: Record<VoiceVisibility, string> = {
-  open: "Open",
-  anonymous: "Anonymous",
-};
-
-function VoiceMeta({ voice }: { voice: VoiceReflectionItem }) {
-  return (
-    <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
-      {voice.submissionType ? (
-        <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1">
-          {submissionTypeLabels[voice.submissionType]}
-        </span>
-      ) : null}
-      {voice.visibility ? (
-        <span className="rounded-full border border-[var(--border-muted)] px-3 py-1 text-[var(--text-muted)]">
-          {visibilityLabels[voice.visibility]}
-        </span>
-      ) : null}
-    </div>
-  );
 }
 
 function VoiceAttribution({ voice }: { voice: VoiceReflectionItem }) {
@@ -64,8 +34,7 @@ export default function VoicesPage() {
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionType, setSubmissionType] = useState<VoiceSubmissionType>("idea");
-  const [visibility, setVisibility] = useState<VoiceVisibility>("open");
+  const [shareAnonymously, setShareAnonymously] = useState(false);
   const [descriptor, setDescriptor] = useState("");
   const [selectedVoiceOfWeek, setSelectedVoiceOfWeek] = useState<PersistedVoice | null>(null);
   const [approvedVoices, setApprovedVoices] = useState<PersistedVoice[]>([]);
@@ -105,7 +74,6 @@ export default function VoicesPage() {
       title: voice.title,
       reflection: voice.reflection,
       author: voice.author,
-      submissionType: voice.submissionType,
       visibility: voice.visibility,
       descriptor: voice.descriptor,
     }));
@@ -117,7 +85,6 @@ export default function VoicesPage() {
         title: selectedVoiceOfWeek.title,
         reflection: selectedVoiceOfWeek.reflection,
         author: selectedVoiceOfWeek.author,
-        submissionType: selectedVoiceOfWeek.submissionType,
         visibility: selectedVoiceOfWeek.visibility,
         descriptor: selectedVoiceOfWeek.descriptor,
       }
@@ -139,8 +106,7 @@ export default function VoicesPage() {
         body: JSON.stringify({
           title,
           reflection,
-          submissionType,
-          visibility,
+          visibility: shareAnonymously ? "anonymous" : "open",
           descriptor,
         }),
       });
@@ -166,8 +132,7 @@ export default function VoicesPage() {
       setTitle("");
       setReflection("");
       setDescriptor("");
-      setSubmissionType("idea");
-      setVisibility("open");
+      setShareAnonymously(false);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to submit voice.";
       setSubmitError(message);
@@ -193,7 +158,6 @@ export default function VoicesPage() {
           <SectionTitle title="Voice of the Week" />
           {featuredVoice ? (
             <Card className="gap-3 p-6">
-              <VoiceMeta voice={featuredVoice} />
               <h3 className="text-2xl font-semibold text-[var(--text-strong)] lg:text-3xl">{featuredVoice.title}</h3>
               <p className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">{featuredVoice.reflection}</p>
               <VoiceAttribution voice={featuredVoice} />
@@ -222,7 +186,6 @@ export default function VoicesPage() {
                   key={voice.id}
                   className="gap-3 p-6"
                 >
-                  <VoiceMeta voice={voice} />
                   <h3 className="text-xl font-semibold text-[var(--text-strong)] lg:text-2xl">{voice.title}</h3>
                   <p className="text-base leading-relaxed text-[var(--text-muted)]">{voice.reflection}</p>
                   <VoiceAttribution voice={voice} />
@@ -248,36 +211,15 @@ export default function VoicesPage() {
                 className="rounded-xl border border-[var(--border-muted)] bg-[var(--surface)] px-4 py-3 text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
               />
             </label>
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="grid gap-2 text-sm font-medium text-[var(--text-muted)]">
-                Voice type
-                <select
-                  value={submissionType}
-                  onChange={(event) => setSubmissionType(event.target.value as VoiceSubmissionType)}
-                  className="rounded-xl border border-[var(--border-muted)] bg-[var(--surface)] px-4 py-3 text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
-                >
-                  {Object.entries(submissionTypeLabels).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="grid gap-2 text-sm font-medium text-[var(--text-muted)]">
-                Posting mode
-                <select
-                  value={visibility}
-                  onChange={(event) => setVisibility(event.target.value as VoiceVisibility)}
-                  className="rounded-xl border border-[var(--border-muted)] bg-[var(--surface)] px-4 py-3 text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
-                >
-                  {Object.entries(visibilityLabels).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
+            <label className="flex items-center gap-3 rounded-xl border border-[var(--border-muted)] bg-[var(--surface)] px-4 py-3 text-sm font-medium text-[var(--text-muted)]">
+              <input
+                type="checkbox"
+                checked={shareAnonymously}
+                onChange={(event) => setShareAnonymously(event.target.checked)}
+                className="h-4 w-4 rounded border-[var(--border-muted)] text-emerald-700 focus:ring-emerald-400"
+              />
+              Don&apos;t wanna share name (post anonymously)
+            </label>
             <label className="grid gap-2 text-sm font-medium text-[var(--text-muted)]">
               Your reflection
               <textarea

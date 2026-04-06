@@ -25,6 +25,10 @@ const themeKeywords: Record<ReflectionTheme, string[]> = {
   clarity: ["clarity", "understand", "direction", "truth", "mind", "reflect"],
 };
 
+const QUOTABLE_ATTEMPTS = 5;
+const QUOTABLE_TIMEOUT_MS = 2200;
+const ZEN_TIMEOUT_MS = 1800;
+
 const encouragementLibrary: Record<ReflectionTheme, string[]> = {
   rest: [
     "Let your answer become permission to slow one part of the day down. Choose one calming action and protect it.",
@@ -123,6 +127,11 @@ function scoreQuoteRelevance(quote: ExternalQuote, answer: string, theme: Reflec
   return answerOverlap * 2 + themeOverlap;
 }
 
+function minimumRelevanceScore(answer: string) {
+  const tokenCount = tokenize(answer).length;
+  return tokenCount >= 8 ? 2 : 1;
+}
+
 async function fetchFromQuotable(theme: ReflectionTheme, signal: AbortSignal): Promise<ExternalQuote | null> {
   const tags = themeTags[theme].join("|");
   const response = await fetch(`https://api.quotable.io/random?tags=${encodeURIComponent(tags)}&maxLength=180`, {
@@ -162,20 +171,26 @@ async function fetchFromZenQuotes(signal: AbortSignal): Promise<ExternalQuote | 
 }
 
 async function fetchRelatedQuote(input: { theme: ReflectionTheme; answer: string }): Promise<ExternalQuote | null> {
-  const quotableTimeout = AbortSignal.timeout(3500);
+  const threshold = minimumRelevanceScore(input.answer);
 
-  // Try multiple themed quotes and keep the one most related to the journal answer.
+  // Try multiple themed quotes and keep the most related candidate.
   let bestMatch: ExternalQuote | null = null;
   let bestScore = -1;
 
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  for (let attempt = 0; attempt < QUOTABLE_ATTEMPTS; attempt += 1) {
     try {
-      const candidate = await fetchFromQuotable(input.theme, quotableTimeout);
+      const timeout = AbortSignal.timeout(QUOTABLE_TIMEOUT_MS);
+      const candidate = await fetchFromQuotable(input.theme, timeout);
       if (candidate) {
         const score = scoreQuoteRelevance(candidate, input.answer, input.theme);
+
         if (score > bestScore) {
           bestScore = score;
           bestMatch = candidate;
+        }
+
+        if (score >= threshold) {
+          return candidate;
         }
       }
     } catch {
@@ -183,20 +198,19 @@ async function fetchRelatedQuote(input: { theme: ReflectionTheme; answer: string
     }
   }
 
-  if (bestMatch) {
+  if (bestMatch && bestScore >= threshold) {
     return bestMatch;
   }
 
-  const zenTimeout = AbortSignal.timeout(2500);
   try {
+    const zenTimeout = AbortSignal.timeout(ZEN_TIMEOUT_MS);
     const zenQuote = await fetchFromZenQuotes(zenTimeout);
     if (!zenQuote) {
       return null;
     }
 
-    // Keep fallback quotes only when they loosely match the topic.
     const score = scoreQuoteRelevance(zenQuote, input.answer, input.theme);
-    return score > 0 ? zenQuote : null;
+    return score >= threshold ? zenQuote : null;
   } catch {
     return null;
   }

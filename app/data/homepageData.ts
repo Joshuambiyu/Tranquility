@@ -110,6 +110,7 @@ export const recentArticles: ArticleCardItem[] = [
 export const footerLinks: NavLinkItem[] = [
   { label: "Home", href: "/" },
   { label: "Blog", href: "/blog" },
+  { label: "Journals", href: "/journals" },
   { label: "Voices", href: "/voices" },
   { label: "Resources", href: "/resources" },
   { label: "About", href: "/about" },

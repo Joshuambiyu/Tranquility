@@ -5,11 +5,7 @@ import { signIn, useSession } from "next-auth/react";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import { AppError } from "@/lib/errors/app-error";
 import { logClientError, parseApiError } from "@/lib/errors/client-error";
-import {
-  voiceOfWeek,
-  voiceReflections,
-  voicesIntro,
-} from "@/app/data/homepageData";
+import { voicesIntro } from "@/app/data/homepageData";
 import type { VoiceReflectionItem, VoiceSubmissionType, VoiceVisibility } from "@/types";
 
 interface PersistedVoice {
@@ -104,7 +100,7 @@ export default function VoicesPage() {
   }, []);
 
   const mergedVoices = useMemo<VoiceReflectionItem[]>(() => {
-    const dbVoices: VoiceReflectionItem[] = approvedVoices.map((voice) => ({
+    return approvedVoices.map((voice) => ({
       id: `db-${voice.id}`,
       title: voice.title,
       reflection: voice.reflection,
@@ -113,11 +109,9 @@ export default function VoicesPage() {
       visibility: voice.visibility,
       descriptor: voice.descriptor,
     }));
-
-    return dbVoices.length > 0 ? dbVoices : voiceReflections;
   }, [approvedVoices]);
 
-  const featuredVoice: VoiceReflectionItem = selectedVoiceOfWeek
+  const featuredVoice: VoiceReflectionItem | null = selectedVoiceOfWeek
     ? {
         id: `featured-${selectedVoiceOfWeek.id}`,
         title: selectedVoiceOfWeek.title,
@@ -127,7 +121,7 @@ export default function VoicesPage() {
         visibility: selectedVoiceOfWeek.visibility,
         descriptor: selectedVoiceOfWeek.descriptor,
       }
-    : voiceOfWeek;
+    : null;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -197,29 +191,45 @@ export default function VoicesPage() {
 
         <SectionBlock>
           <SectionTitle title="Voice of the Week" />
-          <Card className="gap-3 p-6">
-            <VoiceMeta voice={featuredVoice} />
-            <h3 className="text-2xl font-semibold text-[var(--text-strong)] lg:text-3xl">{featuredVoice.title}</h3>
-            <p className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">{featuredVoice.reflection}</p>
-            <VoiceAttribution voice={featuredVoice} />
-          </Card>
+          {featuredVoice ? (
+            <Card className="gap-3 p-6">
+              <VoiceMeta voice={featuredVoice} />
+              <h3 className="text-2xl font-semibold text-[var(--text-strong)] lg:text-3xl">{featuredVoice.title}</h3>
+              <p className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">{featuredVoice.reflection}</p>
+              <VoiceAttribution voice={featuredVoice} />
+            </Card>
+          ) : (
+            <Card className="gap-3 p-6">
+              <p className="text-sm text-[var(--text-muted)]">
+                No Voice of the Week has been selected yet.
+              </p>
+            </Card>
+          )}
         </SectionBlock>
 
         <SectionBlock>
           <SectionTitle title="Community Reflections" description="Short reflections shared by our readers and contributors." />
-          <div className="grid gap-4 md:grid-cols-2">
-            {mergedVoices.map((voice) => (
-              <Card
-                key={voice.id}
-                className="gap-3 p-6"
-              >
-                <VoiceMeta voice={voice} />
-                <h3 className="text-xl font-semibold text-[var(--text-strong)] lg:text-2xl">{voice.title}</h3>
-                <p className="text-base leading-relaxed text-[var(--text-muted)]">{voice.reflection}</p>
-                <VoiceAttribution voice={voice} />
-              </Card>
-            ))}
-          </div>
+          {mergedVoices.length === 0 ? (
+            <Card className="gap-3 p-6">
+              <p className="text-sm text-[var(--text-muted)]">
+                No approved community reflections yet. Submitted voices appear here after admin approval.
+              </p>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {mergedVoices.map((voice) => (
+                <Card
+                  key={voice.id}
+                  className="gap-3 p-6"
+                >
+                  <VoiceMeta voice={voice} />
+                  <h3 className="text-xl font-semibold text-[var(--text-strong)] lg:text-2xl">{voice.title}</h3>
+                  <p className="text-base leading-relaxed text-[var(--text-muted)]">{voice.reflection}</p>
+                  <VoiceAttribution voice={voice} />
+                </Card>
+              ))}
+            </div>
+          )}
         </SectionBlock>
 
         <SectionBlock id="share-your-voice" className="gap-4">

@@ -1,4 +1,4 @@
-import { SectionBlock, SectionTitle, CARD_BG_VARIANTS } from "@/app/components/ui";
+import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import type { ArticleCardItem } from "@/types";
 
 interface RecentArticlesSectionProps {
@@ -7,14 +7,11 @@ interface RecentArticlesSectionProps {
 
 export function RecentArticlesSection({ articles }: RecentArticlesSectionProps) {
   return (
-    <SectionBlock bgVariant="sectionBlockBg">
+    <SectionBlock>
       <SectionTitle title="Recent Articles" />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {articles.map((article) => (
-          <article
-            key={article.id}
-            className="grid gap-3 rounded-xl bg-[var(--accent-soft-2)] p-5 ring-1 ring-[var(--border-muted)]"
-          >
+          <Card key={article.id} className="gap-3">
             <h3 className="text-lg font-semibold text-[var(--text-strong)] lg:text-xl">{article.title}</h3>
             <p className="text-sm leading-relaxed text-[var(--text-muted)] lg:text-base">{article.description}</p>
             <a
@@ -23,7 +20,7 @@ export function RecentArticlesSection({ articles }: RecentArticlesSectionProps) 
             >
               Read More
             </a>
-          </article>
+          </Card>
         ))}
       </div>
     </SectionBlock>

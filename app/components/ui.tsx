@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Children, isValidElement } from "react";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 // Background variants for sections
@@ -18,7 +19,7 @@ export const SECTION_BG_VARIANTS = {
 
 // Background variants for cards
 export const CARD_BG_VARIANTS = {
-  cardInSectionBg: "bg-[var(--accent-soft-2)]",
+  cardInSectionBg: "bg-[var(--card-in-section-bg)]",
   muted: "bg-[var(--surface-muted)]",
   soft: "bg-[var(--accent-soft)]",
   surface: "bg-[var(--surface)]",
@@ -46,15 +47,16 @@ interface ActionLinkProps {
 export function SectionBlock({
   children,
   className = "",
-  bgVariant = "default",
+  bgVariant,
   ...props
 }: SectionBlockProps) {
-  const bgConfig = SECTION_BG_VARIANTS[bgVariant];
+  const resolvedBgVariant = bgVariant ?? (hasDescendantCard(children) ? "default" : "sectionBlockBg");
+  const bgConfig = SECTION_BG_VARIANTS[resolvedBgVariant];
   const baseClass = `grid gap-6 rounded-xl p-6 shadow-sm ring-1 ring-[var(--border-muted)] sm:p-8 lg:p-10`;
 
   // For default variant, include the default background
   const sectionClass =
-    bgVariant === "default"
+    resolvedBgVariant === "default"
       ? `${baseClass} bg-[var(--surface)] ${bgConfig.className}`
       : `${baseClass} ${bgConfig.className}`;
 
@@ -62,7 +64,7 @@ export function SectionBlock({
     <section
       {...props}
       className={`${sectionClass} ${className}`}
-      style={bgVariant === "default" ? undefined : bgConfig.style}
+      style={resolvedBgVariant === "default" ? undefined : bgConfig.style}
     >
       {children}
     </section>
@@ -99,16 +101,31 @@ interface CardProps extends ComponentPropsWithoutRef<"div"> {
   href?: string;
 }
 
+function hasDescendantCard(node: ReactNode): boolean {
+  return Children.toArray(node).some((child) => {
+    if (!isValidElement<{ children?: ReactNode }>(child)) {
+      return false;
+    }
+
+    if (child.type === Card) {
+      return true;
+    }
+
+    return hasDescendantCard(child.props.children);
+  });
+}
+
 export function Card({ children, bgVariant = "cardInSectionBg", href, className = "", ...props }: CardProps) {
   const bgClass = CARD_BG_VARIANTS[bgVariant];
   const baseClass = `grid gap-2 rounded-xl p-5 ring-1 ring-[var(--border-muted)] transition`;
+  const hoverClass = bgVariant === "cardInSectionBg" ? "hover:bg-[var(--card-in-section-hover)]" : "hover:bg-[var(--accent-soft)]";
 
   if (href) {
     return (
       <a
         href={href}
         {...(props as ComponentPropsWithoutRef<"a">)}
-        className={`${baseClass} ${bgClass} hover:bg-[var(--accent-soft)] ${className}`}
+        className={`${baseClass} ${bgClass} ${hoverClass} ${className}`}
       >
         {children}
       </a>

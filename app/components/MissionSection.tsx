@@ -6,7 +6,7 @@ interface MissionSectionProps {
 
 export function MissionSection({ mission }: MissionSectionProps) {
   return (
-    <SectionBlock bgVariant="sectionBlockBg">
+    <SectionBlock className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0">
         <div
           className="absolute -left-8 top-6 h-28 w-28 rounded-full blur-2xl"

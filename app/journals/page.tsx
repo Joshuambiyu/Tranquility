@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { DailyReflectionSection } from "@/app/components/DailyReflectionSection";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
+import { reflectionPrompt } from "@/app/data/homepageData";
+import { submitJournalReflection } from "@/lib/journal-submission";
+import type { ReflectionSubmissionState, StressLevel } from "@/types";
 
 type JournalEntry = {
   id: string;
@@ -25,6 +29,9 @@ export default function JournalsPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reflectionAnswer, setReflectionAnswer] = useState("");
+  const [stressLevel, setStressLevel] = useState<StressLevel>("medium");
+  const [submissionState, setSubmissionState] = useState<ReflectionSubmissionState>({ status: "idle" });
 
   useEffect(() => {
     if (status === "loading") {
@@ -59,6 +66,57 @@ export default function JournalsPage() {
     void loadJournals();
   }, [status]);
 
+  const handleReflectionSubmit = async () => {
+    if (status !== "authenticated") {
+      setSubmissionState({
+        status: "error",
+        message: "Please sign in with Google before submitting a journal reflection.",
+      });
+      return;
+    }
+
+    const trimmed = reflectionAnswer.trim();
+    if (!trimmed) {
+      setSubmissionState({
+        status: "error",
+        message: "Please write a short reflection before submitting.",
+      });
+      return;
+    }
+
+    setSubmissionState({ status: "saving" });
+
+    try {
+      const created = await submitJournalReflection({
+        prompt: reflectionPrompt,
+        answer: trimmed,
+        stressLevel,
+      });
+
+      setEntries((current) => [
+        {
+          id: created.id,
+          prompt: reflectionPrompt,
+          answer: trimmed,
+          stressLevel,
+          resultTone: created.result.tone,
+          resultTitle: created.result.title,
+          resultMessage: created.result.message,
+          createdAt: created.createdAt,
+        },
+        ...current,
+      ]);
+      setSubmissionState({ status: "submitted", result: created.result });
+      setReflectionAnswer("");
+      setError(null);
+    } catch (caught) {
+      setSubmissionState({
+        status: "error",
+        message: caught instanceof Error ? caught.message : "Unable to save your reflection. Please try again.",
+      });
+    }
+  };
+
   return (
     <div className="grid min-h-screen bg-background text-foreground">
       <main className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
@@ -68,9 +126,20 @@ export default function JournalsPage() {
             description="Your saved daily reflections are stored in your account so you can revisit your growth over time."
           />
           <p className="text-sm text-[var(--text-muted)]">
-            New reflections from the home page will appear here after submission.
+            Submit a new reflection here or review the ones you have already saved.
           </p>
         </SectionBlock>
+
+        <DailyReflectionSection
+          prompt={reflectionPrompt}
+          answer={reflectionAnswer}
+          stressLevel={stressLevel}
+          submissionState={submissionState}
+          isSignedIn={status === "authenticated"}
+          onAnswerChange={setReflectionAnswer}
+          onStressChange={setStressLevel}
+          onSubmit={handleReflectionSubmit}
+        />
 
         {loading ? (
           <SectionBlock>
@@ -89,11 +158,11 @@ export default function JournalsPage() {
           <SectionBlock>
             <Card>
               <p className="text-[var(--text-muted)]">
-                You do not have saved reflections yet. Start from the Daily Reflection section on the home page.
+                You do not have saved reflections yet. Use the Daily Reflection form above to add your first entry.
               </p>
-              <Link href="/" className="text-sm font-semibold text-emerald-700 hover:text-emerald-800">
-                Go to Daily Reflection
-              </Link>
+              <p className="text-sm font-semibold text-emerald-700">
+                Your next reflection will appear here after submission.
+              </p>
             </Card>
           </SectionBlock>
         ) : (

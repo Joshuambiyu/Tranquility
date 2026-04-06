@@ -21,7 +21,8 @@ import {
   recentArticles,
   reflectionPrompt,
 } from "@/app/data/homepageData";
-import type { ReflectionResult, ReflectionSubmissionState, StressLevel } from "@/types";
+import { submitJournalReflection } from "@/lib/journal-submission";
+import type { ReflectionSubmissionState, StressLevel } from "@/types";
 
 export default function Home() {
   const { status: authStatus } = useSession();
@@ -51,26 +52,11 @@ export default function Home() {
     setSubmissionState({ status: "saving" });
 
     try {
-      const response = await fetch("/api/journals", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          prompt: reflectionPrompt,
-          answer: trimmed,
-          stressLevel,
-        }),
+      const data = await submitJournalReflection({
+        prompt: reflectionPrompt,
+        answer: trimmed,
+        stressLevel,
       });
-
-      if (!response.ok) {
-        const data = (await response.json().catch(() => null)) as { message?: string } | null;
-        throw new Error(data?.message ?? "Unable to save your reflection. Please try again.");
-      }
-
-      const data = (await response.json()) as {
-        result: ReflectionResult;
-      };
 
       setSubmissionState({ status: "submitted", result: data.result });
       setReflectionAnswer("");

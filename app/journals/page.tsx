@@ -170,15 +170,11 @@ export default function JournalsPage() {
             <SectionTitle title="Recent Entries" />
             <div className="grid gap-4 md:grid-cols-2">
               {entries.map((entry) => (
-                <Card key={entry.id} className="gap-3">
+                <Card key={entry.id} className="gap-2">
                   <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
                     {new Date(entry.createdAt).toLocaleString()} • Stress: {entry.stressLevel}
                   </p>
-                  <p className="text-sm text-[var(--text-muted)]">{entry.prompt}</p>
                   <p className="text-[var(--text-strong)]">{entry.answer}</p>
-                  <p className="rounded-xl bg-[var(--card-in-section-bg)] px-3 py-2 text-sm text-[var(--text-muted)] ring-1 ring-[var(--border-muted)]">
-                    <span className="font-semibold text-[var(--text-strong)]">{entry.resultTitle}:</span> {entry.resultMessage}
-                  </p>
                 </Card>
               ))}
             </div>

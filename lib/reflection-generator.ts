@@ -2,31 +2,9 @@ import type { ReflectionResult, ReflectionTone, StressLevel } from "@/types";
 
 type ReflectionTheme = "rest" | "focus" | "gratitude" | "connection" | "courage" | "clarity";
 
-const quoteLibrary: Record<ReflectionTheme, string[]> = {
-  rest: [
-    '"Rest is not a reward for finishing. It is part of how you keep going with care."',
-    '"A slower pace can still be faithful progress when it protects your peace."',
-  ],
-  focus: [
-    '"Clarity often begins when you choose one next step instead of carrying the whole day at once."',
-    '"Attention grows stronger when it is given to one honest priority at a time."',
-  ],
-  gratitude: [
-    '"Gratitude does not erase pressure, but it can steady the way you walk through it."',
-    '"Small thank-yous can widen your view when the day feels narrow."',
-  ],
-  connection: [
-    '"Healing becomes lighter when it is allowed to be shared, even in one small conversation."',
-    '"A gentle word to yourself can become the beginning of a gentler day with others."',
-  ],
-  courage: [
-    '"Courage is often quiet. It looks like showing up honestly for the next necessary thing."',
-    '"You do not need perfect strength. You only need enough honesty for the next step."',
-  ],
-  clarity: [
-    '"When thoughts are noisy, a single true sentence can become a place to stand."',
-    '"Understanding grows when you name what matters before you chase what is urgent."',
-  ],
+type ExternalQuote = {
+  text: string;
+  author?: string;
 };
 
 const encouragementLibrary: Record<ReflectionTheme, string[]> = {
@@ -97,6 +75,78 @@ function pickDeterministic<T>(items: T[], seed: string) {
   return items[hashSeed(seed) % items.length] ?? items[0];
 }
 
+function normalizeQuote(rawText: string, rawAuthor?: string): ExternalQuote | null {
+  const text = rawText.trim();
+  if (!text) {
+    return null;
+  }
+
+  const author = rawAuthor?.trim();
+  return {
+    text,
+    ...(author ? { author } : {}),
+  };
+}
+
+async function fetchFromQuotable(signal: AbortSignal): Promise<ExternalQuote | null> {
+  const response = await fetch("https://api.quotable.io/random", {
+    cache: "no-store",
+    signal,
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const body = (await response.json()) as { content?: string; author?: string };
+  if (!body.content) {
+    return null;
+  }
+
+  return normalizeQuote(body.content, body.author);
+}
+
+async function fetchFromZenQuotes(signal: AbortSignal): Promise<ExternalQuote | null> {
+  const response = await fetch("https://zenquotes.io/api/random", {
+    cache: "no-store",
+    signal,
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const body = (await response.json()) as Array<{ q?: string; a?: string }>;
+  const first = body[0];
+  if (!first?.q) {
+    return null;
+  }
+
+  return normalizeQuote(first.q, first.a);
+}
+
+async function fetchExternalQuote(): Promise<ExternalQuote | null> {
+  const timeout = AbortSignal.timeout(3000);
+
+  const providers: Array<() => Promise<ExternalQuote | null>> = [
+    () => fetchFromQuotable(timeout),
+    () => fetchFromZenQuotes(timeout),
+  ];
+
+  for (const provider of providers) {
+    try {
+      const quote = await provider();
+      if (quote) {
+        return quote;
+      }
+    } catch {
+      // Ignore provider failure and try the next provider.
+    }
+  }
+
+  return null;
+}
+
 function inferTheme(answer: string): ReflectionTheme {
   const normalized = answer.toLowerCase();
 
@@ -142,11 +192,11 @@ function extractFocus(answer: string) {
   return clipped || "what matters most today";
 }
 
-export function generateReflectionResult(input: {
+export async function generateReflectionResult(input: {
   prompt: string;
   answer: string;
   stressLevel: StressLevel;
-}): ReflectionResult {
+}): Promise<ReflectionResult> {
   const theme = inferTheme(input.answer);
   const tone = determineTone(input.stressLevel, theme);
   const seed = `${input.prompt}:${input.answer}:${input.stressLevel}`;
@@ -154,11 +204,22 @@ export function generateReflectionResult(input: {
   const title = titleMap[input.stressLevel][theme];
 
   if (tone === "quote") {
-    const quote = pickDeterministic(quoteLibrary[theme], seed);
+    const quote = await fetchExternalQuote();
+
+    if (quote) {
+      const attributedQuote = quote.author ? `"${quote.text}" — ${quote.author}` : `"${quote.text}"`;
+      return {
+        tone,
+        title,
+        message: `${attributedQuote} Let your focus stay close to "${focus}" today.`,
+      };
+    }
+
+    const fallback = pickDeterministic(encouragementLibrary[theme], seed);
     return {
       tone,
       title,
-      message: `${quote} Let your focus stay close to "${focus}" today.`,
+      message: `${fallback} Let your focus stay close to "${focus}" today.`,
     };
   }
 

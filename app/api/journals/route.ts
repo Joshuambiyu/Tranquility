@@ -73,7 +73,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const result = generateReflectionResult({
+    const result = await generateReflectionResult({
       prompt: parsed.data.prompt,
       answer: parsed.data.answer,
       stressLevel: parsed.data.stressLevel,

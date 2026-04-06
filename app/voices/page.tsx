@@ -9,13 +9,55 @@ import {
   voiceReflections,
   voicesIntro,
 } from "@/app/data/homepageData";
-import type { VoiceReflectionItem } from "@/types";
+import type { VoiceReflectionItem, VoiceSubmissionType, VoiceVisibility } from "@/types";
 
 interface PersistedVoice {
   id: string;
   title: string;
   reflection: string;
   author: string;
+  submissionType: VoiceSubmissionType;
+  visibility: VoiceVisibility;
+  descriptor?: string | null;
+  isVoiceOfWeek: boolean;
+}
+
+const submissionTypeLabels: Record<VoiceSubmissionType, string> = {
+  idea: "Idea",
+  quote: "Quote",
+  "book-read": "Book Read",
+  inspiration: "Inspiration",
+};
+
+const visibilityLabels: Record<VoiceVisibility, string> = {
+  open: "Open",
+  anonymous: "Anonymous",
+};
+
+function VoiceMeta({ voice }: { voice: VoiceReflectionItem }) {
+  return (
+    <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
+      {voice.submissionType ? (
+        <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1">
+          {submissionTypeLabels[voice.submissionType]}
+        </span>
+      ) : null}
+      {voice.visibility ? (
+        <span className="rounded-full border border-[var(--border-muted)] px-3 py-1 text-[var(--text-muted)]">
+          {visibilityLabels[voice.visibility]}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function VoiceAttribution({ voice }: { voice: VoiceReflectionItem }) {
+  return (
+    <div className="grid gap-1 text-sm">
+      <p className="font-medium text-emerald-700">- {voice.author}</p>
+      {voice.descriptor ? <p className="text-[var(--text-muted)]">{voice.descriptor}</p> : null}
+    </div>
+  );
 }
 
 export default function VoicesPage() {
@@ -25,6 +67,10 @@ export default function VoicesPage() {
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionType, setSubmissionType] = useState<VoiceSubmissionType>("idea");
+  const [visibility, setVisibility] = useState<VoiceVisibility>("open");
+  const [descriptor, setDescriptor] = useState("");
+  const [selectedVoiceOfWeek, setSelectedVoiceOfWeek] = useState<PersistedVoice | null>(null);
   const [approvedVoices, setApprovedVoices] = useState<PersistedVoice[]>([]);
 
   useEffect(() => {
@@ -38,12 +84,17 @@ export default function VoicesPage() {
           return;
         }
 
-        const result = (await response.json()) as { voices: PersistedVoice[] };
+        const result = (await response.json()) as {
+          voiceOfWeek: PersistedVoice | null;
+          voices: PersistedVoice[];
+        };
+        setSelectedVoiceOfWeek(result.voiceOfWeek ?? null);
         setApprovedVoices(result.voices ?? []);
       } catch {
         logClientError("Unable to load voices right now.", {
           scope: "voices.load",
         });
+        setSelectedVoiceOfWeek(null);
         setApprovedVoices([]);
       }
     };
@@ -57,10 +108,25 @@ export default function VoicesPage() {
       title: voice.title,
       reflection: voice.reflection,
       author: voice.author,
+      submissionType: voice.submissionType,
+      visibility: voice.visibility,
+      descriptor: voice.descriptor,
     }));
 
-    return [...dbVoices, ...voiceReflections];
+    return dbVoices.length > 0 ? dbVoices : voiceReflections;
   }, [approvedVoices]);
+
+  const featuredVoice: VoiceReflectionItem = selectedVoiceOfWeek
+    ? {
+        id: `featured-${selectedVoiceOfWeek.id}`,
+        title: selectedVoiceOfWeek.title,
+        reflection: selectedVoiceOfWeek.reflection,
+        author: selectedVoiceOfWeek.author,
+        submissionType: selectedVoiceOfWeek.submissionType,
+        visibility: selectedVoiceOfWeek.visibility,
+        descriptor: selectedVoiceOfWeek.descriptor,
+      }
+    : voiceOfWeek;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -78,6 +144,9 @@ export default function VoicesPage() {
         body: JSON.stringify({
           title,
           reflection,
+          submissionType,
+          visibility,
+          descriptor,
         }),
       });
 
@@ -100,10 +169,13 @@ export default function VoicesPage() {
       const result = (await response.json()) as { message?: string };
 
       setSubmitSuccess(
-        result.message ?? "Your reflection has been submitted and is pending review.",
+        result.message ?? "Your voice has been submitted and is pending review.",
       );
       setTitle("");
       setReflection("");
+      setDescriptor("");
+      setSubmissionType("idea");
+      setVisibility("open");
     } catch (error) {
       logClientError(error, {
         scope: "voices.submit",
@@ -124,9 +196,10 @@ export default function VoicesPage() {
         <SectionBlock>
           <SectionTitle title="Voice of the Week" />
           <Card className="gap-3 p-6">
-            <h3 className="text-2xl font-semibold text-[var(--text-strong)] lg:text-3xl">{voiceOfWeek.title}</h3>
-            <p className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">{voiceOfWeek.reflection}</p>
-            <p className="text-sm font-medium text-emerald-700">- {voiceOfWeek.author}</p>
+            <VoiceMeta voice={featuredVoice} />
+            <h3 className="text-2xl font-semibold text-[var(--text-strong)] lg:text-3xl">{featuredVoice.title}</h3>
+            <p className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">{featuredVoice.reflection}</p>
+            <VoiceAttribution voice={featuredVoice} />
           </Card>
         </SectionBlock>
 
@@ -138,15 +211,16 @@ export default function VoicesPage() {
                 key={voice.id}
                 className="gap-3 p-6"
               >
+                <VoiceMeta voice={voice} />
                 <h3 className="text-xl font-semibold text-[var(--text-strong)] lg:text-2xl">{voice.title}</h3>
                 <p className="text-base leading-relaxed text-[var(--text-muted)]">{voice.reflection}</p>
-                <p className="text-sm font-medium text-emerald-700">- {voice.author}</p>
+                <VoiceAttribution voice={voice} />
               </Card>
             ))}
           </div>
         </SectionBlock>
 
-        <SectionBlock className="gap-4">
+        <SectionBlock id="share-your-voice" className="gap-4">
           <SectionTitle title="Share your voice" />
           <p className="max-w-3xl text-[var(--text-muted)]">
             Do you have a reflection or thought you would like to share? TranquilityHub welcomes thoughtful perspectives from readers.
@@ -162,6 +236,36 @@ export default function VoicesPage() {
                 className="rounded-xl border border-[var(--border-muted)] bg-[var(--surface)] px-4 py-3 text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
               />
             </label>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="grid gap-2 text-sm font-medium text-[var(--text-muted)]">
+                Voice type
+                <select
+                  value={submissionType}
+                  onChange={(event) => setSubmissionType(event.target.value as VoiceSubmissionType)}
+                  className="rounded-xl border border-[var(--border-muted)] bg-[var(--surface)] px-4 py-3 text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
+                >
+                  {Object.entries(submissionTypeLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-2 text-sm font-medium text-[var(--text-muted)]">
+                Posting mode
+                <select
+                  value={visibility}
+                  onChange={(event) => setVisibility(event.target.value as VoiceVisibility)}
+                  className="rounded-xl border border-[var(--border-muted)] bg-[var(--surface)] px-4 py-3 text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
+                >
+                  {Object.entries(visibilityLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
             <label className="grid gap-2 text-sm font-medium text-[var(--text-muted)]">
               Your reflection
               <textarea
@@ -170,6 +274,16 @@ export default function VoicesPage() {
                 onChange={(event) => setReflection(event.target.value)}
                 required
                 maxLength={2000}
+                className="rounded-xl border border-[var(--border-muted)] bg-[var(--surface)] px-4 py-3 text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
+              />
+            </label>
+            <label className="grid gap-2 text-sm font-medium text-[var(--text-muted)]">
+              Optional descriptor
+              <input
+                value={descriptor}
+                onChange={(event) => setDescriptor(event.target.value)}
+                maxLength={80}
+                placeholder="Example: Nairobi campus student"
                 className="rounded-xl border border-[var(--border-muted)] bg-[var(--surface)] px-4 py-3 text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
               />
             </label>
@@ -189,7 +303,7 @@ export default function VoicesPage() {
               disabled={isSubmitting || status !== "authenticated"}
               className="inline-grid w-fit place-items-center rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSubmitting ? "Submitting..." : "Submit your Reflection"}
+              {isSubmitting ? "Submitting..." : "Submit your Voice"}
             </button>
           </form>
 

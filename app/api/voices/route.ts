@@ -2,29 +2,15 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { ApiError, toErrorResponse } from "@/lib/errors/api-error";
+import { getPublicVoiceFeed } from "@/lib/voice-submissions";
 import { prisma } from "@/lib/prisma";
 import { voiceSubmissionSchema } from "@/lib/validators";
 
 export async function GET() {
   try {
-    const approvedVoices = await prisma.voiceSubmission.findMany({
-      where: { status: "approved" },
-      orderBy: { createdAt: "desc" },
-      take: 6,
-      select: {
-        id: true,
-        title: true,
-        reflection: true,
-        author: true,
-        submissionType: true,
-        visibility: true,
-        descriptor: true,
-        isVoiceOfWeek: true,
-        createdAt: true,
-      },
-    });
+    const publicFeed = await getPublicVoiceFeed();
 
-    return NextResponse.json({ voices: approvedVoices });
+    return NextResponse.json(publicFeed);
   } catch (error) {
     return toErrorResponse(error, {
       fallbackMessage: "Something went wrong while loading voices.",

@@ -26,7 +26,7 @@ export function VoicesSection({ voices }: VoicesSectionProps) {
         ))}
       </div>
       <div>
-        <ActionLink href="/voices/submit" label="Submit your Reflection" />
+        <ActionLink href="/voices#share-your-voice" label="Submit your Voice" />
       </div>
     </SectionBlock>
   );

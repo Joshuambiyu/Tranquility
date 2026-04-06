@@ -18,6 +18,38 @@ interface PersistedVoice {
   isVoiceOfWeek: boolean;
 }
 
+function ReflectionPreview({
+  voice,
+  maxChars,
+}: {
+  voice: VoiceReflectionItem;
+  maxChars: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = voice.reflection.length > maxChars;
+  const visibleText = isLong && !expanded
+    ? `${voice.reflection.slice(0, maxChars).trimEnd()}...`
+    : voice.reflection;
+
+  return (
+    <div className="grid gap-2">
+      <p className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">
+        &quot;{visibleText}&quot;
+      </p>
+      <VoiceAttribution voice={voice} />
+      {isLong ? (
+        <button
+          type="button"
+          onClick={() => setExpanded((current) => !current)}
+          className="w-fit text-sm font-semibold text-emerald-700 transition hover:text-emerald-800"
+        >
+          {expanded ? "See less" : "See more"}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 function VoiceAttribution({ voice }: { voice: VoiceReflectionItem }) {
   return (
     <div className="grid gap-1 text-sm">
@@ -29,6 +61,7 @@ function VoiceAttribution({ voice }: { voice: VoiceReflectionItem }) {
 
 export default function VoicesPage() {
   const { status } = useSession();
+  const [isDesktop, setIsDesktop] = useState(false);
   const [title, setTitle] = useState("");
   const [reflection, setReflection] = useState("");
   const [submitError, setSubmitError] = useState("");
@@ -38,6 +71,18 @@ export default function VoicesPage() {
   const [descriptor, setDescriptor] = useState("");
   const [selectedVoiceOfWeek, setSelectedVoiceOfWeek] = useState<PersistedVoice | null>(null);
   const [approvedVoices, setApprovedVoices] = useState<PersistedVoice[]>([]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+    const apply = () => setIsDesktop(mediaQuery.matches);
+
+    apply();
+    mediaQuery.addEventListener("change", apply);
+
+    return () => {
+      mediaQuery.removeEventListener("change", apply);
+    };
+  }, []);
 
   useEffect(() => {
     const loadApprovedVoices = async () => {
@@ -89,6 +134,9 @@ export default function VoicesPage() {
         descriptor: selectedVoiceOfWeek.descriptor,
       }
     : null;
+
+  const featuredPreviewChars = isDesktop ? 440 : 260;
+  const communityPreviewChars = isDesktop ? 300 : 180;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -159,8 +207,7 @@ export default function VoicesPage() {
           {featuredVoice ? (
             <Card className="gap-3 p-6">
               <h3 className="text-2xl font-semibold text-[var(--text-strong)] lg:text-3xl">{featuredVoice.title}</h3>
-              <p className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">{featuredVoice.reflection}</p>
-              <VoiceAttribution voice={featuredVoice} />
+              <ReflectionPreview voice={featuredVoice} maxChars={featuredPreviewChars} />
             </Card>
           ) : (
             <Card className="gap-3 p-6">
@@ -184,11 +231,10 @@ export default function VoicesPage() {
               {mergedVoices.map((voice) => (
                 <Card
                   key={voice.id}
-                  className="gap-3 p-6"
+                  className="h-full gap-3 p-6"
                 >
                   <h3 className="text-xl font-semibold text-[var(--text-strong)] lg:text-2xl">{voice.title}</h3>
-                  <p className="text-base leading-relaxed text-[var(--text-muted)]">{voice.reflection}</p>
-                  <VoiceAttribution voice={voice} />
+                  <ReflectionPreview voice={voice} maxChars={communityPreviewChars} />
                 </Card>
               ))}
             </div>

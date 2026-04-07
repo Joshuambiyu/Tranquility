@@ -26,9 +26,15 @@ export default async function AdminHomePage() {
     );
   }
 
-  const [pendingVoices, totalContacts] = await Promise.all([
+  const [pendingVoices, totalContacts, resourceStats] = await Promise.all([
     prisma.voiceSubmission.count({ where: { status: "pending" } }),
     prisma.contactSubmission.count(),
+    prisma.resourceOfMonth.aggregate({
+      _count: { _all: true },
+      where: {
+        OR: [{ status: "published" }, { isCurrent: true }],
+      },
+    }),
   ]);
 
   return (
@@ -85,6 +91,22 @@ export default async function AdminHomePage() {
             className="inline-grid w-fit place-items-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
           >
             Open Articles Admin
+          </Link>
+        </article>
+
+        <article className="grid gap-3 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+          <h2 className="text-xl font-semibold text-slate-900">Resource of the Month</h2>
+          <p className="text-sm text-slate-600">
+            Managed resources: <span className="font-semibold text-slate-900">{resourceStats._count._all}</span>
+          </p>
+          <p className="text-sm text-slate-700">
+            Create monthly resources, publish them, and select the current featured resource.
+          </p>
+          <Link
+            href="/admin/resources"
+            className="inline-grid w-fit place-items-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
+          >
+            Open Resources Admin
           </Link>
         </article>
       </section>

@@ -97,7 +97,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <SectionBlock>
             <Card>
               <p className="text-[var(--text-muted)]">
-                Showing {result.total} results for <span className="font-semibold text-[var(--text-strong)]">"{result.query}"</span>.
+                Showing {result.total} results for <span className="font-semibold text-[var(--text-strong)]">&quot;{result.query}&quot;</span>.
               </p>
             </Card>
           </SectionBlock>

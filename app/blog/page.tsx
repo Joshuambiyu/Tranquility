@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import { blogPageIntro } from "@/app/data/homepageData";
 
@@ -40,7 +40,7 @@ export default function BlogPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const loadArticles = async (nextPage: number, append: boolean) => {
+  const loadArticles = useCallback(async (nextPage: number, append: boolean) => {
     try {
       setIsLoading(true);
       setError("");
@@ -77,7 +77,7 @@ export default function BlogPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [query]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -85,7 +85,7 @@ export default function BlogPage() {
     }, 180);
 
     return () => clearTimeout(handler);
-  }, [query]);
+  }, [loadArticles]);
 
   const visiblePosts = useMemo(() => {
     if (!featuredPost) {

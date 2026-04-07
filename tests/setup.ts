@@ -8,7 +8,8 @@ config({
   quiet: true,
 });
 
-process.env.NODE_ENV = process.env.NODE_ENV ?? "test";
+const env = process.env as Record<string, string | undefined>;
+env.NODE_ENV = env.NODE_ENV ?? "test";
 
 afterAll(async () => {
   const { prisma } = await import("@/lib/prisma");

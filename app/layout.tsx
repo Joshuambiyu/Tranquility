@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { FooterSection } from "@/app/components/FooterSection";
 import { Libre_Baskerville, Manrope } from "next/font/google";
 import { Providers } from "@/app/providers";
@@ -39,7 +40,9 @@ export default function RootLayout({
       <body className="min-h-full bg-background text-foreground">
         <Providers>
           <div className="flex min-h-full flex-col">
-            <SiteHeader links={footerLinks} />
+            <Suspense fallback={null}>
+              <SiteHeader links={footerLinks} />
+            </Suspense>
             <div className="flex-1">{children}</div>
             <FooterSection links={footerLinks} />
           </div>

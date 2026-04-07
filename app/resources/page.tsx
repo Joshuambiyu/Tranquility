@@ -6,7 +6,7 @@ import {
   resourcesIntro,
 } from "@/app/data/homepageData";
 import { getCurrentResourceOfMonth } from "@/lib/resources";
-import { JournalingPromptsSection } from "@/app/resources/JournalingPromptsSection";
+import { JournalingPromptsSection } from "./JournalingPromptsSection";
 
 export default async function ResourcesPage() {
   const dbResource = await getCurrentResourceOfMonth();

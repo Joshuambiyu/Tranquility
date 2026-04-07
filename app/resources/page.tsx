@@ -1,22 +1,15 @@
-"use client";
-
-import { useState } from "react";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import {
-  journalingPrompts,
   mindfulnessIntro,
   mindfulnessPractices,
   recommendedBooks,
-  resourceOfMonth,
   resourcesIntro,
 } from "@/app/data/homepageData";
+import { getCurrentResourceOfMonth } from "@/lib/resources";
+import { JournalingPromptsSection } from "@/app/resources/JournalingPromptsSection";
 
-export default function ResourcesPage() {
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-
-  const updateAnswer = (promptId: string, value: string) => {
-    setAnswers((current) => ({ ...current, [promptId]: value }));
-  };
+export default async function ResourcesPage() {
+  const dbResource = await getCurrentResourceOfMonth();
 
   return (
     <div className="grid min-h-screen bg-background text-foreground">
@@ -25,23 +18,7 @@ export default function ResourcesPage() {
           <SectionTitle title="Resources for Reflection and Growth" description={resourcesIntro} />
         </SectionBlock>
 
-        <SectionBlock>
-          <SectionTitle title="Journaling Prompts" description="Take a minute to answer one question and notice what comes up." />
-          <div className="grid gap-4">
-            {journalingPrompts.map((prompt) => (
-              <Card key={prompt.id} className="gap-3">
-                <h3 className="text-lg font-semibold text-[var(--text-strong)]">{prompt.question}</h3>
-                <textarea
-                  value={answers[prompt.id] ?? ""}
-                  onChange={(event) => updateAnswer(prompt.id, event.target.value)}
-                  rows={3}
-                  placeholder="Write your response here..."
-                  className="rounded-xl border border-[var(--border-muted)] bg-[var(--surface)] px-4 py-3 text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
-                />
-              </Card>
-            ))}
-          </div>
-        </SectionBlock>
+        <JournalingPromptsSection />
 
         <SectionBlock>
           <SectionTitle title="Mindfulness Practices" description={mindfulnessIntro} />
@@ -69,8 +46,31 @@ export default function ResourcesPage() {
         </SectionBlock>
 
         <SectionBlock>
-          <SectionTitle title={resourceOfMonth.title} />
-          <p className="text-[var(--text-muted)]">{resourceOfMonth.description}</p>
+          {dbResource ? (
+            <>
+              <SectionTitle title={dbResource.title} />
+              <Card className="gap-3">
+                <p className="text-[var(--text-muted)]">{dbResource.description}</p>
+                {dbResource.linkUrl && dbResource.linkLabel ? (
+                  <a
+                    href={dbResource.linkUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+                  >
+                    {dbResource.linkLabel}
+                  </a>
+                ) : null}
+              </Card>
+            </>
+          ) : (
+            <>
+              <SectionTitle title="Resource of the Month" />
+              <Card>
+                <p className="text-[var(--text-muted)]">No resource has been selected for this month yet. Check back soon.</p>
+              </Card>
+            </>
+          )}
         </SectionBlock>
       </main>
     </div>

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getServerSession } from "@/lib/auth";
 import { ApiError, toErrorResponse } from "@/lib/errors/api-error";
 import { prisma } from "@/lib/prisma";
 import { generateReflectionResult } from "@/lib/reflection-generator";
@@ -8,7 +7,7 @@ import { journalSubmissionSchema } from "@/lib/validators";
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     if (!session?.user?.id) {
       return toErrorResponse(
         new ApiError("You need to sign in with Google to view your journal.", {
@@ -49,7 +48,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     if (!session?.user?.id) {
       return toErrorResponse(
         new ApiError("You need to sign in with Google to save your reflection.", {

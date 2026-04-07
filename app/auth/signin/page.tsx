@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { authClient } from "@/lib/auth-client";
 
 export default function SignInPage() {
   return (
@@ -13,7 +13,7 @@ export default function SignInPage() {
         <div>
           <button
             type="button"
-            onClick={() => signIn("google", { callbackUrl: "/voices" })}
+            onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/voices" })}
             className="rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800"
           >
             Continue with Google

@@ -1,13 +1,23 @@
 import Link from "next/link";
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 import { isAdminEmail } from "@/lib/admin";
-import { authOptions } from "@/lib/auth";
+import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+type ResourceOfMonthAggregateModel = {
+  aggregate: (args: {
+    _count: { _all: true };
+    where: { OR: Array<{ status: string } | { isCurrent: boolean }> };
+  }) => Promise<{ _count: { _all: number } }>;
+};
+
+function getResourceOfMonthAggregateModel() {
+  return (prisma as unknown as { resourceOfMonth: ResourceOfMonthAggregateModel }).resourceOfMonth;
+}
+
 export default async function AdminHomePage() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession();
 
   if (!session?.user) {
     redirect("/auth/signin?callbackUrl=/admin");
@@ -29,7 +39,7 @@ export default async function AdminHomePage() {
   const [pendingVoices, totalContacts, resourceStats] = await Promise.all([
     prisma.voiceSubmission.count({ where: { status: "pending" } }),
     prisma.contactSubmission.count(),
-    prisma.resourceOfMonth.aggregate({
+    getResourceOfMonthAggregateModel().aggregate({
       _count: { _all: true },
       where: {
         OR: [{ status: "published" }, { isCurrent: true }],

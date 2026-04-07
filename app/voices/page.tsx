@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { signIn, useSession } from "next-auth/react";
+import { authClient, useSession } from "@/lib/auth-client";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import { AppError } from "@/lib/errors/app-error";
 import { logClientError, parseApiError } from "@/lib/errors/client-error";
@@ -350,7 +350,7 @@ export default function VoicesPage() {
             {status !== "authenticated" ? (
               <button
                 type="button"
-                onClick={() => signIn("google", { callbackUrl: "/voices" })}
+                onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/voices" })}
                 className="inline-grid w-fit place-items-center rounded-full border border-[var(--border-muted)] px-5 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-[var(--accent-soft)]"
               >
                 Sign in with Google to Submit

@@ -1,15 +1,65 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getServerSession } from "next-auth";
 
 import { isAdminEmail } from "@/lib/admin";
-import { authOptions } from "@/lib/auth";
+import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { normalizeMonthKey } from "@/lib/resources";
 
+type ResourceOfMonthWriteModel = {
+  updateMany: (args: {
+    where: { isCurrent: boolean };
+    data: { isCurrent: boolean };
+  }) => Promise<unknown>;
+  upsert: (args: {
+    where: { monthKey: string };
+    create: {
+      monthKey: string;
+      title: string;
+      description: string;
+      linkUrl: string | null;
+      linkLabel: string | null;
+      status: string;
+      isCurrent: boolean;
+      publishedAt: Date | null;
+      createdById: string;
+    };
+    update: {
+      title: string;
+      description: string;
+      linkUrl: string | null;
+      linkLabel: string | null;
+      status: string;
+      isCurrent: boolean;
+      publishedAt: Date | null;
+    };
+  }) => Promise<unknown>;
+  update: (args: {
+    where: { id: string };
+    data:
+      | {
+          status: string;
+          publishedAt: Date;
+        }
+      | {
+          status: string;
+          isCurrent: boolean;
+        }
+      | {
+          isCurrent: boolean;
+          status: string;
+          publishedAt: Date;
+        };
+  }) => Promise<unknown>;
+};
+
+function getResourceOfMonthWriteModel(client: unknown) {
+  return (client as { resourceOfMonth: ResourceOfMonthWriteModel }).resourceOfMonth;
+}
+
 async function ensureAdminAccess() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession();
 
   if (!session?.user?.id || !session.user.email || !isAdminEmail(session.user.email)) {
     throw new Error("Admin access is required.");
@@ -77,7 +127,7 @@ export async function createOrUpdateResourceAction(formData: FormData) {
 
   await prisma.$transaction(async (tx) => {
     if (shouldSetCurrent) {
-      await tx.resourceOfMonth.updateMany({
+      await getResourceOfMonthWriteModel(tx).updateMany({
         where: {
           isCurrent: true,
         },
@@ -87,7 +137,7 @@ export async function createOrUpdateResourceAction(formData: FormData) {
       });
     }
 
-    await tx.resourceOfMonth.upsert({
+    await getResourceOfMonthWriteModel(tx).upsert({
       where: { monthKey },
       create: {
         monthKey,
@@ -118,7 +168,7 @@ export async function createOrUpdateResourceAction(formData: FormData) {
 export async function publishResourceAction(formData: FormData) {
   await ensureAdminAccess();
 
-  await prisma.resourceOfMonth.update({
+  await getResourceOfMonthWriteModel(prisma).update({
     where: { id: parseResourceId(formData) },
     data: {
       status: "published",
@@ -132,7 +182,7 @@ export async function publishResourceAction(formData: FormData) {
 export async function archiveResourceAction(formData: FormData) {
   await ensureAdminAccess();
 
-  await prisma.resourceOfMonth.update({
+  await getResourceOfMonthWriteModel(prisma).update({
     where: { id: parseResourceId(formData) },
     data: {
       status: "archived",
@@ -149,12 +199,12 @@ export async function setCurrentResourceAction(formData: FormData) {
   const resourceId = parseResourceId(formData);
 
   await prisma.$transaction(async (tx) => {
-    await tx.resourceOfMonth.updateMany({
+    await getResourceOfMonthWriteModel(tx).updateMany({
       where: { isCurrent: true },
       data: { isCurrent: false },
     });
 
-    await tx.resourceOfMonth.update({
+    await getResourceOfMonthWriteModel(tx).update({
       where: { id: resourceId },
       data: {
         isCurrent: true,

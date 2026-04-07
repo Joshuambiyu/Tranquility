@@ -1,13 +1,12 @@
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 import { createArticleAction } from "@/app/admin/articles/actions";
 import { isAdminEmail } from "@/lib/admin";
-import { authOptions } from "@/lib/auth";
+import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminArticlesPage() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession();
 
   if (!session?.user) {
     redirect("/auth/signin?callbackUrl=/admin/articles");

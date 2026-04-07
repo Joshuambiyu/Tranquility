@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getServerSession } from "@/lib/auth";
 import { ApiError, toErrorResponse } from "@/lib/errors/api-error";
 import { getPublicVoiceFeed } from "@/lib/voice-submissions";
 import { prisma } from "@/lib/prisma";
@@ -26,9 +25,10 @@ export async function GET(request: Request) {
   }
 }
 
+
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     if (!session?.user) {
       return toErrorResponse(
         new ApiError("You need to sign in with Google to submit your voice.", {
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     const author =
       parsed.data.visibility === "anonymous"
         ? "Anonymous"
-        : session.user.name ?? session.user.email ?? "Community member";
+        : session.user?.name ?? session.user?.email ?? "Community member";
 
     await prisma.voiceSubmission.create({
       data: {

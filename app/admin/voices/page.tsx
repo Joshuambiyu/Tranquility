@@ -1,4 +1,3 @@
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 import {
@@ -8,7 +7,7 @@ import {
   rejectVoiceSubmissionAction,
 } from "@/app/admin/voices/actions";
 import { isAdminEmail } from "@/lib/admin";
-import { authOptions } from "@/lib/auth";
+import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 const visibilityLabels = {
@@ -17,7 +16,7 @@ const visibilityLabels = {
 } as const;
 
 export default async function VoicesAdminPage() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession();
 
   if (!session?.user) {
     redirect("/auth/signin?callbackUrl=/admin/voices");

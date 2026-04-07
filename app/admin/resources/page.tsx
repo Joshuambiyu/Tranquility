@@ -1,4 +1,3 @@
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 import {
@@ -8,11 +7,47 @@ import {
   setCurrentResourceAction,
 } from "@/app/admin/resources/actions";
 import { isAdminEmail } from "@/lib/admin";
-import { authOptions } from "@/lib/auth";
+import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+interface ResourceAdminRow {
+  id: string;
+  monthKey: string;
+  title: string;
+  description: string;
+  linkUrl: string | null;
+  linkLabel: string | null;
+  status: string;
+  isCurrent: boolean;
+  publishedAt: Date | null;
+  createdAt: Date;
+}
+
+type ResourceOfMonthListModel = {
+  findMany: (args: {
+    orderBy: Array<{ isCurrent: "desc" } | { monthKey: "desc" }>;
+    take: number;
+    select: {
+      id: true;
+      monthKey: true;
+      title: true;
+      description: true;
+      linkUrl: true;
+      linkLabel: true;
+      status: true;
+      isCurrent: true;
+      publishedAt: true;
+      createdAt: true;
+    };
+  }) => Promise<ResourceAdminRow[]>;
+};
+
+function getResourceOfMonthListModel() {
+  return (prisma as unknown as { resourceOfMonth: ResourceOfMonthListModel }).resourceOfMonth;
+}
+
 export default async function AdminResourcesPage() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession();
 
   if (!session?.user) {
     redirect("/auth/signin?callbackUrl=/admin/resources");
@@ -31,7 +66,7 @@ export default async function AdminResourcesPage() {
     );
   }
 
-  const resources = await prisma.resourceOfMonth.findMany({
+  const resources = await getResourceOfMonthListModel().findMany({
     orderBy: [{ isCurrent: "desc" }, { monthKey: "desc" }],
     take: 24,
     select: {

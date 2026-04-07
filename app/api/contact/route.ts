@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getServerSession } from "@/lib/auth";
 import { ApiError, logServerError, toErrorResponse } from "@/lib/errors/api-error";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -84,7 +83,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
 
     const submission = await prisma.contactSubmission.create({
       data: {

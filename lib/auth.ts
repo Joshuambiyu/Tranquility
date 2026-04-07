@@ -1,11 +1,28 @@
-import type { NextAuthOptions } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
-import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { headers } from "next/headers";
+import { betterAuth } from "better-auth";
+import { prismaAdapter } from "better-auth/adapters/prisma";
+import { nextCookies } from "better-auth/next-js";
 import { OAuth2Client } from "google-auth-library";
 import { prisma } from "@/lib/prisma";
 
 const oneTapClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+export const auth = betterAuth({
+  database: prismaAdapter(prisma, {
+    provider: "postgresql",
+  }),
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+    },
+  },
+  appName: "TranquilityHub",
+  baseURL: process.env.BETTER_AUTH_URL ?? process.env.NEXTAUTH_URL ?? "http://localhost:3000",
+  secret: process.env.BETTER_AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+  trustedOrigins: [process.env.BETTER_AUTH_URL ?? process.env.NEXTAUTH_URL ?? "http://localhost:3000"],
+  plugins: [nextCookies()],
+});
 
 export async function authorizeGoogleOneTapCredential(credential?: string) {
   if (!credential) {
@@ -44,42 +61,21 @@ export async function authorizeGoogleOneTapCredential(credential?: string) {
   };
 }
 
-export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
-  providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
-    }),
-    CredentialsProvider({
-      id: "googleonetap",
-      name: "Google One Tap",
-      credentials: {
-        credential: { label: "Credential", type: "text" },
-      },
-      async authorize(credentials) {
-        return authorizeGoogleOneTapCredential(credentials?.credential);
-      },
-    }),
-  ],
-  session: {
-    strategy: "jwt",
-  },
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-      }
-      return token;
+export async function getServerSession() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user) {
+    return null;
+  }
+
+  return {
+    user: {
+      id: session.user.id,
+      email: session.user.email,
+      name: session.user.name,
+      image: session.user.image,
     },
-    async session({ session, token }) {
-      if (session.user && token.id) {
-        session.user.id = token.id;
-      }
-      return session;
-    },
-  },
-  pages: {
-    signIn: "/auth/signin",
-  },
-};
+  };
+}

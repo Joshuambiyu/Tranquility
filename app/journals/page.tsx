@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { DailyReflectionSection } from "@/app/components/DailyReflectionSection";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import { reflectionPrompt } from "@/app/data/homepageData";

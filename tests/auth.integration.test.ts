@@ -16,9 +16,13 @@ const { getServerSessionMock, verifyIdTokenMock } = vi.hoisted(() => ({
 
 let mockSession: MockSession = null;
 
-vi.mock("next-auth", () => ({
-  getServerSession: getServerSessionMock,
-}));
+vi.mock("@/lib/auth", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/auth")>("@/lib/auth");
+  return {
+    ...actual,
+    getServerSession: getServerSessionMock,
+  };
+});
 
 vi.mock("google-auth-library", () => ({
   OAuth2Client: class {

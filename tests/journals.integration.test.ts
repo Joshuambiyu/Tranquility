@@ -15,9 +15,13 @@ const { getServerSessionMock } = vi.hoisted(() => ({
 
 let mockSession: MockSession = null;
 
-vi.mock("next-auth", () => ({
-  getServerSession: getServerSessionMock,
-}));
+vi.mock("@/lib/auth", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/auth")>("@/lib/auth");
+  return {
+    ...actual,
+    getServerSession: getServerSessionMock,
+  };
+});
 
 import { GET as getJournals, POST as saveJournal } from "@/app/api/journals/route";
 import { prisma } from "@/lib/prisma";

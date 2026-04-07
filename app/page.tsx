@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/auth-client";
 import { AboutSection } from "@/app/components/AboutSection";
 import { DailyReflectionSection } from "@/app/components/DailyReflectionSection";
 import { FeaturedReflectionSection } from "@/app/components/FeaturedReflectionSection";

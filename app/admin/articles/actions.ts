@@ -1,10 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getServerSession } from "next-auth";
 
 import { isAdminEmail } from "@/lib/admin";
-import { authOptions } from "@/lib/auth";
+import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 function toSlug(input: string) {
@@ -25,7 +24,7 @@ function parseParagraphs(content: string) {
 }
 
 async function ensureAdminAccess() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession();
 
   if (!session?.user?.id || !session.user.email || !isAdminEmail(session.user.email)) {
     throw new Error("Admin access is required.");

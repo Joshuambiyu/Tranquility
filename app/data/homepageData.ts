@@ -20,7 +20,7 @@ export const heroContent = {
 } as const;
 
 export const missionText =
-  "TranquilityHub seeks to create a calm digital space where people can pause, reflect, and grow in a fast-moving world.";
+  "TranquilityHub is a space dedicated to reflection, empathy and mental clarity. Our mission is to encourage thoughtful living by sharing ideas and stories with an aim of improving well-being in a fast-moving technology-driven world";
 
 export const aboutSnippet =
   "TranquilityHub is a space created for reflection in a fast-moving world. Through thoughtful ideas, shared voices and meaningful resources, it encourages people to pause, think deeply and grow.";

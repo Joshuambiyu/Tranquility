@@ -32,6 +32,7 @@ type ArticleApiResponse = {
 
 export default function BlogPage() {
   const [query, setQuery] = useState("");
+  const [queryInput, setQueryInput] = useState("");
   const [featuredPost, setFeaturedPost] = useState<ApiArticle | null>(null);
   const [articles, setArticles] = useState<ApiArticle[]>([]);
   const [page, setPage] = useState(1);
@@ -102,21 +103,42 @@ export default function BlogPage() {
     await loadArticles(page + 1, true);
   };
 
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const nextQuery = queryInput.trim();
+
+    if (nextQuery === query) {
+      void loadArticles(1, false);
+      return;
+    }
+
+    setQuery(nextQuery);
+  };
+
   return (
     <div className="grid min-h-screen bg-background text-foreground">
       <main className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
         <SectionBlock className="gap-4">
           <SectionTitle title="Articles" description={blogPageIntro} />
-          <label className="grid gap-2 text-sm font-medium text-[var(--text-muted)]">
-            Search articles
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by title, author, or topic"
-              className="rounded-xl border border-[var(--border-muted)] bg-[var(--surface)] px-4 py-3 text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
-            />
-          </label>
+          <form onSubmit={handleSearchSubmit} className="grid gap-2 text-sm font-medium text-[var(--text-muted)]">
+            <label htmlFor="blog-search-input">Search articles</label>
+            <div className="flex items-center gap-2">
+              <input
+                id="blog-search-input"
+                type="search"
+                value={queryInput}
+                onChange={(event) => setQueryInput(event.target.value)}
+                placeholder="Search by title, author, or topic"
+                className="min-w-0 flex-1 rounded-xl border border-[var(--border-muted)] bg-[var(--surface)] px-4 py-3 text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
+              />
+              <button
+                type="submit"
+                className="rounded-xl border border-[var(--border-muted)] px-4 py-3 text-sm font-semibold text-emerald-700 transition hover:bg-[var(--accent-soft)]"
+              >
+                Search
+              </button>
+            </div>
+          </form>
         </SectionBlock>
 
         <SectionBlock>

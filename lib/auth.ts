@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
+import { oneTap } from "better-auth/plugins";
 import { OAuth2Client } from "google-auth-library";
 import { prisma } from "@/lib/prisma";
 
@@ -21,7 +22,12 @@ export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL ?? process.env.NEXTAUTH_URL ?? "http://localhost:3000",
   secret: process.env.BETTER_AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
   trustedOrigins: [process.env.BETTER_AUTH_URL ?? process.env.NEXTAUTH_URL ?? "http://localhost:3000"],
-  plugins: [nextCookies()],
+  plugins: [
+    oneTap({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+    }),
+    nextCookies(),
+  ],
 });
 
 export async function authorizeGoogleOneTapCredential(credential?: string) {

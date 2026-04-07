@@ -22,7 +22,7 @@ export function HeroSection({ siteName, tagline, ctaHref, ctaLabel }: HeroSectio
       </div>
       <div className="relative grid gap-5">
         <p className="text-sm font-medium uppercase tracking-[0.22em] text-emerald-700">Welcome</p>
-        <h1 className="text-4xl font-semibold tracking-tight text-[var(--text-strong)] sm:text-5xl lg:text-6xl">{siteName}</h1>
+        <h1 className="text-4xl font-semibold tracking-tight text-[var(--text-strong)] sm:text-5xl lg:text-5xl">{siteName}</h1>
         <p className="max-w-2xl text-lg leading-relaxed text-[var(--text-muted)] sm:text-xl lg:text-2xl">{tagline}</p>
         <div className="pt-2">
           <ActionLink href={ctaHref} label={ctaLabel} fadeIn />

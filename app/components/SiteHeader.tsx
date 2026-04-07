@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { AuthControls } from "@/app/components/AuthControls";
 import type { NavLinkItem } from "@/types";
 
@@ -18,8 +18,10 @@ function subscribeToClientRender() {
 
 export function SiteHeader({ links }: SiteHeaderProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isClient = useSyncExternalStore(subscribeToClientRender, () => true, () => false);
+  const searchQuery = searchParams.get("q") ?? "";
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
@@ -48,8 +50,8 @@ export function SiteHeader({ links }: SiteHeaderProps) {
             className="inline-flex min-w-0 items-center gap-3"
             aria-label="TranquilityHub home"
           >
-            <Image src="/tranquilityhub-mark.svg" alt="TranquilityHub logo" width={38} height={38} priority />
-            <span className="truncate font-serif text-lg tracking-tight text-[var(--text-strong)] sm:text-2xl">TranquilityHub</span>
+            <Image src="/tranquilityhub-mark.svg" alt="TranquilityHub logo" width={52} height={52} priority />
+            <span className="truncate font-serif text-2xl tracking-tight text-[var(--text-strong)] sm:text-3xl">TranquilityHub</span>
           </Link>
 
           <div className="flex items-center gap-2 md:hidden">
@@ -69,25 +71,66 @@ export function SiteHeader({ links }: SiteHeaderProps) {
             </button>
           </div>
 
-          <div className="hidden items-center gap-4 md:flex">
-            <nav aria-label="Primary navigation" className="grid grid-flow-col auto-cols-max gap-4 overflow-x-auto">
-              {links.map((link) => {
-                const isActive = pathname === link.href;
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={closeMobileMenu}
-                    className={`text-sm font-medium transition ${
-                      isActive ? "text-emerald-700" : "text-[var(--text-muted)] hover:text-emerald-700"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </nav>
-            <AuthControls />
+          <div className="hidden w-fit items-end gap-2 md:flex md:flex-col md:items-stretch">
+            <div className="flex items-center gap-4">
+              <nav aria-label="Primary navigation" className="grid grid-flow-col auto-cols-max gap-4 overflow-x-auto">
+                {links.map((link) => {
+                  const isActive = pathname === link.href;
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={closeMobileMenu}
+                      className={`text-sm font-medium transition ${
+                        isActive ? "text-emerald-700" : "text-[var(--text-muted)] hover:text-emerald-700"
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              <Link
+                href="/search"
+                aria-label="Open search"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-muted)] text-[var(--text-muted)] transition hover:bg-[var(--surface-muted)] lg:hidden"
+              >
+                <span className="relative block h-4 w-4" aria-hidden="true">
+                  <span className="absolute left-0 top-0 h-3 w-3 rounded-full border-2 border-current" />
+                  <span className="absolute bottom-0 right-0 h-2 w-0.5 rotate-[-45deg] rounded-full bg-current" />
+                </span>
+              </Link>
+              <AuthControls />
+            </div>
+
+            <form action="/search" method="get" className="hidden w-full lg:flex">
+              <label className="sr-only" htmlFor="desktop-site-search">Search site content</label>
+              <div className="flex w-full items-center gap-2">
+                <div className="relative min-w-0 flex-1">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" aria-hidden="true">
+                    <span className="relative block h-4 w-4">
+                      <span className="absolute left-0 top-0 h-3 w-3 rounded-full border-2 border-current" />
+                      <span className="absolute bottom-0 right-0 h-2 w-0.5 rotate-[-45deg] rounded-full bg-current" />
+                    </span>
+                  </span>
+                  <input
+                    id="desktop-site-search"
+                    name="q"
+                    type="search"
+                    defaultValue={searchQuery}
+                    placeholder="Search articles and voices"
+                    className="w-full min-w-0 rounded-full border border-[var(--border-muted)] bg-[var(--surface)] py-2 pl-10 pr-4 text-sm text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="rounded-full border border-[var(--border-muted)] px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-[var(--surface-muted)]"
+                >
+                  Search
+                </button>
+              </div>
+            </form>
           </div>
         </div>
 
@@ -128,6 +171,34 @@ export function SiteHeader({ links }: SiteHeaderProps) {
                     </span>
                   </button>
                 </div>
+
+                <form action="/search" method="get" onSubmit={closeMobileMenu} className="border-b border-[var(--border-muted)] py-4">
+                  <label className="sr-only" htmlFor="mobile-site-search">Search site content</label>
+                  <div className="flex items-center gap-2">
+                    <div className="relative min-w-0 flex-1">
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" aria-hidden="true">
+                        <span className="relative block h-4 w-4">
+                          <span className="absolute left-0 top-0 h-3 w-3 rounded-full border-2 border-current" />
+                          <span className="absolute bottom-0 right-0 h-2 w-0.5 rotate-[-45deg] rounded-full bg-current" />
+                        </span>
+                      </span>
+                      <input
+                        id="mobile-site-search"
+                        name="q"
+                        type="search"
+                        defaultValue={searchQuery}
+                        placeholder="Search articles and voices"
+                        className="min-w-0 w-full rounded-full border border-[var(--border-muted)] bg-[var(--surface)] py-2.5 pl-10 pr-4 text-sm text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="rounded-full border border-[var(--border-muted)] px-3 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-[var(--surface-muted)]"
+                    >
+                      Go
+                    </button>
+                  </div>
+                </form>
 
                 <nav aria-label="Mobile primary navigation" className="grid gap-2 py-5">
                   {links.map((link) => {

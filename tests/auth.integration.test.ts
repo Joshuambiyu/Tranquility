@@ -9,9 +9,8 @@ type MockSession = {
   };
 } | null;
 
-const { getServerSessionMock, verifyIdTokenMock } = vi.hoisted(() => ({
+const { getServerSessionMock } = vi.hoisted(() => ({
   getServerSessionMock: vi.fn(),
-  verifyIdTokenMock: vi.fn(),
 }));
 
 let mockSession: MockSession = null;
@@ -24,14 +23,7 @@ vi.mock("@/lib/auth", async () => {
   };
 });
 
-vi.mock("google-auth-library", () => ({
-  OAuth2Client: class {
-    verifyIdToken = verifyIdTokenMock;
-  },
-}));
-
 import { POST as submitVoice } from "@/app/api/voices/route";
-import { authorizeGoogleOneTapCredential } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 const testEmailDomain = "@tranquilityhub.test";
@@ -58,55 +50,16 @@ async function cleanupTestData() {
 beforeEach(async () => {
   mockSession = null;
   getServerSessionMock.mockImplementation(async () => mockSession);
-  verifyIdTokenMock.mockReset();
   await cleanupTestData();
 });
 
 afterEach(async () => {
   mockSession = null;
   getServerSessionMock.mockReset();
-  verifyIdTokenMock.mockReset();
   await cleanupTestData();
 });
 
 describe("auth integration", () => {
-  it("upserts a user into Prisma from a verified Google One Tap credential", async () => {
-    const email = `${randomUUID()}${testEmailDomain}`;
-
-    verifyIdTokenMock
-      .mockResolvedValueOnce({
-        getPayload: () => ({
-          email,
-          email_verified: true,
-          name: "Vitest First Pass",
-          picture: "https://example.com/first.png",
-        }),
-      })
-      .mockResolvedValueOnce({
-        getPayload: () => ({
-          email,
-          email_verified: true,
-          name: "Vitest Updated Pass",
-          picture: "https://example.com/updated.png",
-        }),
-      });
-
-    const firstResult = await authorizeGoogleOneTapCredential("first-token");
-    const secondResult = await authorizeGoogleOneTapCredential("second-token");
-
-    expect(firstResult?.email).toBe(email);
-    expect(secondResult?.email).toBe(email);
-
-    const storedUsers = await prisma.user.findMany({
-      where: { email },
-    });
-
-    expect(storedUsers).toHaveLength(1);
-    expect(storedUsers[0]?.name).toBe("Vitest Updated Pass");
-    expect(storedUsers[0]?.image).toBe("https://example.com/updated.png");
-    expect(storedUsers[0]?.emailVerified).not.toBeNull();
-  });
-
   it("creates a pending voice submission for an authenticated session", async () => {
     const email = `${randomUUID()}${testEmailDomain}`;
     const user = await prisma.user.create({

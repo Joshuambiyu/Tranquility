@@ -101,3 +101,5 @@ export async function searchGlobalContent(rawQuery: string): Promise<GlobalSearc
     voices: voiceResults,
   };
 }
+
+// Utility to handle optional search param

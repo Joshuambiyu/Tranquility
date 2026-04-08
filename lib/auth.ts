@@ -8,6 +8,37 @@ import { prisma } from "@/lib/prisma";
 
 const oneTapClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+function buildTrustedOrigins() {
+  const explicit = [
+    process.env.BETTER_AUTH_URL,
+    process.env.NEXTAUTH_URL,
+    process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
+    process.env.NEXT_PUBLIC_NEXTAUTH_URL,
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
+    "http://localhost:3000",
+  ].filter((value): value is string => Boolean(value));
+
+  const variants = new Set<string>();
+
+  for (const origin of explicit) {
+    variants.add(origin);
+
+    try {
+      const url = new URL(origin);
+      const host = url.hostname;
+      if (host.startsWith("www.")) {
+        variants.add(`${url.protocol}//${host.replace(/^www\./, "")}${url.port ? `:${url.port}` : ""}`);
+      } else {
+        variants.add(`${url.protocol}//www.${host}${url.port ? `:${url.port}` : ""}`);
+      }
+    } catch {
+      // Ignore invalid URL values.
+    }
+  }
+
+  return Array.from(variants);
+}
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
@@ -21,7 +52,7 @@ export const auth = betterAuth({
   appName: "TranquilityHub",
   baseURL: process.env.BETTER_AUTH_URL ?? process.env.NEXTAUTH_URL ?? "http://localhost:3000",
   secret: process.env.BETTER_AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
-  trustedOrigins: [process.env.BETTER_AUTH_URL ?? process.env.NEXTAUTH_URL ?? "http://localhost:3000"],
+  trustedOrigins: buildTrustedOrigins(),
   plugins: [
     oneTap({
       clientId: process.env.GOOGLE_CLIENT_ID,

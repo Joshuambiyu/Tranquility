@@ -1,11 +1,10 @@
 import { createAuthClient } from "better-auth/react";
 import { oneTapClient } from "better-auth/client/plugins";
 
+const configuredBaseURL = process.env.NEXT_PUBLIC_BETTER_AUTH_URL;
+
 export const authClient = createAuthClient({
-  baseURL:
-    process.env.NEXT_PUBLIC_BETTER_AUTH_URL ||
-    process.env.NEXT_PUBLIC_NEXTAUTH_URL ||
-    "http://localhost:3000",
+  ...(configuredBaseURL ? { baseURL: configuredBaseURL } : {}),
   plugins: [
     oneTapClient({
       clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "",

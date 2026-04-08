@@ -8,13 +8,25 @@ async function withErrorLogging(
   req: NextRequest,
   method: (req: NextRequest) => Promise<Response>,
 ) {
+  const meta = {
+    url: req.url,
+    method: req.method,
+    userAgent: req.headers.get("user-agent"),
+  };
+
   try {
-    return await method(req);
+    const res = await method(req);
+
+    // Log non-2xx responses (BetterAuth may return errors without throwing)
+    if (res.status >= 400) {
+      const body = await res.clone().text();
+      console.error("[auth] error response:", { ...meta, status: res.status, body });
+    }
+
+    return res;
   } catch (error) {
     console.error("[auth] unhandled error:", {
-      url: req.url,
-      method: req.method,
-      userAgent: req.headers.get("user-agent"),
+      ...meta,
       error: error instanceof Error ? { message: error.message, stack: error.stack } : error,
     });
     return NextResponse.json(

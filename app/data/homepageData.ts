@@ -113,6 +113,7 @@ export const footerLinks: NavLinkItem[] = [
   { label: "Resources", href: "/resources" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
+  { label: "Privacy Policy", href: "/privacy" },
 ];
 
 export const voicesIntro =

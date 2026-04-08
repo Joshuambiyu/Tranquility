@@ -1,7 +1,8 @@
 import Image from "next/image";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import { aboutPageContent } from "@/app/data/homepageData";
-
+import { Metadata } from "next";
+export const metadata: Metadata = { title: { absolute: "About TranquilityHub — Our Story, Mission & Vision" } };
 export default function AboutPage() {
   const introParagraph = aboutPageContent.paragraphs[0];
   const storyParagraphs = aboutPageContent.paragraphs.slice(1, 4);

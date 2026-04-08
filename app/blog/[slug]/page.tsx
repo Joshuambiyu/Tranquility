@@ -1,11 +1,26 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SectionBlock, SectionTitle } from "@/app/components/ui";
 import { getPublishedArticleBySlug, getRelatedPublishedArticles } from "@/lib/articles";
 
 interface BlogArticlePageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: BlogArticlePageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const article = await getPublishedArticleBySlug(slug);
+
+  if (!article) {
+    return { title: "Article Not Found" };
+  }
+
+  return {
+    title: article.title,
+    description: article.content[0]?.slice(0, 160),
+  };
 }
 
 export default async function BlogArticlePage({ params }: BlogArticlePageProps) {

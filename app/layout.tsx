@@ -18,11 +18,31 @@ const libreBaskerville = Libre_Baskerville({
   subsets: ["latin"],
 });
 
+const siteDescription =
+  "TranquilityHub is a space dedicated to reflection, empathy and mental clarity. Our mission is to encourage thoughtful living by sharing ideas and stories with an aim of improving well-being in a fast-moving technology-driven world.";
+
 export const metadata: Metadata = {
-  title: "TranquilityHub",
-  description: "Pause. Reflect. Grow.",
+  title: {
+    default: "TranquilityHub",
+    template: "%s | TranquilityHub",
+  },
+  description: siteDescription,
   icons: {
     icon: "/icon.svg",
+  },
+  metadataBase: new URL(
+    process.env.BETTER_AUTH_URL ?? process.env.NEXTAUTH_URL ?? "http://localhost:3000",
+  ),
+  openGraph: {
+    title: "TranquilityHub",
+    description: siteDescription,
+    siteName: "TranquilityHub",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TranquilityHub",
+    description: siteDescription,
   },
 };
 

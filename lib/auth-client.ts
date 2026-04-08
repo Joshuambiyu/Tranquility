@@ -1,10 +1,14 @@
 import { createAuthClient } from "better-auth/react";
 import { oneTapClient } from "better-auth/client/plugins";
 
-const configuredBaseURL = process.env.NEXT_PUBLIC_BETTER_AUTH_URL;
+// Always use the canonical www origin so OAuth cookies, state, and
+// callbacks land on the same host.  Falls back to current origin in dev.
+const baseURL =
+  process.env.NEXT_PUBLIC_BETTER_AUTH_URL ||
+  (typeof window !== "undefined" ? window.location.origin : undefined);
 
 export const authClient = createAuthClient({
-  ...(configuredBaseURL ? { baseURL: configuredBaseURL } : {}),
+  ...(baseURL ? { baseURL } : {}),
   plugins: [
     oneTapClient({
       clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "",

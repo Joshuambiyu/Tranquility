@@ -2,8 +2,14 @@
 User-agent: *
 Allow: /
 
+# *
+User-agent: *
+Disallow: /admin
+Disallow: /api
+Disallow: /auth
+
 # Host
-Host: http://localhost:3000
+Host: https://www.tranquilityhub.co.ke
 
 # Sitemaps
-Sitemap: http://localhost:3000/sitemap.xml
+Sitemap: https://www.tranquilityhub.co.ke/sitemap.xml

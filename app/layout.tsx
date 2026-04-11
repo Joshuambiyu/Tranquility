@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Suspense } from "react";
 import { FooterSection } from "@/app/components/FooterSection";
 import { Libre_Baskerville, Manrope } from "next/font/google";
@@ -20,6 +21,8 @@ const libreBaskerville = Libre_Baskerville({
 
 const siteDescription =
   "TranquilityHub is a space dedicated to reflection, empathy and mental clarity. Our mission is to encourage thoughtful living by sharing ideas and stories with an aim of improving well-being in a fast-moving technology-driven world.";
+
+const GA_MEASUREMENT_ID = "G-6K90MS1EJ1";
 
 export const metadata: Metadata = {
   title: {
@@ -58,6 +61,18 @@ export default function RootLayout({
     >
       <head />
       <body className="min-h-full bg-background text-foreground">
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}');
+          `}
+        </Script>
         <Providers>
           <div className="flex min-h-full flex-col">
             <Suspense fallback={null}>

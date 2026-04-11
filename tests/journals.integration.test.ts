@@ -84,7 +84,7 @@ describe("journals integration", () => {
       data: {
         email,
         name: "Vitest Journal User",
-        emailVerified: new Date(),
+        emailVerified: true,
       },
     });
 
@@ -148,7 +148,7 @@ describe("journals integration", () => {
       data: {
         email: `${randomUUID()}${testEmailDomain}`,
         name: "Vitest Journal A",
-        emailVerified: new Date(),
+        emailVerified: true,
       },
     });
 
@@ -156,7 +156,7 @@ describe("journals integration", () => {
       data: {
         email: `${randomUUID()}${testEmailDomain}`,
         name: "Vitest Journal B",
-        emailVerified: new Date(),
+        emailVerified: true,
       },
     });
 

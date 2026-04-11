@@ -66,7 +66,7 @@ describe("auth integration", () => {
       data: {
         email,
         name: "Vitest Route User",
-        emailVerified: new Date(),
+        emailVerified: true,
       },
     });
 

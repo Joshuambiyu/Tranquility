@@ -16,7 +16,7 @@ async function main() {
     data: {
       email,
       name: "Journal Persistence Check",
-      emailVerified: new Date(),
+      emailVerified: true,
     },
   });
   console.log("Created test user:", user.id);

@@ -44,6 +44,9 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+      // Avoid `prompt=none` flows that can behave inconsistently on mobile/webviews
+      // (especially when One Tap was dismissed) by always asking the user to pick an account.
+      prompt: "select_account",
     },
   },
   appName: "TranquilityHub",

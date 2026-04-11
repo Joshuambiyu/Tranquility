@@ -8,9 +8,22 @@ async function withErrorLogging(
   req: NextRequest,
   method: (req: NextRequest) => Promise<Response>,
 ) {
+  const url = new URL(req.url);
+
+  // Log all query parameters for debugging OAuth issues
+  const queryParams: Record<string, string> = {};
+  url.searchParams.forEach((value, key) => {
+    queryParams[key] = value;
+  });
+  console.log("[auth] Incoming request query params:", queryParams);
+
   const meta = {
     url: req.url,
+    path: url.pathname,
+    queryKeys: Array.from(url.searchParams.keys()),
     method: req.method,
+    host: req.headers.get("host"),
+    referer: req.headers.get("referer"),
     userAgent: req.headers.get("user-agent"),
   };
 

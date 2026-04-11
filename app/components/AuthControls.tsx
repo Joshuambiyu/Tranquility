@@ -1,10 +1,37 @@
 "use client";
 
+
+import { useState } from "react";
 import { authClient, useSession } from "@/lib/auth-client";
 import { GoogleOneTap } from "@/app/components/GoogleOneTap";
 
+const ONE_TAP_SUPPRESS_KEY = "oneTapSuppressed";
+
 export function AuthControls() {
   const { data: session, status } = useSession();
+  const [isSigningIn, setIsSigningIn] = useState(false);
+
+  const handleContinueWithGoogle = async () => {
+    if (isSigningIn) {
+      return;
+    }
+
+    setIsSigningIn(true);
+    sessionStorage.setItem(ONE_TAP_SUPPRESS_KEY, "1");
+
+    try {
+      // Reset any stale auth/session state before starting a new Google flow.
+      await authClient.signOut();
+    } catch {
+      // Ignore sign-out errors and continue to start a fresh sign-in attempt.
+    }
+
+    try {
+      await authClient.signIn.social({ provider: "google", callbackURL: "/voices" });
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
 
   if (status === "loading") {
     return <p className="text-xs text-slate-500">Checking session...</p>;
@@ -30,13 +57,14 @@ export function AuthControls() {
 
   return (
     <div className="flex w-full flex-col items-stretch gap-2 sm:inline-flex sm:w-auto sm:flex-row sm:items-center">
-      <GoogleOneTap />
+      <GoogleOneTap enabled={!isSigningIn} />
       <button
         type="button"
-        onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/voices" })}
+        onClick={handleContinueWithGoogle}
+        disabled={isSigningIn}
         className="inline-flex w-full items-center justify-center rounded-full border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 sm:w-auto sm:py-1.5"
       >
-        Sign in with Google
+        {isSigningIn ? "Starting Google sign-in..." : "Sign in with Google"}
       </button>
     </div>
   );

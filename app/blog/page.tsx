@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { FeaturedArticleSection } from "@/app/components/FeaturedArticleSection";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import { blogPageIntro } from "@/app/data/homepageData";
 
@@ -141,39 +141,7 @@ export default function BlogPage() {
           </form>
         </SectionBlock>
 
-        <SectionBlock>
-          <SectionTitle title="Featured Article" />
-          {featuredPost ? (
-            <article className="grid gap-5 md:grid-cols-[1.1fr_1fr] md:items-center">
-              <div className="grid gap-3">
-                <p className="text-sm font-medium text-emerald-700">
-                  By {featuredPost.author} • {new Date(featuredPost.publishedAt).toLocaleDateString()}
-                </p>
-                <h3 className="text-2xl font-semibold text-[var(--text-strong)]">{featuredPost.title}</h3>
-                <p className="text-[var(--text-muted)]">{featuredPost.excerpt}</p>
-                <p className="rounded-xl bg-[var(--card-in-section-bg)] px-4 py-3 text-sm text-[var(--text-muted)] ring-1 ring-[var(--border-muted)]">
-                  Reflection moment: {featuredPost.reflectionMoment}
-                </p>
-                <Link href={`/blog/${featuredPost.slug}`} className="text-sm font-semibold text-emerald-700 hover:text-emerald-800">
-                  Read full reflection
-                </Link>
-              </div>
-              <div className="relative h-52 overflow-hidden rounded-2xl ring-1 ring-[var(--border-muted)] sm:h-64">
-                <Image
-                  src={featuredPost.imageSrc}
-                  alt={featuredPost.imageAlt}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 45vw"
-                  className="object-cover"
-                />
-              </div>
-            </article>
-          ) : (
-            <Card>
-              <p className="text-[var(--text-muted)]">No featured article yet.</p>
-            </Card>
-          )}
-        </SectionBlock>
+        <FeaturedArticleSection featuredPost={featuredPost} />
 
         <SectionBlock>
           <SectionTitle title="Latest Articles" />

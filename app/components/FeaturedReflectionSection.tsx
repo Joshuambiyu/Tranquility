@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { BlendedImageLayer } from "@/app/components/BlendedImageLayer";
 import { ActionLink, SectionBlock, SectionTitle } from "@/app/components/ui";
 import type { FeaturedReflection } from "@/types";
 
@@ -9,26 +9,7 @@ interface FeaturedReflectionSectionProps {
 export function FeaturedReflectionSection({ reflection }: FeaturedReflectionSectionProps) {
   return (
     <SectionBlock className="relative overflow-hidden" bgVariant="default">
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{ background: "linear-gradient(180deg, var(--hero-from), var(--hero-via), var(--hero-to))" }}
-      />
-      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-xl">
-        <Image
-          src={reflection.imageSrc}
-          alt=""
-          fill
-          sizes="100vw"
-          className="object-cover object-right"
-          style={{
-            opacity: 1.85,
-            transform: "scale(1.2)",
-            maskImage: "linear-gradient(to right, transparent 0%, transparent 25%, rgba(0,0,0,0.4) 50%, black 80%)",
-            WebkitMaskImage: "linear-gradient(to right, transparent 0%, transparent 25%, rgba(0,0,0,0.4) 50%, black 80%)",
-          }}
-          priority
-        />
-      </div>
+      <BlendedImageLayer imageSrc={reflection.imageSrc} />
 
       <div className="relative">
         <SectionTitle title="Featured Reflection of the Week" />

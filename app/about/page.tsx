@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import { aboutPageContent } from "@/app/data/homepageData";
 import { Metadata } from "next";
@@ -64,19 +63,6 @@ export default function AboutPage() {
                 {closingThought}
               </p>
             </Card>
-          </div>
-        </SectionBlock>
-
-        <SectionBlock className="relative overflow-hidden lg:p-12">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top,rgba(201,219,232,0.3),transparent_65%)]" />
-          <div className="relative aspect-[16/7] w-full overflow-hidden rounded-[24px] ring-2 ring-[var(--border-muted)] shadow-[0_20px_60px_rgba(15,23,42,0.08)] xl:aspect-[21/8]">
-            <Image
-              src="/featured-reflection.svg"
-              alt="A journal and coffee on a calm, softly lit desk"
-              fill
-              sizes="100vw"
-              className="object-cover"
-            />
           </div>
         </SectionBlock>
 

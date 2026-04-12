@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
 import { DailyReflectionSection } from "@/app/components/DailyReflectionSection";
+import { JournalsHeroSection } from "@/app/components/JournalsHeroSection";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import { reflectionPrompt } from "@/app/data/homepageData";
 import { submitJournalReflection } from "@/lib/journal-submission";
@@ -120,15 +121,11 @@ export default function JournalsPage() {
   return (
     <div className="grid min-h-screen bg-background text-foreground">
       <main className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
-        <SectionBlock className="gap-4">
-          <SectionTitle
-            title="My Journals"
-            description="Your saved daily reflections are stored in your account so you can revisit your growth over time."
-          />
-          <p className="text-sm text-[var(--text-muted)]">
-            Submit a new reflection here or review the ones you have already saved.
-          </p>
-        </SectionBlock>
+        <JournalsHeroSection
+          title="My Journals"
+          description="Your saved daily reflections are stored in your account so you can revisit your growth over time."
+          helperText="Submit a new reflection here or review the ones you have already saved."
+        />
 
         <DailyReflectionSection
           prompt={reflectionPrompt}

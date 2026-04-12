@@ -1,3 +1,4 @@
+import { BlendedImageLayer } from "@/app/components/BlendedImageLayer";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import {
   mindfulnessIntro,
@@ -9,7 +10,13 @@ import { getCurrentResourceOfMonth } from "@/lib/resources";
 import { JournalingPromptsSection } from "./JournalingPromptsSection";
 
 export default async function ResourcesPage() {
-  const dbResource = await getCurrentResourceOfMonth();
+  let dbResource = null;
+
+  try {
+    dbResource = await getCurrentResourceOfMonth();
+  } catch {
+    dbResource = null;
+  }
 
   return (
     <div className="grid min-h-screen bg-background text-foreground">
@@ -20,9 +27,13 @@ export default async function ResourcesPage() {
 
         <JournalingPromptsSection />
 
-        <SectionBlock>
-          <SectionTitle title="Mindfulness Practices" description={mindfulnessIntro} />
-          <div className="grid gap-4 md:grid-cols-3">
+        <SectionBlock className="relative overflow-hidden" bgVariant="default">
+          <BlendedImageLayer imageSrc="/images/mindful-practices-image.jpeg" />
+
+          <div className="relative">
+            <SectionTitle title="Mindfulness Practices" description={mindfulnessIntro} />
+          </div>
+          <div className="relative grid gap-4 md:grid-cols-3">
             {mindfulnessPractices.map((practice) => (
               <Card key={practice.id} className="gap-2">
                 <h3 className="text-lg font-semibold text-[var(--text-strong)]">{practice.title}</h3>

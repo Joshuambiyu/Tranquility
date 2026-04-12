@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { ActionLink } from "@/app/components/ui";
 
 interface HeroSectionProps {
@@ -15,6 +16,23 @@ export function HeroSection({ siteName, tagline, ctaHref, ctaLabel }: HeroSectio
         background: "linear-gradient(180deg, var(--hero-from), var(--hero-via), var(--hero-to))",
       }}
     >
+      {/* Hero image — masked so it fades from transparent (left/text side) into visible (right) */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-xl">
+        <Image
+          src="/images/hero-section-image.jpeg"
+          alt=""
+          fill
+          className="object-cover object-right"
+          style={{
+            opacity: 1.85,
+            transform: "scale(1.2)", // Slightly zoomed and shifted right for better composition
+            maskImage: "linear-gradient(to right, transparent 0%, transparent 25%, rgba(0,0,0,0.4) 50%, black 80%)",//for browser compatibility, also include WebKit-prefixed version
+            WebkitMaskImage: "linear-gradient(to right, transparent 0%, transparent 25%, rgba(0,0,0,0.4) 50%, black 80%)",
+          }}
+          priority
+        />
+      </div>
+
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-8 top-8 h-14 w-28 rounded-full blur-sm" style={{ background: "var(--hero-glow-a)" }} />
         <div className="absolute right-20 top-12 h-10 w-24 rounded-full blur-sm" style={{ background: "var(--hero-glow-b)" }} />

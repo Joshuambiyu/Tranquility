@@ -53,7 +53,7 @@ export const featuredReflection: FeaturedReflection = {
   summary:
     "Discover a gentle five-minute ritual that helps you slow down, reset your mind, and begin the day with intention.",
   href: "/blog/quiet-morning-reset",
-  imageSrc: "/featured-reflection.svg",
+  imageSrc: "/images/featured-reflection-photo.jpeg",
   imageAlt: "Sunrise over soft clouds",
 };
 

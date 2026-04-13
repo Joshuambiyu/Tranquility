@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
 import { isAdminEmail } from "@/lib/admin";
@@ -33,8 +34,47 @@ async function ensureAdminAccess() {
   return session.user;
 }
 
+async function assertSameOriginRequest() {
+  const requestHeaders = await headers();
+  const origin = requestHeaders.get("origin");
+
+  if (!origin) {
+    throw new Error("Missing request origin.");
+  }
+
+  const forwardedProto = requestHeaders.get("x-forwarded-proto");
+  const forwardedHost = requestHeaders.get("x-forwarded-host");
+  const host = requestHeaders.get("host");
+
+  const requestHost = (forwardedHost ?? host ?? "").split(",")[0].trim();
+  const requestProto = forwardedProto?.split(",")[0].trim() || (requestHost.includes("localhost") ? "http" : "https");
+  const expectedOrigin = `${requestProto}://${requestHost}`;
+
+  if (!requestHost || origin !== expectedOrigin) {
+    throw new Error("Cross-origin request blocked.");
+  }
+}
+
+function getArticleId(formData: FormData) {
+  const articleId = formData.get("articleId");
+
+  if (typeof articleId !== "string" || articleId.length === 0) {
+    throw new Error("Article id is required.");
+  }
+
+  return articleId;
+}
+
+function revalidateArticlePages() {
+  revalidatePath("/");
+  revalidatePath("/blog");
+  revalidatePath("/admin/articles");
+  revalidatePath("/admin/articles/delete");
+}
+
 export async function createArticleAction(formData: FormData) {
   const user = await ensureAdminAccess();
+  await assertSameOriginRequest();
 
   const title = String(formData.get("title") ?? "").trim();
   const author = String(formData.get("author") ?? "").trim();
@@ -96,7 +136,31 @@ export async function createArticleAction(formData: FormData) {
     },
   });
 
-  revalidatePath("/");
-  revalidatePath("/blog");
-  revalidatePath("/admin/articles");
+  revalidateArticlePages();
+}
+
+export async function deleteArticleAction(formData: FormData) {
+  await ensureAdminAccess();
+  await assertSameOriginRequest();
+
+  const articleId = getArticleId(formData);
+
+  await prisma.article.delete({
+    where: { id: articleId },
+  });
+
+  revalidateArticlePages();
+}
+
+export async function deleteAllArticlesAction(formData: FormData) {
+  await ensureAdminAccess();
+  await assertSameOriginRequest();
+
+  const confirmation = String(formData.get("confirmation") ?? "").trim();
+  if (confirmation !== "DELETE ALL ARTICLES") {
+    throw new Error("Type DELETE ALL ARTICLES to confirm.");
+  }
+
+  await prisma.article.deleteMany({});
+  revalidateArticlePages();
 }

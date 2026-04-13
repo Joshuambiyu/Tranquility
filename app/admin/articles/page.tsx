@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createArticleAction } from "@/app/admin/articles/actions";
@@ -41,8 +42,18 @@ export default async function AdminArticlesPage() {
   return (
     <main className="mx-auto grid min-h-[70vh] w-full max-w-6xl gap-6 px-5 py-8 sm:px-8 lg:px-10">
       <section className="grid gap-2 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100">
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Editorial Articles</h1>
-        <p className="text-sm text-slate-600">Create and publish articles directly to the live blog feed.</p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="grid gap-2">
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Editorial Articles</h1>
+            <p className="text-sm text-slate-600">Create and publish articles directly to the live blog feed.</p>
+          </div>
+          <Link
+            href="/admin/articles/delete"
+            className="inline-grid w-full place-items-center rounded-full border border-rose-300 px-5 py-2.5 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-fit"
+          >
+            Delete Articles
+          </Link>
+        </div>
       </section>
 
       <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
@@ -139,7 +150,7 @@ export default async function AdminArticlesPage() {
 
           <button
             type="submit"
-            className="inline-grid w-fit place-items-center rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800"
+            className="inline-grid w-full place-items-center rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 sm:w-fit"
           >
             Publish Article
           </button>
@@ -150,10 +161,10 @@ export default async function AdminArticlesPage() {
         <h2 className="text-xl font-semibold text-slate-900">Recent Published Articles</h2>
         <div className="grid gap-3">
           {latestArticles.map((article) => (
-            <article key={article.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3">
+            <article key={article.id} className="grid gap-3 rounded-xl border border-slate-200 px-4 py-3 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
               <div className="grid gap-1">
                 <p className="font-semibold text-slate-900">{article.title}</p>
-                <p className="text-xs text-slate-600">
+                <p className="break-all text-xs text-slate-600">
                   {article.author} • {new Date(article.publishedAt).toLocaleString()} • /blog/{article.slug}
                 </p>
               </div>

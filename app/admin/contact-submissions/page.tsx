@@ -71,10 +71,10 @@ export default async function ContactSubmissionsAdminPage() {
               </div>
 
               <div className="grid gap-1 text-sm text-slate-700">
-                <p>
+                <p className="break-all">
                   <span className="font-medium text-slate-900">Sender email:</span> {submission.email}
                 </p>
-                <p>
+                <p className="break-all">
                   <span className="font-medium text-slate-900">Signed-in user:</span>{" "}
                   {submission.user?.email ?? "Guest / not linked"}
                 </p>

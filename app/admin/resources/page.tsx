@@ -162,7 +162,7 @@ export default async function AdminResourcesPage() {
 
           <button
             type="submit"
-            className="inline-grid w-fit place-items-center rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800"
+            className="inline-grid w-full place-items-center rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 sm:w-fit"
           >
             Save Monthly Resource
           </button>
@@ -181,7 +181,7 @@ export default async function AdminResourcesPage() {
                 className="grid gap-3 rounded-xl border border-slate-200 px-4 py-3"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-semibold text-slate-900">
+                  <p className="break-words font-semibold text-slate-900">
                     {resource.monthKey} • {resource.title}
                   </p>
                   <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.12em]">
@@ -196,7 +196,7 @@ export default async function AdminResourcesPage() {
 
                 <p className="text-sm text-slate-700">{resource.description}</p>
                 {resource.linkUrl && resource.linkLabel ? (
-                  <p className="text-xs text-slate-600">
+                  <p className="break-all text-xs text-slate-600">
                     Link: {resource.linkLabel} ({resource.linkUrl})
                   </p>
                 ) : null}
@@ -207,7 +207,7 @@ export default async function AdminResourcesPage() {
                       <input type="hidden" name="resourceId" value={resource.id} />
                       <button
                         type="submit"
-                        className="rounded-full bg-emerald-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800"
+                        className="w-full rounded-full bg-emerald-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800 sm:w-auto"
                       >
                         Publish
                       </button>
@@ -219,7 +219,7 @@ export default async function AdminResourcesPage() {
                       <input type="hidden" name="resourceId" value={resource.id} />
                       <button
                         type="submit"
-                        className="rounded-full border border-amber-200 px-4 py-2 text-xs font-semibold text-amber-700 transition hover:bg-amber-50"
+                        className="w-full rounded-full border border-amber-200 px-4 py-2 text-xs font-semibold text-amber-700 transition hover:bg-amber-50 sm:w-auto"
                       >
                         Set Current
                       </button>
@@ -231,7 +231,7 @@ export default async function AdminResourcesPage() {
                       <input type="hidden" name="resourceId" value={resource.id} />
                       <button
                         type="submit"
-                        className="rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+                        className="w-full rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto"
                       >
                         Archive
                       </button>

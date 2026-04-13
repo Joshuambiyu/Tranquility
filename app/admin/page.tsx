@@ -67,7 +67,7 @@ export default async function AdminHomePage() {
           </p>
           <Link
             href="/admin/voices"
-            className="inline-grid w-fit place-items-center rounded-full bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800"
+            className="inline-grid w-full place-items-center rounded-full bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800 sm:w-fit"
           >
             Open Voices Admin
           </Link>
@@ -83,7 +83,7 @@ export default async function AdminHomePage() {
           </p>
           <Link
             href="/admin/contact-submissions"
-            className="inline-grid w-fit place-items-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
+            className="inline-grid w-full place-items-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 sm:w-fit"
           >
             Open Contact Admin
           </Link>
@@ -96,12 +96,20 @@ export default async function AdminHomePage() {
           <p className="text-sm text-slate-700">
             Publish and feature blog articles directly from the admin panel.
           </p>
-          <Link
-            href="/admin/articles"
-            className="inline-grid w-fit place-items-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
-          >
-            Open Articles Admin
-          </Link>
+          <div className="grid gap-2 sm:flex sm:flex-wrap">
+            <Link
+              href="/admin/articles"
+              className="inline-grid w-full place-items-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 sm:w-fit"
+            >
+              Open Articles Admin
+            </Link>
+            <Link
+              href="/admin/articles/delete"
+              className="inline-grid w-full place-items-center rounded-full border border-rose-300 px-5 py-2.5 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-fit"
+            >
+              Delete Articles
+            </Link>
+          </div>
         </article>
 
         <article className="grid gap-3 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
@@ -114,7 +122,7 @@ export default async function AdminHomePage() {
           </p>
           <Link
             href="/admin/resources"
-            className="inline-grid w-fit place-items-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
+            className="inline-grid w-full place-items-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 sm:w-fit"
           >
             Open Resources Admin
           </Link>

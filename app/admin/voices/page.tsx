@@ -95,22 +95,22 @@ export default async function VoicesAdminPage() {
                   </div>
                   <h2 className="text-xl font-semibold text-slate-900">{submission.title}</h2>
                 </div>
-                <div className="grid gap-1 text-right text-xs text-slate-500">
+                <div className="grid gap-1 text-xs text-slate-500 sm:text-right">
                   <time>{new Date(submission.createdAt).toLocaleString()}</time>
                   {submission.approvedAt ? <span>Approved {new Date(submission.approvedAt).toLocaleString()}</span> : null}
                 </div>
               </div>
 
               <div className="grid gap-1 text-sm text-slate-700">
-                <p>
+                <p className="break-all">
                   <span className="font-medium text-slate-900">Public author:</span> {submission.author}
                 </p>
-                <p>
+                <p className="break-all">
                   <span className="font-medium text-slate-900">Signed-in user:</span>{" "}
                   {submission.user?.email ?? "Guest / not linked"}
                 </p>
                 {submission.descriptor ? (
-                  <p>
+                  <p className="break-words">
                     <span className="font-medium text-slate-900">Descriptor:</span> {submission.descriptor}
                   </p>
                 ) : null}
@@ -124,7 +124,7 @@ export default async function VoicesAdminPage() {
                     <input type="hidden" name="voiceId" value={submission.id} />
                     <button
                       type="submit"
-                      className="rounded-full bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800"
+                      className="w-full rounded-full bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 sm:w-auto"
                     >
                       Approve
                     </button>
@@ -136,7 +136,7 @@ export default async function VoicesAdminPage() {
                     <input type="hidden" name="voiceId" value={submission.id} />
                     <button
                       type="submit"
-                      className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+                      className="w-full rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-auto"
                     >
                       Reject
                     </button>
@@ -148,7 +148,7 @@ export default async function VoicesAdminPage() {
                     <input type="hidden" name="voiceId" value={submission.id} />
                     <button
                       type="submit"
-                      className="rounded-full border border-amber-200 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-50"
+                      className="w-full rounded-full border border-amber-200 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-50 sm:w-auto"
                     >
                       Make Voice of the Week
                     </button>
@@ -160,7 +160,7 @@ export default async function VoicesAdminPage() {
                     <input type="hidden" name="voiceId" value={submission.id} />
                     <button
                       type="submit"
-                      className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                      className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto"
                     >
                       Clear Voice of the Week
                     </button>

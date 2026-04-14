@@ -6,7 +6,7 @@ import { Color, TextStyle } from "@tiptap/extension-text-style";
 import StarterKit from "@tiptap/starter-kit";
 import type { Editor as TiptapEditor } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
-import { useState, type CSSProperties } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import CalloutNode from "@/app/admin/articles/extensions/CalloutNode";
 
 type ToolbarButtonProps = {
@@ -68,6 +68,18 @@ const TEXT_COLORS = [
 ];
 
 const DEFAULT_EDITOR_ACCENT = "#cbd5e1";
+
+type SlashMenuRange = {
+  from: number;
+  to: number;
+};
+
+type SlashCommand = {
+  id: string;
+  label: string;
+  aliases: string[];
+  run: (editor: TiptapEditor) => boolean;
+};
 
 function resolveActiveTextColor(value: unknown) {
   if (typeof value !== "string") {
@@ -135,6 +147,40 @@ function getDraftFields(storageKey?: string) {
   }
 }
 
+function getSlashMenuContext(editor: TiptapEditor) {
+  const { state } = editor;
+  const { selection } = state;
+
+  if (!selection.empty) {
+    return null;
+  }
+
+  const anchor = selection.$from;
+  const parent = anchor.parent;
+
+  if (!parent.isTextblock) {
+    return null;
+  }
+
+  const textBeforeCursor = parent.textBetween(0, anchor.parentOffset, undefined, "\ufffc");
+  const match = /(^|\s)\/([a-z0-9-]*)$/.exec(textBeforeCursor);
+
+  if (!match) {
+    return null;
+  }
+
+  const tokenStartInParent = match.index + match[1].length;
+  const tokenEndInParent = anchor.parentOffset;
+
+  return {
+    range: {
+      from: anchor.start() + tokenStartInParent,
+      to: anchor.start() + tokenEndInParent,
+    },
+    query: match[2],
+  };
+}
+
 export default function ArticleRichEditor({
   initialContent,
   draftStorageKey,
@@ -149,6 +195,8 @@ export default function ArticleRichEditor({
   const [contentJson, setContentJson] = useState(JSON.stringify(startingContent));
   const [plainText, setPlainText] = useState("");
   const [activeTextColor, setActiveTextColor] = useState<string | null>(null);
+  const [slashMenuRange, setSlashMenuRange] = useState<SlashMenuRange | null>(null);
+  const [slashMenuQuery, setSlashMenuQuery] = useState("");
   const [activeMarks, setActiveMarks] = useState({
     heading1: false,
     heading2: false,
@@ -161,6 +209,108 @@ export default function ArticleRichEditor({
     callout: false,
     codeBlock: false,
   });
+
+  const slashCommands = useMemo<SlashCommand[]>(() => [
+    {
+      id: "h1",
+      label: "Heading 1",
+      aliases: ["h1", "heading1", "title"],
+      run: (nextEditor) => nextEditor.chain().focus().toggleHeading({ level: 1 }).run(),
+    },
+    {
+      id: "h2",
+      label: "Heading 2",
+      aliases: ["h2", "heading2", "subtitle"],
+      run: (nextEditor) => nextEditor.chain().focus().toggleHeading({ level: 2 }).run(),
+    },
+    {
+      id: "bullet",
+      label: "Bullet List",
+      aliases: ["bullet", "ul", "list"],
+      run: (nextEditor) =>
+        nextEditor.chain().focus().toggleBulletList().run() ||
+        nextEditor.chain().focus().setParagraph().toggleBulletList().run(),
+    },
+    {
+      id: "numbered",
+      label: "Numbered List",
+      aliases: ["numbered", "ordered", "ol", "num"],
+      run: (nextEditor) =>
+        nextEditor.chain().focus().toggleOrderedList().run() ||
+        nextEditor.chain().focus().setParagraph().toggleOrderedList().run(),
+    },
+    {
+      id: "quote",
+      label: "Quote",
+      aliases: ["quote", "blockquote"],
+      run: (nextEditor) =>
+        nextEditor.chain().focus().toggleBlockquote().run() ||
+        nextEditor.chain().focus().clearNodes().toggleBlockquote().run(),
+    },
+    {
+      id: "callout",
+      label: "Callout",
+      aliases: ["callout", "note", "info"],
+      run: (nextEditor) => nextEditor.chain().focus().toggleCallout().run(),
+    },
+    {
+      id: "code",
+      label: "Code Block",
+      aliases: ["code", "codeblock"],
+      run: (nextEditor) => nextEditor.chain().focus().toggleCodeBlock().run(),
+    },
+    {
+      id: "divider",
+      label: "Divider",
+      aliases: ["divider", "hr", "line"],
+      run: (nextEditor) => nextEditor.chain().focus().setHorizontalRule().run(),
+    },
+  ], []);
+
+  const filteredSlashCommands = useMemo(() => {
+    const query = slashMenuQuery.trim().toLowerCase();
+
+    if (!query) {
+      return slashCommands;
+    }
+
+    return slashCommands.filter((command) => {
+      if (command.label.toLowerCase().includes(query)) {
+        return true;
+      }
+
+      return command.aliases.some((alias) => alias.includes(query));
+    });
+  }, [slashCommands, slashMenuQuery]);
+
+  const syncSlashMenu = (nextEditor: TiptapEditor) => {
+    const context = getSlashMenuContext(nextEditor);
+
+    if (!context) {
+      setSlashMenuRange(null);
+      setSlashMenuQuery("");
+      return;
+    }
+
+    setSlashMenuRange(context.range);
+    setSlashMenuQuery(context.query);
+  };
+
+  const applySlashCommand = (command: SlashCommand) => {
+    if (!editor || !slashMenuRange) {
+      return;
+    }
+
+    editor.chain().focus().deleteRange(slashMenuRange).run();
+    const didApply = command.run(editor);
+
+    if (didApply) {
+      syncToolbarState(editor);
+    }
+
+    setSlashMenuRange(null);
+    setSlashMenuQuery("");
+  };
 
   const syncToolbarState = (nextEditor: TiptapEditor) => {
     setActiveTextColor(resolveActiveTextColor(nextEditor.getAttributes("textStyle").color));
@@ -207,6 +357,7 @@ export default function ArticleRichEditor({
       setContentJson(JSON.stringify(nextEditor.getJSON()));
       setPlainText(nextEditor.getText({ blockSeparator: "\n\n" }).trim());
       syncToolbarState(nextEditor);
+      syncSlashMenu(nextEditor);
     },
     onCreate: ({ editor: nextEditor }) => {
       if (restoreDraft) {
@@ -229,12 +380,15 @@ export default function ArticleRichEditor({
       setContentJson(JSON.stringify(nextEditor.getJSON()));
       setPlainText(nextEditor.getText({ blockSeparator: "\n\n" }).trim());
       syncToolbarState(nextEditor);
+      syncSlashMenu(nextEditor);
     },
     onSelectionUpdate: ({ editor: nextEditor }) => {
       syncToolbarState(nextEditor);
+      syncSlashMenu(nextEditor);
     },
     onTransaction: ({ editor: nextEditor }) => {
       syncToolbarState(nextEditor);
+      syncSlashMenu(nextEditor);
     },
   });
 
@@ -411,8 +565,35 @@ export default function ArticleRichEditor({
         <EditorContent editor={editor} />
       </div>
 
+      {slashMenuRange ? (
+        <section className="grid gap-2 rounded-xl border border-cyan-200 bg-cyan-50/70 px-3 py-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-cyan-800">
+            Slash commands {slashMenuQuery ? `(/${slashMenuQuery})` : "(/)"}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {filteredSlashCommands.length > 0 ? (
+              filteredSlashCommands.map((command) => (
+                <button
+                  key={command.id}
+                  type="button"
+                  onMouseDown={(event) => {
+                    event.preventDefault();
+                    applySlashCommand(command);
+                  }}
+                  className="rounded-full border border-cyan-200 bg-white px-3 py-1 text-xs font-semibold text-cyan-800 transition hover:bg-cyan-100"
+                >
+                  {command.label}
+                </button>
+              ))
+            ) : (
+              <p className="text-xs text-cyan-800">No matching slash commands.</p>
+            )}
+          </div>
+        </section>
+      ) : null}
+
       <p className="text-xs text-slate-500">
-        Tip: highlight text and use keyboard shortcuts like Ctrl/Cmd + B for bold and Ctrl/Cmd + I for italic.
+        Tip: type / to open block commands. You can also use Ctrl/Cmd + B for bold and Ctrl/Cmd + I for italic.
       </p>
 
       <input type="hidden" name="contentJson" value={contentJson} />

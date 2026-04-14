@@ -18,7 +18,7 @@ function ToolbarButton({ label, onClick, isActive = false, disabled = false }: T
   return (
     <button
       type="button"
-      onMouseDown={(event) => {
+      onPointerDown={(event) => {
         event.preventDefault();
         onClick();
       }}
@@ -143,6 +143,36 @@ export default function ArticleRichEditor() {
 
   const editorAccent = activeTextColor ?? DEFAULT_EDITOR_ACCENT;
 
+  const handleToggleBulletList = () => {
+    const didToggle =
+      editor.chain().focus().toggleBulletList().run() ||
+      editor.chain().focus().clearNodes().toggleBulletList().run();
+
+    if (didToggle) {
+      syncToolbarState(editor);
+    }
+  };
+
+  const handleToggleOrderedList = () => {
+    const didToggle =
+      editor.chain().focus().toggleOrderedList().run() ||
+      editor.chain().focus().clearNodes().toggleOrderedList().run();
+
+    if (didToggle) {
+      syncToolbarState(editor);
+    }
+  };
+
+  const handleToggleQuote = () => {
+    const didToggle =
+      editor.chain().focus().toggleBlockquote().run() ||
+      editor.chain().focus().clearNodes().toggleBlockquote().run();
+
+    if (didToggle) {
+      syncToolbarState(editor);
+    }
+  };
+
   if (!editor) {
     return (
       <section className="grid gap-2 text-sm text-slate-600">
@@ -186,17 +216,17 @@ export default function ArticleRichEditor() {
           />
           <ToolbarButton
             label="Bullet List"
-            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            onClick={handleToggleBulletList}
             isActive={activeMarks.bulletList}
           />
           <ToolbarButton
             label="Numbered List"
-            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            onClick={handleToggleOrderedList}
             isActive={activeMarks.orderedList}
           />
           <ToolbarButton
             label="Quote"
-            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+            onClick={handleToggleQuote}
             isActive={activeMarks.blockquote}
           />
           <ToolbarButton

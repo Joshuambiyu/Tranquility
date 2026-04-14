@@ -6,6 +6,7 @@ import ArticleFormEnhancements from "@/app/admin/articles/ArticleFormEnhancement
 import ArticleRichEditor from "@/app/admin/articles/ArticleRichEditor";
 import ArticleSubmitButtons from "@/app/admin/articles/ArticleSubmitButtons";
 import ImagePickerPreview from "@/app/admin/articles/ImagePickerPreview";
+import PublishReadinessChecklist from "@/app/admin/articles/PublishReadinessChecklist";
 import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -186,6 +187,8 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
             <input type="checkbox" name="isFeatured" defaultChecked={article.isFeatured} className="h-4 w-4" />
             Set as featured article
           </label>
+
+          <PublishReadinessChecklist formId={editFormId} />
 
           <ArticleSubmitButtons draftLabel="Save Draft Changes" publishLabel="Publish Changes" />
         </form>

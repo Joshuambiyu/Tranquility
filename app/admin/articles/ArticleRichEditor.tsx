@@ -7,6 +7,7 @@ import StarterKit from "@tiptap/starter-kit";
 import type { Editor as TiptapEditor } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { useState, type CSSProperties } from "react";
+import CalloutNode from "@/app/admin/articles/extensions/CalloutNode";
 
 type ToolbarButtonProps = {
   label: string;
@@ -157,6 +158,7 @@ export default function ArticleRichEditor({
     bulletList: false,
     orderedList: false,
     blockquote: false,
+    callout: false,
     codeBlock: false,
   });
 
@@ -171,6 +173,7 @@ export default function ArticleRichEditor({
       bulletList: nextEditor.isActive("bulletList"),
       orderedList: nextEditor.isActive("orderedList"),
       blockquote: nextEditor.isActive("blockquote"),
+      callout: nextEditor.isActive("callout"),
       codeBlock: nextEditor.isActive("codeBlock"),
     });
   };
@@ -183,6 +186,7 @@ export default function ArticleRichEditor({
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
       }),
+      CalloutNode,
       Link.configure({
         openOnClick: false,
         autolink: true,
@@ -196,7 +200,7 @@ export default function ArticleRichEditor({
     editorProps: {
       attributes: {
         class:
-          "max-w-none min-h-[320px] text-slate-900 outline-none leading-7 [&_p]:my-3 [&_h1]:my-4 [&_h1]:text-3xl [&_h1]:font-semibold [&_h2]:my-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:bg-emerald-50/40 [&_blockquote]:px-3 [&_blockquote]:py-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-slate-900 [&_pre]:px-4 [&_pre]:py-3 [&_pre]:text-sm [&_pre]:text-slate-100",
+          "max-w-none min-h-[320px] text-slate-900 outline-none leading-7 [&_p]:my-3 [&_h1]:my-4 [&_h1]:text-3xl [&_h1]:font-semibold [&_h2]:my-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:bg-emerald-50/40 [&_blockquote]:px-3 [&_blockquote]:py-2 [&_[data-callout='true']]:my-3 [&_[data-callout='true']]:rounded-xl [&_[data-callout='true']]:border [&_[data-callout='true']]:border-amber-200 [&_[data-callout='true']]:bg-amber-50 [&_[data-callout='true']]:px-3 [&_[data-callout='true']]:py-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-slate-900 [&_pre]:px-4 [&_pre]:py-3 [&_pre]:text-sm [&_pre]:text-slate-100",
       },
     },
     onUpdate: ({ editor: nextEditor }) => {
@@ -336,6 +340,16 @@ export default function ArticleRichEditor({
             label="Quote"
             onClick={handleToggleQuote}
             isActive={activeMarks.blockquote}
+          />
+          <ToolbarButton
+            label="Callout"
+            onClick={() => {
+              const didToggle = editor.chain().focus().toggleCallout().run();
+              if (didToggle) {
+                syncToolbarState(editor);
+              }
+            }}
+            isActive={activeMarks.callout}
           />
           <ToolbarButton
             label="Code"

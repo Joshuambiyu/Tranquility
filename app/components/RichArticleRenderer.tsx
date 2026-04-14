@@ -168,12 +168,20 @@ function renderListItems(nodes: unknown, keyPrefix: string): React.ReactNode {
   });
 }
 
-function renderBlock(node: unknown, index: number): React.ReactNode {
+function renderBlockNodes(nodes: unknown, keyPrefix: string): React.ReactNode {
+  if (!Array.isArray(nodes)) {
+    return null;
+  }
+
+  return nodes.map((node, index) => renderBlock(node, index, keyPrefix));
+}
+
+function renderBlock(node: unknown, index: number, keyPrefix = "block"): React.ReactNode {
   if (!isJsonObject(node) || typeof node.type !== "string") {
     return null;
   }
 
-  const key = `block-${index}`;
+  const key = `${keyPrefix}-${index}`;
 
   switch (node.type) {
     case "heading": {
@@ -205,6 +213,12 @@ function renderBlock(node: unknown, index: number): React.ReactNode {
           {renderInline(node.content, key)}
         </blockquote>
       );
+    case "callout":
+      return (
+        <div key={key} className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-slate-700">
+          {renderBlockNodes(node.content, `${key}-callout`) ?? renderInline(node.content, key)}
+        </div>
+      );
     case "horizontalRule":
       return <hr key={key} className="border-slate-200" />;
     case "codeBlock":
@@ -224,5 +238,5 @@ export default function RichArticleRenderer({ content }: { content: unknown }) {
   }
 
   const blocks = Array.isArray(content.content) ? content.content : [];
-  return <div className="grid gap-4">{blocks.map((block, index) => renderBlock(block, index))}</div>;
+  return <div className="grid gap-4">{blocks.map((block, index) => renderBlock(block, index, "root"))}</div>;
 }

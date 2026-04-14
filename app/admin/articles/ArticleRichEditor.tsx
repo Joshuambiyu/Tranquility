@@ -5,7 +5,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { Color, TextStyle } from "@tiptap/extension-text-style";
 import StarterKit from "@tiptap/starter-kit";
 import { EditorContent, useEditor } from "@tiptap/react";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 
 type ToolbarButtonProps = {
   label: string;
@@ -50,9 +50,25 @@ const TEXT_COLORS = [
   { label: "Violet", value: "#6d28d9" },
 ];
 
+const DEFAULT_EDITOR_ACCENT = "#10b981";
+
+function resolveActiveTextColor(value: unknown) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+
+  return normalized;
+}
+
 export default function ArticleRichEditor() {
   const [contentJson, setContentJson] = useState(JSON.stringify(EMPTY_DOC));
   const [plainText, setPlainText] = useState("");
+  const [activeTextColor, setActiveTextColor] = useState<string | null>(null);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -75,18 +91,25 @@ export default function ArticleRichEditor() {
     editorProps: {
       attributes: {
         class:
-          "prose prose-slate max-w-none min-h-[320px] rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none focus:ring-2 focus:ring-emerald-400",
+          "prose prose-slate max-w-none min-h-[320px] text-slate-900 outline-none",
       },
     },
     onUpdate: ({ editor: nextEditor }) => {
       setContentJson(JSON.stringify(nextEditor.getJSON()));
       setPlainText(nextEditor.getText({ blockSeparator: "\n\n" }).trim());
+      setActiveTextColor(resolveActiveTextColor(nextEditor.getAttributes("textStyle").color));
     },
     onCreate: ({ editor: nextEditor }) => {
       setContentJson(JSON.stringify(nextEditor.getJSON()));
       setPlainText(nextEditor.getText({ blockSeparator: "\n\n" }).trim());
+      setActiveTextColor(resolveActiveTextColor(nextEditor.getAttributes("textStyle").color));
+    },
+    onSelectionUpdate: ({ editor: nextEditor }) => {
+      setActiveTextColor(resolveActiveTextColor(nextEditor.getAttributes("textStyle").color));
     },
   });
+
+  const editorAccent = activeTextColor ?? DEFAULT_EDITOR_ACCENT;
 
   if (!editor) {
     return (
@@ -158,8 +181,16 @@ export default function ArticleRichEditor() {
               key={tone.value}
               type="button"
               onClick={() => editor.chain().focus().setColor(tone.value).run()}
-              className="h-8 w-8 shrink-0 rounded-full border border-slate-300 ring-offset-2 transition hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-              style={{ backgroundColor: tone.value }}
+              className="h-8 w-8 shrink-0 rounded-full border ring-offset-2 transition hover:scale-105 focus:outline-none"
+              style={{
+                backgroundColor: tone.value,
+                borderColor:
+                  activeTextColor === tone.value.toLowerCase() ? "#0f172a" : "#cbd5e1",
+                boxShadow:
+                  activeTextColor === tone.value.toLowerCase()
+                    ? "0 0 0 2px rgba(15, 23, 42, 0.2)"
+                    : undefined,
+              }}
               title={tone.label}
               aria-label={`Set text color ${tone.label}`}
             />
@@ -174,7 +205,17 @@ export default function ArticleRichEditor() {
         </div>
       </div>
 
-      <EditorContent editor={editor} />
+      <div
+        className="rounded-2xl border bg-white px-4 py-3 transition focus-within:ring-2"
+        style={
+          {
+            borderColor: editorAccent,
+            ["--tw-ring-color"]: `${editorAccent}55`,
+          } as CSSProperties
+        }
+      >
+        <EditorContent editor={editor} />
+      </div>
 
       <p className="text-xs text-slate-500">
         Tip: highlight text and use keyboard shortcuts like Ctrl/Cmd + B for bold and Ctrl/Cmd + I for italic.

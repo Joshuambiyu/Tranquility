@@ -8,7 +8,11 @@ import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export default async function AdminArticlesPage() {
+interface AdminArticlesPageProps {
+  searchParams: Promise<{ created?: string }>;
+}
+
+export default async function AdminArticlesPage({ searchParams }: AdminArticlesPageProps) {
   const session = await getServerSession();
 
   if (!session?.user) {
@@ -42,6 +46,8 @@ export default async function AdminArticlesPage() {
     },
   });
 
+  const { created } = await searchParams;
+
   return (
     <main className="mx-auto grid min-h-[70vh] w-full max-w-6xl gap-6 px-5 py-8 sm:px-8 lg:px-10">
       <section className="grid gap-2 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100">
@@ -60,6 +66,12 @@ export default async function AdminArticlesPage() {
       </section>
 
       <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+        {created === "1" ? (
+          <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+            Article created successfully.
+          </p>
+        ) : null}
+
         <form action={createArticleAction} className="grid gap-4">
           <label className="grid gap-2 text-sm font-medium text-slate-700">
             Title
@@ -170,6 +182,12 @@ export default async function AdminArticlesPage() {
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  href={`/admin/articles/edit/${article.id}`}
+                  className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 transition hover:bg-slate-50"
+                >
+                  Edit
+                </Link>
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${
                     article.status === "published"

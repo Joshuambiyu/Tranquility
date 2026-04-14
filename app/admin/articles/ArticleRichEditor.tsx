@@ -18,7 +18,10 @@ function ToolbarButton({ label, onClick, isActive = false, disabled = false }: T
   return (
     <button
       type="button"
-      onClick={onClick}
+      onMouseDown={(event) => {
+        event.preventDefault();
+        onClick();
+      }}
       disabled={disabled}
       className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
         isActive

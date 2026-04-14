@@ -7,6 +7,8 @@ type PersistedFormState = {
   savedAt: number;
 };
 
+const NON_DIRTY_FIELD_NAMES = new Set(["submitToken"]);
+
 function safeParsePersistedState(raw: string | null): PersistedFormState | null {
   if (!raw) {
     return null;
@@ -38,6 +40,10 @@ function captureFormState(form: HTMLFormElement) {
 
   fields.forEach((field) => {
     if (!field.name || field.disabled) {
+      return;
+    }
+
+    if (NON_DIRTY_FIELD_NAMES.has(field.name)) {
       return;
     }
 

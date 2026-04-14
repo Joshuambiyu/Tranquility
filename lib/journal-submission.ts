@@ -4,6 +4,7 @@ export interface SavedJournalReflection {
   id: string;
   createdAt: string;
   message: string;
+  duplicate?: boolean;
   result: ReflectionResult;
 }
 

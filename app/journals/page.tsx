@@ -94,19 +94,25 @@ export default function JournalsPage() {
         stressLevel,
       });
 
-      setEntries((current) => [
-        {
-          id: created.id,
-          prompt: reflectionPrompt,
-          answer: trimmed,
-          stressLevel,
-          resultTone: created.result.tone,
-          resultTitle: created.result.title,
-          resultMessage: created.result.message,
-          createdAt: created.createdAt,
-        },
-        ...current,
-      ]);
+      setEntries((current) => {
+        if (current.some((entry) => entry.id === created.id)) {
+          return current;
+        }
+
+        return [
+          {
+            id: created.id,
+            prompt: reflectionPrompt,
+            answer: trimmed,
+            stressLevel,
+            resultTone: created.result.tone,
+            resultTitle: created.result.title,
+            resultMessage: created.result.message,
+            createdAt: created.createdAt,
+          },
+          ...current,
+        ];
+      });
       setSubmissionState({ status: "submitted", result: created.result });
       setReflectionAnswer("");
       setError(null);

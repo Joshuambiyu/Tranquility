@@ -5,6 +5,27 @@ import { prisma } from "@/lib/prisma";
 import { generateReflectionResult } from "@/lib/reflection-generator";
 import { journalSubmissionSchema } from "@/lib/validators";
 
+const DUPLICATE_SUBMISSION_WINDOW_MS = 3 * 60 * 1000;
+
+function hasSameOriginMismatch(request: Request) {
+  const origin = request.headers.get("origin");
+
+  if (!origin) {
+    return false;
+  }
+
+  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  if (!host) {
+    return false;
+  }
+
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  const protocol = forwardedProto?.split(",")[0].trim() || (host.includes("localhost") ? "http" : "https");
+  const expectedOrigin = `${protocol}://${host.split(",")[0].trim()}`;
+
+  return origin !== expectedOrigin;
+}
+
 export async function GET() {
   try {
     const session = await getServerSession();
@@ -48,6 +69,19 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    if (hasSameOriginMismatch(request)) {
+      return toErrorResponse(
+        new ApiError("Cross-origin request blocked.", {
+          statusCode: 403,
+          code: "FORBIDDEN",
+        }),
+        {
+          fallbackMessage: "Cross-origin request blocked.",
+          route: "POST /api/journals",
+        },
+      );
+    }
+
     const session = await getServerSession();
     if (!session?.user?.id) {
       return toErrorResponse(
@@ -69,6 +103,40 @@ export async function POST(request: Request) {
       return toErrorResponse(parsed.error, {
         fallbackMessage: "Please complete your reflection before submitting.",
         route: "POST /api/journals",
+      });
+    }
+
+    const recentDuplicate = await prisma.userJournal.findFirst({
+      where: {
+        userId: session.user.id,
+        prompt: parsed.data.prompt,
+        answer: parsed.data.answer,
+        stressLevel: parsed.data.stressLevel,
+        createdAt: {
+          gte: new Date(Date.now() - DUPLICATE_SUBMISSION_WINDOW_MS),
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        createdAt: true,
+        resultTone: true,
+        resultTitle: true,
+        resultMessage: true,
+      },
+    });
+
+    if (recentDuplicate) {
+      return NextResponse.json({
+        id: recentDuplicate.id,
+        createdAt: recentDuplicate.createdAt,
+        message: "This reflection was already saved recently.",
+        duplicate: true,
+        result: {
+          tone: recentDuplicate.resultTone,
+          title: recentDuplicate.resultTitle,
+          message: recentDuplicate.resultMessage,
+        },
       });
     }
 

@@ -200,4 +200,71 @@ describe("journals integration", () => {
     expect(answers).toContain("Vitest journal from A");
     expect(answers).not.toContain("Vitest journal from B");
   });
+
+  it("deduplicates recent identical submissions", async () => {
+    const email = `${randomUUID()}${testEmailDomain}`;
+    const user = await prisma.user.create({
+      data: {
+        email,
+        name: "Vitest Journal Duplicate User",
+        emailVerified: true,
+      },
+    });
+
+    mockSession = {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    };
+
+    const answer = `Vitest journal duplicate ${randomUUID()}`;
+
+    const firstResponse = await saveJournal(
+      new Request("http://localhost:3000/api/journals", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: journalPrompt,
+          answer,
+          stressLevel: "medium",
+        }),
+      }),
+    );
+
+    expect(firstResponse.status).toBe(201);
+    const firstBody = await firstResponse.json();
+
+    const secondResponse = await saveJournal(
+      new Request("http://localhost:3000/api/journals", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: journalPrompt,
+          answer,
+          stressLevel: "medium",
+        }),
+      }),
+    );
+
+    expect(secondResponse.status).toBe(200);
+    const secondBody = await secondResponse.json();
+
+    expect(secondBody.duplicate).toBe(true);
+    expect(secondBody.id).toBe(firstBody.id);
+
+    const rows = await prisma.userJournal.findMany({
+      where: {
+        userId: user.id,
+        answer,
+      },
+    });
+
+    expect(rows).toHaveLength(1);
+  });
 });

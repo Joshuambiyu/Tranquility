@@ -430,6 +430,27 @@ export default function ArticleRichEditor({
     setIsImagePanelOpen(false);
   };
 
+  const openImagePanel = () => {
+    setImagePanelError("");
+    if (!isImagePanelOpen) {
+      setUploadedImageDataUrl("");
+      setUploadedImageName("");
+      setImageAltInput("");
+    }
+    setIsImagePanelOpen((current) => !current);
+  };
+
+  const applyHeading = (level: 1 | 2) => {
+    editor.chain().focus().toggleHeading({ level }).run();
+  };
+
+  const applyCallout = () => {
+    const didToggle = editor.chain().focus().toggleCallout().run();
+    if (didToggle) {
+      syncToolbarState(editor);
+    }
+  };
+
   if (!editor) {
     return (
       <section className="grid gap-2 text-sm text-slate-600">
@@ -448,12 +469,12 @@ export default function ArticleRichEditor({
         <div className="flex flex-wrap gap-2">
           <ToolbarButton
             label="H1"
-            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            onClick={() => applyHeading(1)}
             isActive={activeMarks.heading1}
           />
           <ToolbarButton
             label="H2"
-            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            onClick={() => applyHeading(2)}
             isActive={activeMarks.heading2}
           />
           <ToolbarButton
@@ -488,12 +509,7 @@ export default function ArticleRichEditor({
           />
           <ToolbarButton
             label="Callout"
-            onClick={() => {
-              const didToggle = editor.chain().focus().toggleCallout().run();
-              if (didToggle) {
-                syncToolbarState(editor);
-              }
-            }}
+            onClick={applyCallout}
             isActive={activeMarks.callout}
           />
           <ToolbarButton
@@ -503,15 +519,7 @@ export default function ArticleRichEditor({
           />
           <ToolbarButton
             label="Image"
-            onClick={() => {
-              setImagePanelError("");
-              if (!isImagePanelOpen) {
-                setUploadedImageDataUrl("");
-                setUploadedImageName("");
-                setImageAltInput("");
-              }
-              setIsImagePanelOpen((current) => !current);
-            }}
+            onClick={openImagePanel}
           />
         </div>
 
@@ -656,6 +664,28 @@ export default function ArticleRichEditor({
         }
       >
         <EditorContent editor={editor} />
+      </div>
+
+      <div className="sticky bottom-3 z-20 flex items-center gap-2 overflow-x-auto rounded-xl border border-slate-200 bg-white/95 p-2 shadow-sm backdrop-blur">
+        <button
+          type="button"
+          onClick={() => editor.commands.focus()}
+          className="shrink-0 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-800"
+          title="Quick formatting tools"
+        >
+          /
+        </button>
+        <ToolbarButton label="H1" onClick={() => applyHeading(1)} isActive={activeMarks.heading1} />
+        <ToolbarButton label="H2" onClick={() => applyHeading(2)} isActive={activeMarks.heading2} />
+        <ToolbarButton label="B" onClick={() => editor.chain().focus().toggleBold().run()} isActive={activeMarks.bold} />
+        <ToolbarButton label="I" onClick={() => editor.chain().focus().toggleItalic().run()} isActive={activeMarks.italic} />
+        <ToolbarButton label="S" onClick={() => editor.chain().focus().toggleStrike().run()} isActive={activeMarks.strike} />
+        <ToolbarButton label="• List" onClick={handleToggleBulletList} isActive={activeMarks.bulletList} />
+        <ToolbarButton label="1. List" onClick={handleToggleOrderedList} isActive={activeMarks.orderedList} />
+        <ToolbarButton label="Quote" onClick={handleToggleQuote} isActive={activeMarks.blockquote} />
+        <ToolbarButton label="Code" onClick={() => editor.chain().focus().toggleCodeBlock().run()} isActive={activeMarks.codeBlock} />
+        <ToolbarButton label="Callout" onClick={applyCallout} isActive={activeMarks.callout} />
+        <ToolbarButton label="Image" onClick={openImagePanel} />
       </div>
 
       <p className="text-xs text-slate-500">

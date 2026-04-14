@@ -7,6 +7,8 @@ import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+type JsonObject = Record<string, unknown>;
+
 function toSlug(input: string) {
   return input
     .toLowerCase()
@@ -22,6 +24,96 @@ function parseParagraphs(content: string) {
     .split(/\n\s*\n/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
+}
+
+function isJsonObject(value: unknown): value is JsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isTiptapDocument(value: unknown): value is JsonObject {
+  if (!isJsonObject(value)) {
+    return false;
+  }
+
+  if (value.type !== "doc") {
+    return false;
+  }
+
+  const content = value.content;
+  return content === undefined || Array.isArray(content);
+}
+
+function extractTextFromTiptapNode(node: unknown): string {
+  if (!isJsonObject(node)) {
+    return "";
+  }
+
+  if (typeof node.text === "string") {
+    return node.text;
+  }
+
+  if (node.type === "hardBreak") {
+    return "\n";
+  }
+
+  if (!Array.isArray(node.content)) {
+    return "";
+  }
+
+  return node.content.map((entry) => extractTextFromTiptapNode(entry)).join("");
+}
+
+function extractParagraphsFromTiptapDoc(doc: JsonObject) {
+  const content = Array.isArray(doc.content) ? doc.content : [];
+
+  return content
+    .map((node) => extractTextFromTiptapNode(node).replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+}
+
+function resolveContentPayload(formData: FormData) {
+  const contentJsonRaw = String(formData.get("contentJson") ?? "").trim();
+  const legacyContentRaw = String(formData.get("content") ?? "").trim();
+
+  if (contentJsonRaw.length > 0) {
+    let parsedContent: unknown;
+
+    try {
+      parsedContent = JSON.parse(contentJsonRaw);
+    } catch {
+      throw new Error("Editor content JSON is invalid.");
+    }
+
+    if (!isTiptapDocument(parsedContent)) {
+      throw new Error("Editor content is not a valid TipTap document.");
+    }
+
+    const paragraphsFromJson = extractParagraphsFromTiptapDoc(parsedContent);
+
+    if (paragraphsFromJson.length === 0) {
+      throw new Error("Please provide article content with at least one paragraph.");
+    }
+
+    const plainTextLength = paragraphsFromJson.join(" ").length;
+    if (plainTextLength > 50000) {
+      throw new Error("Article content is too long. Please keep it under 50,000 characters.");
+    }
+
+    return {
+      content: parsedContent,
+      paragraphsForExcerpt: paragraphsFromJson,
+    };
+  }
+
+  const legacyParagraphs = parseParagraphs(legacyContentRaw);
+  if (legacyParagraphs.length === 0) {
+    throw new Error("Please provide article content with at least one paragraph.");
+  }
+
+  return {
+    content: legacyParagraphs,
+    paragraphsForExcerpt: legacyParagraphs,
+  };
 }
 
 function buildExcerptFallback(paragraphs: string[]) {
@@ -115,7 +207,7 @@ export async function createArticleAction(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const author = String(formData.get("author") ?? "").trim();
   const requestedExcerpt = String(formData.get("excerpt") ?? "").trim();
-  const content = String(formData.get("content") ?? "").trim();
+  const resolvedContent = resolveContentPayload(formData);
   const reflectionMoment = String(formData.get("reflectionMoment") ?? "").trim();
   const imageSrc = await resolveImageSource(formData);
   const imageAlt = String(formData.get("imageAlt") ?? "").trim() || title;
@@ -126,12 +218,7 @@ export async function createArticleAction(formData: FormData) {
     throw new Error("Title must be at least 4 characters.");
   }
 
-  const paragraphs = parseParagraphs(content);
-  if (paragraphs.length === 0) {
-    throw new Error("Please provide article content with at least one paragraph.");
-  }
-
-  const excerpt = requestedExcerpt || buildExcerptFallback(paragraphs);
+  const excerpt = requestedExcerpt || buildExcerptFallback(resolvedContent.paragraphsForExcerpt);
 
   const baseSlug = toSlug(requestedSlug || title);
   if (!baseSlug) {
@@ -158,7 +245,7 @@ export async function createArticleAction(formData: FormData) {
       slug,
       title,
       excerpt,
-      content: paragraphs,
+      content: resolvedContent.content,
       author: author || user.name || user.email || "Editorial",
       imageSrc,
       imageAlt,

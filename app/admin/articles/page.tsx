@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createArticleAction } from "@/app/admin/articles/actions";
+import ArticleRichEditor from "@/app/admin/articles/ArticleRichEditor";
 import ImagePickerPreview from "@/app/admin/articles/ImagePickerPreview";
 import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
@@ -102,15 +103,7 @@ export default async function AdminArticlesPage() {
             />
           </label>
 
-          <label className="grid gap-2 text-sm font-medium text-slate-700">
-            Content (separate paragraphs with blank lines)
-            <textarea
-              name="content"
-              required
-              rows={10}
-              className="rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none ring-emerald-400 transition focus:ring"
-            />
-          </label>
+          <ArticleRichEditor />
 
           <label className="grid gap-2 text-sm font-medium text-slate-700">
             Reflection moment

@@ -8,6 +8,7 @@ import {
 } from "@/app/admin/resources/actions";
 import ArticleFormEnhancements from "@/app/admin/articles/ArticleFormEnhancements";
 import ResourceSubmitButtons from "@/app/admin/resources/ResourceSubmitButtons";
+import ToastOnMount from "@/app/components/feedback/ToastOnMount";
 import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -96,6 +97,14 @@ export default async function AdminResourcesPage({
 
   return (
     <main className="mx-auto grid min-h-[70vh] w-full max-w-6xl gap-6 px-5 py-8 sm:px-8 lg:px-10">
+      <ToastOnMount
+        id={`resources-saved-${saved}-${duplicate}`}
+        type={duplicate === "1" ? "info" : "success"}
+        title={duplicate === "1" ? "Duplicate submission blocked" : "Resource saved"}
+        message={duplicate === "1" ? "Your previous save was already processed." : "Monthly resource changes were saved."}
+        enabled={saved === "1"}
+      />
+
       <section className="grid gap-2 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100">
         <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Resource of the Month</h1>
         <p className="text-sm text-slate-600">

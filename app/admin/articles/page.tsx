@@ -8,6 +8,7 @@ import ArticleRichEditor from "@/app/admin/articles/ArticleRichEditor";
 import ArticleSubmitButtons from "@/app/admin/articles/ArticleSubmitButtons";
 import ImagePickerPreview from "@/app/admin/articles/ImagePickerPreview";
 import PublishReadinessChecklist from "@/app/admin/articles/PublishReadinessChecklist";
+import ToastOnMount from "@/app/components/feedback/ToastOnMount";
 import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -57,6 +58,14 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
 
   return (
     <main className="mx-auto grid min-h-[70vh] w-full max-w-6xl gap-6 px-5 py-8 sm:px-8 lg:px-10">
+      <ToastOnMount
+        id={`articles-created-${created}-${duplicate}`}
+        type={duplicate === "1" ? "info" : "success"}
+        title={duplicate === "1" ? "Duplicate submission blocked" : "Article saved"}
+        message={duplicate === "1" ? "Your previous submit was already processed." : "Your article was created successfully."}
+        enabled={created === "1"}
+      />
+
       <section className="grid gap-2 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="grid gap-2">

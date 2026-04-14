@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
 import { DailyReflectionSection } from "@/app/components/DailyReflectionSection";
+import { useToast } from "@/app/components/feedback/ToastProvider";
 import { JournalsHeroSection } from "@/app/components/JournalsHeroSection";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import { reflectionPrompt } from "@/app/data/homepageData";
@@ -27,6 +28,7 @@ type JournalResponse = {
 
 export default function JournalsPage() {
   const { status } = useSession();
+  const { showToast } = useToast();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -116,10 +118,22 @@ export default function JournalsPage() {
       setSubmissionState({ status: "submitted", result: created.result });
       setReflectionAnswer("");
       setError(null);
+      showToast({
+        type: "success",
+        title: created.duplicate ? "Already saved" : "Reflection saved",
+        message: created.duplicate
+          ? "That exact reflection was already saved recently."
+          : "Your reflection was saved to your journal.",
+      });
     } catch (caught) {
       setSubmissionState({
         status: "error",
         message: caught instanceof Error ? caught.message : "Unable to save your reflection. Please try again.",
+      });
+      showToast({
+        type: "error",
+        title: "Unable to save reflection",
+        message: caught instanceof Error ? caught.message : "Please try again.",
       });
     }
   };

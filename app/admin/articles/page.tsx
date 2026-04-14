@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createArticleAction, deleteArticleAction } from "@/app/admin/articles/actions";
+import ArticleFormEnhancements from "@/app/admin/articles/ArticleFormEnhancements";
 import ArticleRichEditor from "@/app/admin/articles/ArticleRichEditor";
 import ArticleSubmitButtons from "@/app/admin/articles/ArticleSubmitButtons";
 import ImagePickerPreview from "@/app/admin/articles/ImagePickerPreview";
@@ -12,6 +13,9 @@ import { prisma } from "@/lib/prisma";
 interface AdminArticlesPageProps {
   searchParams: Promise<{ created?: string; duplicate?: string }>;
 }
+
+const CREATE_ARTICLE_FORM_ID = "admin-article-create-form";
+const CREATE_ARTICLE_DRAFT_STORAGE_KEY = "admin-article-create-draft";
 
 export default async function AdminArticlesPage({ searchParams }: AdminArticlesPageProps) {
   const session = await getServerSession();
@@ -78,7 +82,14 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
           </p>
         ) : null}
 
-        <form action={createArticleAction} className="grid gap-4">
+        <form id={CREATE_ARTICLE_FORM_ID} action={createArticleAction} className="grid gap-4">
+          <ArticleFormEnhancements
+            formId={CREATE_ARTICLE_FORM_ID}
+            storageKey={CREATE_ARTICLE_DRAFT_STORAGE_KEY}
+            clearDraft={created === "1"}
+            restoreDraft={created !== "1"}
+          />
+
           <label className="grid gap-2 text-sm font-medium text-slate-700">
             Title
             <input
@@ -122,7 +133,10 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
             />
           </label>
 
-          <ArticleRichEditor />
+          <ArticleRichEditor
+            draftStorageKey={CREATE_ARTICLE_DRAFT_STORAGE_KEY}
+            restoreDraft={created !== "1"}
+          />
 
           <label className="grid gap-2 text-sm font-medium text-slate-700">
             Reflection moment
@@ -136,7 +150,10 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
             />
           </label>
 
-          <ImagePickerPreview />
+          <ImagePickerPreview
+            draftStorageKey={CREATE_ARTICLE_DRAFT_STORAGE_KEY}
+            restoreDraft={created !== "1"}
+          />
 
           <label className="grid gap-2 text-sm font-medium text-slate-700">
               Image description (optional)

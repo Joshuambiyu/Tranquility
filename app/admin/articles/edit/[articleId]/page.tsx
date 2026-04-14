@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { updateArticleAction } from "@/app/admin/articles/actions";
+import ArticleFormEnhancements from "@/app/admin/articles/ArticleFormEnhancements";
 import ArticleRichEditor from "@/app/admin/articles/ArticleRichEditor";
 import ArticleSubmitButtons from "@/app/admin/articles/ArticleSubmitButtons";
 import ImagePickerPreview from "@/app/admin/articles/ImagePickerPreview";
@@ -59,6 +60,9 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
     notFound();
   }
 
+  const editFormId = `admin-article-edit-form-${article.id}`;
+  const editDraftStorageKey = `admin-article-edit-draft-${article.id}`;
+
   return (
     <main className="mx-auto grid min-h-[70vh] w-full max-w-6xl gap-6 px-5 py-8 sm:px-8 lg:px-10">
       <section className="grid gap-3 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100">
@@ -87,7 +91,14 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
       </section>
 
       <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-        <form action={updateArticleAction} className="grid gap-4">
+        <form id={editFormId} action={updateArticleAction} className="grid gap-4">
+          <ArticleFormEnhancements
+            formId={editFormId}
+            storageKey={editDraftStorageKey}
+            clearDraft={updated === "1"}
+            restoreDraft={updated !== "1"}
+          />
+
           <input type="hidden" name="articleId" value={article.id} />
 
           <label className="grid gap-2 text-sm font-medium text-slate-700">
@@ -134,7 +145,11 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
             />
           </label>
 
-          <ArticleRichEditor initialContent={article.content} />
+          <ArticleRichEditor
+            initialContent={article.content}
+            draftStorageKey={editDraftStorageKey}
+            restoreDraft={updated !== "1"}
+          />
 
           <label className="grid gap-2 text-sm font-medium text-slate-700">
             Reflection moment
@@ -149,7 +164,11 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
             />
           </label>
 
-          <ImagePickerPreview initialImageSrc={article.imageSrc} />
+          <ImagePickerPreview
+            initialImageSrc={article.imageSrc}
+            draftStorageKey={editDraftStorageKey}
+            restoreDraft={updated !== "1"}
+          />
 
           <label className="grid gap-2 text-sm font-medium text-slate-700">
             Image description (optional)

@@ -202,6 +202,7 @@ export default function ArticleRichEditor({
   const [uploadedImageDataUrl, setUploadedImageDataUrl] = useState("");
   const [uploadedImageName, setUploadedImageName] = useState("");
   const [imagePanelError, setImagePanelError] = useState("");
+  const [isEditorFocused, setIsEditorFocused] = useState(false);
   const [activeMarks, setActiveMarks] = useState({
     heading1: false,
     heading2: false,
@@ -353,9 +354,18 @@ export default function ArticleRichEditor({
     onTransaction: ({ editor: nextEditor }) => {
       syncToolbarState(nextEditor);
     },
+    onFocus: () => {
+      setIsEditorFocused(true);
+    },
+    onBlur: () => {
+      setIsEditorFocused(false);
+    },
   });
 
   const editorAccent = activeTextColor ?? DEFAULT_EDITOR_ACCENT;
+  const bottomToolbarVisibilityClass = isEditorFocused
+    ? "opacity-100 pointer-events-auto translate-y-0"
+    : "opacity-100 pointer-events-auto translate-y-0 sm:opacity-0 sm:pointer-events-none sm:translate-y-2";
 
   const handleToggleBulletList = () => {
     const currentEditor = editor;
@@ -440,6 +450,16 @@ export default function ArticleRichEditor({
     setIsImagePanelOpen((current) => !current);
   };
 
+  if (!editor) {
+    return (
+      <section className="grid gap-2 text-sm text-slate-600">
+        <p>Loading editor...</p>
+        <input type="hidden" name="contentJson" value={JSON.stringify(EMPTY_DOC)} />
+        <input type="hidden" name="content" value="" />
+      </section>
+    );
+  }
+
   const applyHeading = (level: 1 | 2) => {
     editor.chain().focus().toggleHeading({ level }).run();
   };
@@ -450,16 +470,6 @@ export default function ArticleRichEditor({
       syncToolbarState(editor);
     }
   };
-
-  if (!editor) {
-    return (
-      <section className="grid gap-2 text-sm text-slate-600">
-        <p>Loading editor...</p>
-        <input type="hidden" name="contentJson" value={JSON.stringify(EMPTY_DOC)} />
-        <input type="hidden" name="content" value="" />
-      </section>
-    );
-  }
 
   return (
     <section className="grid gap-3">
@@ -666,7 +676,9 @@ export default function ArticleRichEditor({
         <EditorContent editor={editor} />
       </div>
 
-      <div className="sticky bottom-3 z-20 flex items-center gap-2 overflow-x-auto rounded-xl border border-slate-200 bg-white/95 p-2 shadow-sm backdrop-blur">
+      <div
+        className={`sticky bottom-3 z-20 flex items-center gap-2 overflow-x-auto rounded-xl border border-slate-200 bg-white/95 p-2 shadow-sm backdrop-blur transition-all duration-200 ${bottomToolbarVisibilityClass}`}
+      >
         <button
           type="button"
           onClick={() => editor.commands.focus()}
@@ -690,6 +702,9 @@ export default function ArticleRichEditor({
 
       <p className="text-xs text-slate-500">
         Tip: use Ctrl/Cmd + B for bold and Ctrl/Cmd + I for italic.
+      </p>
+      <p className="text-xs text-slate-500 sm:hidden">
+        Mobile tip: use the bottom formatting bar to apply headings and text styles.
       </p>
 
       <input type="hidden" name="contentJson" value={contentJson} />

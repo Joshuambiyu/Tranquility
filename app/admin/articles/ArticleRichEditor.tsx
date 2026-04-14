@@ -116,7 +116,33 @@ function toTiptapDoc(content: unknown): TiptapDoc {
   return EMPTY_DOC;
 }
 
-export default function ArticleRichEditor({ initialContent }: { initialContent?: unknown }) {
+function getDraftFields(storageKey?: string) {
+  if (!storageKey || typeof window === "undefined") {
+    return null;
+  }
+
+  const raw = localStorage.getItem(storageKey);
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as { fields?: Record<string, string> };
+    return parsed?.fields ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export default function ArticleRichEditor({
+  initialContent,
+  draftStorageKey,
+  restoreDraft,
+}: {
+  initialContent?: unknown;
+  draftStorageKey?: string;
+  restoreDraft?: boolean;
+}) {
   const startingContent = toTiptapDoc(initialContent);
 
   const [contentJson, setContentJson] = useState(JSON.stringify(startingContent));
@@ -179,6 +205,23 @@ export default function ArticleRichEditor({ initialContent }: { initialContent?:
       syncToolbarState(nextEditor);
     },
     onCreate: ({ editor: nextEditor }) => {
+      if (restoreDraft) {
+        const draftFields = getDraftFields(draftStorageKey);
+        const draftContentJson = draftFields?.contentJson;
+
+        if (typeof draftContentJson === "string" && draftContentJson.trim().length > 0) {
+          try {
+            const parsedContent = JSON.parse(draftContentJson);
+
+            if (isTiptapDoc(parsedContent)) {
+              nextEditor.commands.setContent(parsedContent, { emitUpdate: false });
+            }
+          } catch {
+            // Ignore invalid local draft payload and continue with provided initial content.
+          }
+        }
+      }
+
       setContentJson(JSON.stringify(nextEditor.getJSON()));
       setPlainText(nextEditor.getText({ blockSeparator: "\n\n" }).trim());
       syncToolbarState(nextEditor);
@@ -201,7 +244,7 @@ export default function ArticleRichEditor({ initialContent }: { initialContent?:
 
     const didToggle =
       currentEditor.chain().focus().toggleBulletList().run() ||
-      currentEditor.chain().focus().clearNodes().toggleBulletList().run();
+      currentEditor.chain().focus().setParagraph().toggleBulletList().run();
 
     if (didToggle) {
       syncToolbarState(currentEditor);
@@ -216,7 +259,7 @@ export default function ArticleRichEditor({ initialContent }: { initialContent?:
 
     const didToggle =
       currentEditor.chain().focus().toggleOrderedList().run() ||
-      currentEditor.chain().focus().clearNodes().toggleOrderedList().run();
+      currentEditor.chain().focus().setParagraph().toggleOrderedList().run();
 
     if (didToggle) {
       syncToolbarState(currentEditor);

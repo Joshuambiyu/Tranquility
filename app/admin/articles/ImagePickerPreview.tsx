@@ -4,11 +4,57 @@ import { useEffect, useMemo, useState } from "react";
 
 const DEFAULT_IMAGE = "/featured-reflection.svg";
 
-export default function ImagePickerPreview({ initialImageSrc }: { initialImageSrc?: string | null }) {
+function getDraftImageLink(storageKey?: string) {
+  if (!storageKey || typeof window === "undefined") {
+    return null;
+  }
+
+  const raw = localStorage.getItem(storageKey);
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as { fields?: Record<string, string> };
+    const draftImageSrc = parsed?.fields?.imageSrc;
+
+    if (typeof draftImageSrc === "string") {
+      return draftImageSrc.trim();
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export default function ImagePickerPreview({
+  initialImageSrc,
+  draftStorageKey,
+  restoreDraft,
+}: {
+  initialImageSrc?: string | null;
+  draftStorageKey?: string;
+  restoreDraft?: boolean;
+}) {
   const initialLink = initialImageSrc?.trim() || "";
   const [previewUrl, setPreviewUrl] = useState<string>(initialLink || DEFAULT_IMAGE);
   const [imageLink, setImageLink] = useState(initialLink);
   const [fileObjectUrl, setFileObjectUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!restoreDraft) {
+      return;
+    }
+
+    const draftImageLink = getDraftImageLink(draftStorageKey);
+    if (draftImageLink === null) {
+      return;
+    }
+
+    setImageLink(draftImageLink);
+    setPreviewUrl(draftImageLink || DEFAULT_IMAGE);
+  }, [draftStorageKey, restoreDraft]);
 
   useEffect(() => {
     return () => {

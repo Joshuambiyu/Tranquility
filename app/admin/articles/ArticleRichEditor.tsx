@@ -1,14 +1,15 @@
 "use client";
 
-import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import { Color, TextStyle } from "@tiptap/extension-text-style";
 import StarterKit from "@tiptap/starter-kit";
 import type { Editor as TiptapEditor } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
+import type { EditorView } from "prosemirror-view";
 import { useState, type CSSProperties } from "react";
 import CalloutNode from "@/app/admin/articles/extensions/CalloutNode";
+import ResizableImage from "@/app/admin/articles/extensions/ResizableImage";
 
 type ToolbarButtonProps = {
   label: string;
@@ -69,6 +70,20 @@ const TEXT_COLORS = [
 ];
 
 const DEFAULT_EDITOR_ACCENT = "#cbd5e1";
+
+function parseBoundedInteger(value: string, min: number, max: number) {
+  if (!value.trim()) {
+    return null;
+  }
+
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) {
+    return null;
+  }
+
+  const bounded = Math.max(min, Math.min(max, Math.round(numeric)));
+  return bounded;
+}
 
 function resolveActiveTextColor(value: unknown) {
   if (typeof value !== "string") {
@@ -154,6 +169,34 @@ function readFileAsDataUrl(file: File) {
   });
 }
 
+function sanitizeImageFileName(name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    return "Article image";
+  }
+
+  return trimmed.replace(/\.[^.]+$/, "") || "Article image";
+}
+
+function insertImageAtSelection(view: EditorView, src: string, alt: string) {
+  const imageNodeType = view.state.schema.nodes.image;
+
+  if (!imageNodeType) {
+    return false;
+  }
+
+  const imageNode = imageNodeType.create({
+    src,
+    alt,
+    width: 100,
+    maxHeight: 420,
+  });
+
+  const tr = view.state.tr.replaceSelectionWith(imageNode).scrollIntoView();
+  view.dispatch(tr);
+  return true;
+}
+
 export default function ArticleRichEditor({
   initialContent,
   draftStorageKey,
@@ -172,6 +215,8 @@ export default function ArticleRichEditor({
   const [imageAltInput, setImageAltInput] = useState("");
   const [uploadedImageDataUrl, setUploadedImageDataUrl] = useState("");
   const [uploadedImageName, setUploadedImageName] = useState("");
+  const [imageWidthPercentInput, setImageWidthPercentInput] = useState("100");
+  const [imageMaxHeightInput, setImageMaxHeightInput] = useState("420");
   const [imagePanelError, setImagePanelError] = useState("");
   const [activeMarks, setActiveMarks] = useState({
     heading1: false,
@@ -200,6 +245,18 @@ export default function ArticleRichEditor({
       callout: nextEditor.isActive("callout"),
       codeBlock: nextEditor.isActive("codeBlock"),
     });
+
+    if (nextEditor.isActive("image")) {
+      const imageAttrs = nextEditor.getAttributes("image");
+
+      if (typeof imageAttrs.width === "number" && Number.isFinite(imageAttrs.width)) {
+        setImageWidthPercentInput(String(Math.round(imageAttrs.width)));
+      }
+
+      if (typeof imageAttrs.maxHeight === "number" && Number.isFinite(imageAttrs.maxHeight)) {
+        setImageMaxHeightInput(String(Math.round(imageAttrs.maxHeight)));
+      }
+    }
   };
 
   const editor = useEditor({
@@ -210,7 +267,7 @@ export default function ArticleRichEditor({
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
       }),
-      Image.configure({
+      ResizableImage.configure({
         allowBase64: true,
       }),
       CalloutNode,
@@ -227,7 +284,67 @@ export default function ArticleRichEditor({
     editorProps: {
       attributes: {
         class:
-          "max-w-none min-h-[320px] text-slate-900 outline-none leading-7 [&_p]:my-3 [&_h1]:my-4 [&_h1]:text-3xl [&_h1]:font-semibold [&_h2]:my-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:bg-emerald-50/40 [&_blockquote]:px-3 [&_blockquote]:py-2 [&_[data-callout='true']]:my-3 [&_[data-callout='true']]:rounded-xl [&_[data-callout='true']]:border [&_[data-callout='true']]:border-amber-200 [&_[data-callout='true']]:bg-amber-50 [&_[data-callout='true']]:px-3 [&_[data-callout='true']]:py-2 [&_img]:my-3 [&_img]:mx-auto [&_img]:max-h-[420px] [&_img]:max-w-full [&_img]:rounded-xl [&_img]:border [&_img]:border-slate-200 [&_img]:object-contain [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-slate-900 [&_pre]:px-4 [&_pre]:py-3 [&_pre]:text-sm [&_pre]:text-slate-100",
+          "max-w-none min-h-[320px] text-slate-900 outline-none leading-7 [&_p]:my-3 [&_h1]:my-4 [&_h1]:text-3xl [&_h1]:font-semibold [&_h2]:my-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:bg-emerald-50/40 [&_blockquote]:px-3 [&_blockquote]:py-2 [&_[data-callout='true']]:my-3 [&_[data-callout='true']]:rounded-xl [&_[data-callout='true']]:border [&_[data-callout='true']]:border-amber-200 [&_[data-callout='true']]:bg-amber-50 [&_[data-callout='true']]:px-3 [&_[data-callout='true']]:py-2 [&_img]:my-3 [&_img]:mx-auto [&_img]:max-h-[900px] [&_img]:max-w-full [&_img]:rounded-xl [&_img]:border [&_img]:border-slate-200 [&_img]:object-contain [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-slate-900 [&_pre]:px-4 [&_pre]:py-3 [&_pre]:text-sm [&_pre]:text-slate-100",
+      },
+      handlePaste: (view, event) => {
+        const imageFile = Array.from(event.clipboardData?.files ?? []).find((file) => file.type.startsWith("image/"));
+
+        if (!imageFile) {
+          return false;
+        }
+
+        const maxUploadBytes = 5 * 1024 * 1024;
+        if (imageFile.size > maxUploadBytes) {
+          setImagePanelError("Pasted image must be 5MB or less.");
+          return true;
+        }
+
+        void readFileAsDataUrl(imageFile)
+          .then((dataUrl) => {
+            const didInsert = insertImageAtSelection(view, dataUrl, sanitizeImageFileName(imageFile.name));
+
+            if (!didInsert) {
+              setImagePanelError("Unable to insert pasted image.");
+              return;
+            }
+
+            setImagePanelError("");
+          })
+          .catch(() => {
+            setImagePanelError("Unable to read pasted image.");
+          });
+
+        return true;
+      },
+      handleDrop: (view, event) => {
+        const imageFile = Array.from(event.dataTransfer?.files ?? []).find((file) => file.type.startsWith("image/"));
+
+        if (!imageFile) {
+          return false;
+        }
+
+        const maxUploadBytes = 5 * 1024 * 1024;
+        if (imageFile.size > maxUploadBytes) {
+          setImagePanelError("Dropped image must be 5MB or less.");
+          return true;
+        }
+
+        void readFileAsDataUrl(imageFile)
+          .then((dataUrl) => {
+            const didInsert = insertImageAtSelection(view, dataUrl, sanitizeImageFileName(imageFile.name));
+
+            if (!didInsert) {
+              setImagePanelError("Unable to insert dropped image.");
+              return;
+            }
+
+            setImagePanelError("");
+          })
+          .catch(() => {
+            setImagePanelError("Unable to read dropped image.");
+          });
+
+        return true;
       },
     },
     onUpdate: ({ editor: nextEditor }) => {
@@ -325,7 +442,19 @@ export default function ArticleRichEditor({
     }
 
     const alt = imageAltInput.trim() || "Article image";
-    const didInsert = editor.chain().focus().setImage({ src: imageSrc, alt }).run();
+    const width = parseBoundedInteger(imageWidthPercentInput, 20, 100);
+    const maxHeight = parseBoundedInteger(imageMaxHeightInput, 120, 900);
+
+    const didInsert = editor
+      .chain()
+      .focus()
+      .setImage({
+        src: imageSrc,
+        alt,
+        ...(width ? { width } : {}),
+        ...(maxHeight ? { maxHeight } : {}),
+      })
+      .run();
 
     if (!didInsert) {
       setImagePanelError("Unable to insert image. Try again.");
@@ -336,7 +465,35 @@ export default function ArticleRichEditor({
     setImageAltInput("");
     setUploadedImageDataUrl("");
     setUploadedImageName("");
+    setImageWidthPercentInput("100");
+    setImageMaxHeightInput("420");
     setIsImagePanelOpen(false);
+  };
+
+  const handleApplySizeToSelectedImage = () => {
+    if (!editor || !editor.isActive("image")) {
+      setImagePanelError("Select an inserted image first.");
+      return;
+    }
+
+    const width = parseBoundedInteger(imageWidthPercentInput, 20, 100);
+    const maxHeight = parseBoundedInteger(imageMaxHeightInput, 120, 900);
+
+    const didUpdate = editor
+      .chain()
+      .focus()
+      .updateAttributes("image", {
+        ...(width ? { width } : { width: null }),
+        ...(maxHeight ? { maxHeight } : { maxHeight: null }),
+      })
+      .run();
+
+    if (!didUpdate) {
+      setImagePanelError("Unable to apply image size.");
+      return;
+    }
+
+    setImagePanelError("");
   };
 
   if (!editor) {
@@ -467,6 +624,30 @@ export default function ArticleRichEditor({
                 className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 file:mr-3 file:rounded-full file:border-0 file:bg-emerald-100 file:px-3 file:py-1 file:font-semibold file:text-emerald-800"
               />
             </label>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <label className="grid gap-1 text-xs font-medium text-slate-700">
+                Width (%)
+                <input
+                  type="number"
+                  min={20}
+                  max={100}
+                  value={imageWidthPercentInput}
+                  onChange={(event) => setImageWidthPercentInput(event.target.value)}
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-emerald-400 transition focus:ring"
+                />
+              </label>
+              <label className="grid gap-1 text-xs font-medium text-slate-700">
+                Max height (px)
+                <input
+                  type="number"
+                  min={120}
+                  max={900}
+                  value={imageMaxHeightInput}
+                  onChange={(event) => setImageMaxHeightInput(event.target.value)}
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-emerald-400 transition focus:ring"
+                />
+              </label>
+            </div>
             {uploadedImageName ? (
               <p className="text-xs text-slate-600">Selected file: {uploadedImageName}</p>
             ) : null}
@@ -488,6 +669,13 @@ export default function ArticleRichEditor({
                 className="rounded-full bg-emerald-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800"
               >
                 Insert image
+              </button>
+              <button
+                type="button"
+                onClick={handleApplySizeToSelectedImage}
+                className="rounded-full border border-cyan-300 px-4 py-2 text-xs font-semibold text-cyan-800 transition hover:bg-cyan-50"
+              >
+                Apply size to selected image
               </button>
               <button
                 type="button"

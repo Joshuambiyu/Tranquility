@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
-import { isAdminEmail } from "@/lib/admin";
+import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -24,10 +24,25 @@ function parseParagraphs(content: string) {
     .filter(Boolean);
 }
 
+function buildExcerptFallback(paragraphs: string[]) {
+  const maxLength = 220;
+  const plainText = paragraphs.join(" ").replace(/\s+/g, " ").trim();
+
+  if (plainText.length <= maxLength) {
+    return plainText;
+  }
+
+  const truncated = plainText.slice(0, maxLength);
+  const lastWordBoundary = truncated.lastIndexOf(" ");
+  const safeTruncated = (lastWordBoundary > 120 ? truncated.slice(0, lastWordBoundary) : truncated).trim();
+
+  return `${safeTruncated}...`;
+}
+
 async function ensureAdminAccess() {
   const session = await getServerSession();
 
-  if (!session?.user?.id || !session.user.email || !isAdminEmail(session.user.email)) {
+  if (!session?.user?.id || !session.user.email || !(await hasAdminAccess(session.user.email))) {
     throw new Error("Admin access is required.");
   }
 
@@ -78,7 +93,7 @@ export async function createArticleAction(formData: FormData) {
 
   const title = String(formData.get("title") ?? "").trim();
   const author = String(formData.get("author") ?? "").trim();
-  const excerpt = String(formData.get("excerpt") ?? "").trim();
+  const requestedExcerpt = String(formData.get("excerpt") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
   const reflectionMoment = String(formData.get("reflectionMoment") ?? "").trim();
   const imageSrc = String(formData.get("imageSrc") ?? "").trim() || "/featured-reflection.svg";
@@ -90,14 +105,12 @@ export async function createArticleAction(formData: FormData) {
     throw new Error("Title must be at least 4 characters.");
   }
 
-  if (excerpt.length < 20) {
-    throw new Error("Excerpt must be at least 20 characters.");
-  }
-
   const paragraphs = parseParagraphs(content);
   if (paragraphs.length === 0) {
     throw new Error("Please provide article content with at least one paragraph.");
   }
+
+  const excerpt = requestedExcerpt || buildExcerptFallback(paragraphs);
 
   const baseSlug = toSlug(requestedSlug || title);
   if (!baseSlug) {

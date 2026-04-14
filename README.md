@@ -49,6 +49,11 @@ Contact and email:
 Admin dashboard:
 - ADMIN_EMAILS (comma-separated list)
 
+Admin role management:
+- Bootstrap admins can be set with ADMIN_EMAILS (and CONTACT_NOTIFY_TO fallback).
+- Additional admins can be added or removed from /admin via the Admin Access section.
+- Apply migrations after pulling changes so the AdminAccess table exists.
+
 Anti-spam tuning:
 - CONTACT_RATE_LIMIT_WINDOW_MS (default 60000)
 - CONTACT_RATE_LIMIT_MAX (default 5)

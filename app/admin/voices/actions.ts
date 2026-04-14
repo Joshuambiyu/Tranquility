@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { isAdminEmail } from "@/lib/admin";
+import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
 import {
   clearVoiceOfWeek,
@@ -13,7 +13,7 @@ import {
 async function ensureAdminAccess() {
   const session = await getServerSession();
 
-  if (!session?.user?.email || !isAdminEmail(session.user.email)) {
+  if (!session?.user?.email || !(await hasAdminAccess(session.user.email))) {
     throw new Error("Admin access is required.");
   }
 }

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createArticleAction } from "@/app/admin/articles/actions";
-import { isAdminEmail } from "@/lib/admin";
+import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -13,7 +13,7 @@ export default async function AdminArticlesPage() {
     redirect("/auth/signin?callbackUrl=/admin/articles");
   }
 
-  if (!isAdminEmail(session.user.email)) {
+  if (!(await hasAdminAccess(session.user.email))) {
     return (
       <main className="mx-auto grid min-h-[70vh] w-full max-w-4xl place-items-center px-5 py-10 sm:px-8 lg:px-10">
         <section className="grid w-full gap-4 rounded-3xl bg-white p-8 shadow-sm ring-1 ring-rose-100">
@@ -91,13 +91,12 @@ export default async function AdminArticlesPage() {
           </div>
 
           <label className="grid gap-2 text-sm font-medium text-slate-700">
-            Excerpt
+            Excerpt (optional)
             <textarea
               name="excerpt"
-              required
-              minLength={20}
               maxLength={500}
               rows={3}
+              placeholder="Leave blank to auto-generate from content"
               className="rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none ring-emerald-400 transition focus:ring"
             />
           </label>

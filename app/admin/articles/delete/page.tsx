@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { deleteAllArticlesAction, deleteArticleAction } from "@/app/admin/articles/actions";
-import { isAdminEmail } from "@/lib/admin";
+import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -13,7 +13,7 @@ export default async function DeleteArticlesAdminPage() {
     redirect("/auth/signin?callbackUrl=/admin/articles/delete");
   }
 
-  if (!isAdminEmail(session.user.email)) {
+  if (!(await hasAdminAccess(session.user.email))) {
     return (
       <main className="mx-auto grid min-h-[70vh] w-full max-w-4xl place-items-center px-5 py-10 sm:px-8 lg:px-10">
         <section className="grid w-full gap-4 rounded-3xl bg-white p-8 shadow-sm ring-1 ring-rose-100">

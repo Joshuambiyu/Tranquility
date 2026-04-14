@@ -232,12 +232,46 @@ export async function createArticleAction(formData: FormData) {
   const shouldFeature = formData.get("isFeatured") === "on";
   const submitIntent = String(formData.get("submitIntent") ?? "publish").trim().toLowerCase();
   const isPublishIntent = submitIntent !== "draft";
+  const resolvedAuthor = author || user.name || user.email || "Editorial";
 
   if (title.length < 4) {
     throw new Error("Title must be at least 4 characters.");
   }
 
   const excerpt = requestedExcerpt || buildExcerptFallback(resolvedContent.paragraphsForExcerpt);
+
+  const recentDuplicate = await prisma.article.findFirst({
+    where: {
+      createdById: user.id,
+      title,
+      status: isPublishIntent ? "published" : "draft",
+      createdAt: {
+        gte: new Date(Date.now() - 3 * 60 * 1000),
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      excerpt: true,
+      content: true,
+      author: true,
+      imageAlt: true,
+      reflectionMoment: true,
+      isFeatured: true,
+    },
+  });
+
+  if (
+    recentDuplicate &&
+    recentDuplicate.excerpt === excerpt &&
+    recentDuplicate.author === resolvedAuthor &&
+    recentDuplicate.imageAlt === imageAlt &&
+    recentDuplicate.reflectionMoment === reflectionMoment &&
+    recentDuplicate.isFeatured === (isPublishIntent ? shouldFeature : false) &&
+    JSON.stringify(recentDuplicate.content) === JSON.stringify(resolvedContent.content)
+  ) {
+    redirect("/admin/articles?created=1&duplicate=1");
+  }
 
   const baseSlug = toSlug(requestedSlug || title);
   if (!baseSlug) {
@@ -259,7 +293,7 @@ export async function createArticleAction(formData: FormData) {
       title,
       excerpt,
       content: resolvedContent.content,
-      author: author || user.name || user.email || "Editorial",
+      author: resolvedAuthor,
       imageSrc,
       imageAlt,
       reflectionMoment,

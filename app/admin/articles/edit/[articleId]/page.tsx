@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { updateArticleAction } from "@/app/admin/articles/actions";
 import ArticleRichEditor from "@/app/admin/articles/ArticleRichEditor";
+import ArticleSubmitButtons from "@/app/admin/articles/ArticleSubmitButtons";
 import ImagePickerPreview from "@/app/admin/articles/ImagePickerPreview";
 import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
@@ -167,24 +168,7 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
             Set as featured article
           </label>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <button
-              type="submit"
-              name="submitIntent"
-              value="draft"
-              className="inline-grid w-full place-items-center rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-fit"
-            >
-              Save Draft Changes
-            </button>
-            <button
-              type="submit"
-              name="submitIntent"
-              value="publish"
-              className="inline-grid w-full place-items-center rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 sm:w-fit"
-            >
-              Publish Changes
-            </button>
-          </div>
+          <ArticleSubmitButtons draftLabel="Save Draft Changes" publishLabel="Publish Changes" />
         </form>
       </section>
     </main>

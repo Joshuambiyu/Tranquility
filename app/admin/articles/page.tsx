@@ -3,13 +3,14 @@ import { redirect } from "next/navigation";
 
 import { createArticleAction } from "@/app/admin/articles/actions";
 import ArticleRichEditor from "@/app/admin/articles/ArticleRichEditor";
+import ArticleSubmitButtons from "@/app/admin/articles/ArticleSubmitButtons";
 import ImagePickerPreview from "@/app/admin/articles/ImagePickerPreview";
 import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 interface AdminArticlesPageProps {
-  searchParams: Promise<{ created?: string }>;
+  searchParams: Promise<{ created?: string; duplicate?: string }>;
 }
 
 export default async function AdminArticlesPage({ searchParams }: AdminArticlesPageProps) {
@@ -46,7 +47,7 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
     },
   });
 
-  const { created } = await searchParams;
+  const { created, duplicate } = await searchParams;
 
   return (
     <main className="mx-auto grid min-h-[70vh] w-full max-w-6xl gap-6 px-5 py-8 sm:px-8 lg:px-10">
@@ -69,6 +70,11 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
         {created === "1" ? (
           <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
             Article created successfully.
+          </p>
+        ) : null}
+        {duplicate === "1" ? (
+          <p className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+            Duplicate submit blocked: an identical article was just created recently.
           </p>
         ) : null}
 
@@ -149,24 +155,7 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
             Set as featured article
           </label>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <button
-              type="submit"
-              name="submitIntent"
-              value="draft"
-              className="inline-grid w-full place-items-center rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-fit"
-            >
-              Save Draft
-            </button>
-            <button
-              type="submit"
-              name="submitIntent"
-              value="publish"
-              className="inline-grid w-full place-items-center rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 sm:w-fit"
-            >
-              Publish Article
-            </button>
-          </div>
+          <ArticleSubmitButtons draftLabel="Save Draft" publishLabel="Publish Article" />
         </form>
       </section>
 

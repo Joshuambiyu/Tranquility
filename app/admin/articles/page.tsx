@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { createArticleAction } from "@/app/admin/articles/actions";
+import { createArticleAction, deleteArticleAction } from "@/app/admin/articles/actions";
 import ArticleRichEditor from "@/app/admin/articles/ArticleRichEditor";
 import ArticleSubmitButtons from "@/app/admin/articles/ArticleSubmitButtons";
 import ImagePickerPreview from "@/app/admin/articles/ImagePickerPreview";
@@ -177,6 +177,15 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
                 >
                   Edit
                 </Link>
+                <form action={deleteArticleAction}>
+                  <input type="hidden" name="articleId" value={article.id} />
+                  <button
+                    type="submit"
+                    className="rounded-full border border-rose-300 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-rose-700 transition hover:bg-rose-50"
+                  >
+                    Delete
+                  </button>
+                </form>
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${
                     article.status === "published"

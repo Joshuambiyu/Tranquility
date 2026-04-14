@@ -39,6 +39,31 @@ function sanitizeHref(value: unknown) {
   return null;
 }
 
+function sanitizeColor(value: unknown) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  if (/^#[0-9a-fA-F]{3,8}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  if (/^rgb\([\d\s,.%]+\)$/.test(trimmed) || /^rgba\([\d\s,.%]+\)$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  if (/^hsl\([\d\s,.%]+\)$/.test(trimmed) || /^hsla\([\d\s,.%]+\)$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  return null;
+}
+
 function applyMarks(textNode: TiptapNode, key: string) {
   let output: React.ReactNode = typeof textNode.text === "string" ? textNode.text : "";
   const marks = Array.isArray(textNode.marks) ? textNode.marks : [];
@@ -63,6 +88,17 @@ function applyMarks(textNode: TiptapNode, key: string) {
       case "code":
         output = <code key={markKey} className="rounded bg-slate-100 px-1 py-0.5 text-sm">{output}</code>;
         break;
+      case "textStyle": {
+        const attrs = isJsonObject(mark.attrs) ? mark.attrs : null;
+        const color = sanitizeColor(attrs?.color);
+
+        if (!color) {
+          break;
+        }
+
+        output = <span key={markKey} style={{ color }}>{output}</span>;
+        break;
+      }
       case "link": {
         const attrs = isJsonObject(mark.attrs) ? mark.attrs : null;
         const href = sanitizeHref(attrs?.href);

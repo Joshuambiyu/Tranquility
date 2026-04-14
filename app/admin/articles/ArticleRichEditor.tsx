@@ -1,12 +1,13 @@
 "use client";
 
+import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import { Color, TextStyle } from "@tiptap/extension-text-style";
 import StarterKit from "@tiptap/starter-kit";
 import type { Editor as TiptapEditor } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
-import { useMemo, useState, type CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import CalloutNode from "@/app/admin/articles/extensions/CalloutNode";
 
 type ToolbarButtonProps = {
@@ -68,18 +69,6 @@ const TEXT_COLORS = [
 ];
 
 const DEFAULT_EDITOR_ACCENT = "#cbd5e1";
-
-type SlashMenuRange = {
-  from: number;
-  to: number;
-};
-
-type SlashCommand = {
-  id: string;
-  label: string;
-  aliases: string[];
-  run: (editor: TiptapEditor) => boolean;
-};
 
 function resolveActiveTextColor(value: unknown) {
   if (typeof value !== "string") {
@@ -147,40 +136,6 @@ function getDraftFields(storageKey?: string) {
   }
 }
 
-function getSlashMenuContext(editor: TiptapEditor) {
-  const { state } = editor;
-  const { selection } = state;
-
-  if (!selection.empty) {
-    return null;
-  }
-
-  const anchor = selection.$from;
-  const parent = anchor.parent;
-
-  if (!parent.isTextblock) {
-    return null;
-  }
-
-  const textBeforeCursor = parent.textBetween(0, anchor.parentOffset, undefined, "\ufffc");
-  const match = /(^|\s)\/([a-z0-9-]*)$/.exec(textBeforeCursor);
-
-  if (!match) {
-    return null;
-  }
-
-  const tokenStartInParent = match.index + match[1].length;
-  const tokenEndInParent = anchor.parentOffset;
-
-  return {
-    range: {
-      from: anchor.start() + tokenStartInParent,
-      to: anchor.start() + tokenEndInParent,
-    },
-    query: match[2],
-  };
-}
-
 export default function ArticleRichEditor({
   initialContent,
   draftStorageKey,
@@ -195,8 +150,10 @@ export default function ArticleRichEditor({
   const [contentJson, setContentJson] = useState(JSON.stringify(startingContent));
   const [plainText, setPlainText] = useState("");
   const [activeTextColor, setActiveTextColor] = useState<string | null>(null);
-  const [slashMenuRange, setSlashMenuRange] = useState<SlashMenuRange | null>(null);
-  const [slashMenuQuery, setSlashMenuQuery] = useState("");
+  const [isImagePanelOpen, setIsImagePanelOpen] = useState(false);
+  const [imageUrlInput, setImageUrlInput] = useState("");
+  const [imageAltInput, setImageAltInput] = useState("");
+  const [imagePanelError, setImagePanelError] = useState("");
   const [activeMarks, setActiveMarks] = useState({
     heading1: false,
     heading2: false,
@@ -209,108 +166,6 @@ export default function ArticleRichEditor({
     callout: false,
     codeBlock: false,
   });
-
-  const slashCommands = useMemo<SlashCommand[]>(() => [
-    {
-      id: "h1",
-      label: "Heading 1",
-      aliases: ["h1", "heading1", "title"],
-      run: (nextEditor) => nextEditor.chain().focus().toggleHeading({ level: 1 }).run(),
-    },
-    {
-      id: "h2",
-      label: "Heading 2",
-      aliases: ["h2", "heading2", "subtitle"],
-      run: (nextEditor) => nextEditor.chain().focus().toggleHeading({ level: 2 }).run(),
-    },
-    {
-      id: "bullet",
-      label: "Bullet List",
-      aliases: ["bullet", "ul", "list"],
-      run: (nextEditor) =>
-        nextEditor.chain().focus().toggleBulletList().run() ||
-        nextEditor.chain().focus().setParagraph().toggleBulletList().run(),
-    },
-    {
-      id: "numbered",
-      label: "Numbered List",
-      aliases: ["numbered", "ordered", "ol", "num"],
-      run: (nextEditor) =>
-        nextEditor.chain().focus().toggleOrderedList().run() ||
-        nextEditor.chain().focus().setParagraph().toggleOrderedList().run(),
-    },
-    {
-      id: "quote",
-      label: "Quote",
-      aliases: ["quote", "blockquote"],
-      run: (nextEditor) =>
-        nextEditor.chain().focus().toggleBlockquote().run() ||
-        nextEditor.chain().focus().clearNodes().toggleBlockquote().run(),
-    },
-    {
-      id: "callout",
-      label: "Callout",
-      aliases: ["callout", "note", "info"],
-      run: (nextEditor) => nextEditor.chain().focus().toggleCallout().run(),
-    },
-    {
-      id: "code",
-      label: "Code Block",
-      aliases: ["code", "codeblock"],
-      run: (nextEditor) => nextEditor.chain().focus().toggleCodeBlock().run(),
-    },
-    {
-      id: "divider",
-      label: "Divider",
-      aliases: ["divider", "hr", "line"],
-      run: (nextEditor) => nextEditor.chain().focus().setHorizontalRule().run(),
-    },
-  ], []);
-
-  const filteredSlashCommands = useMemo(() => {
-    const query = slashMenuQuery.trim().toLowerCase();
-
-    if (!query) {
-      return slashCommands;
-    }
-
-    return slashCommands.filter((command) => {
-      if (command.label.toLowerCase().includes(query)) {
-        return true;
-      }
-
-      return command.aliases.some((alias) => alias.includes(query));
-    });
-  }, [slashCommands, slashMenuQuery]);
-
-  const syncSlashMenu = (nextEditor: TiptapEditor) => {
-    const context = getSlashMenuContext(nextEditor);
-
-    if (!context) {
-      setSlashMenuRange(null);
-      setSlashMenuQuery("");
-      return;
-    }
-
-    setSlashMenuRange(context.range);
-    setSlashMenuQuery(context.query);
-  };
-
-  const applySlashCommand = (command: SlashCommand) => {
-    if (!editor || !slashMenuRange) {
-      return;
-    }
-
-    editor.chain().focus().deleteRange(slashMenuRange).run();
-    const didApply = command.run(editor);
-
-    if (didApply) {
-      syncToolbarState(editor);
-    }
-
-    setSlashMenuRange(null);
-    setSlashMenuQuery("");
-  };
 
   const syncToolbarState = (nextEditor: TiptapEditor) => {
     setActiveTextColor(resolveActiveTextColor(nextEditor.getAttributes("textStyle").color));
@@ -336,6 +191,9 @@ export default function ArticleRichEditor({
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
       }),
+      Image.configure({
+        allowBase64: true,
+      }),
       CalloutNode,
       Link.configure({
         openOnClick: false,
@@ -350,14 +208,13 @@ export default function ArticleRichEditor({
     editorProps: {
       attributes: {
         class:
-          "max-w-none min-h-[320px] text-slate-900 outline-none leading-7 [&_p]:my-3 [&_h1]:my-4 [&_h1]:text-3xl [&_h1]:font-semibold [&_h2]:my-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:bg-emerald-50/40 [&_blockquote]:px-3 [&_blockquote]:py-2 [&_[data-callout='true']]:my-3 [&_[data-callout='true']]:rounded-xl [&_[data-callout='true']]:border [&_[data-callout='true']]:border-amber-200 [&_[data-callout='true']]:bg-amber-50 [&_[data-callout='true']]:px-3 [&_[data-callout='true']]:py-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-slate-900 [&_pre]:px-4 [&_pre]:py-3 [&_pre]:text-sm [&_pre]:text-slate-100",
+          "max-w-none min-h-[320px] text-slate-900 outline-none leading-7 [&_p]:my-3 [&_h1]:my-4 [&_h1]:text-3xl [&_h1]:font-semibold [&_h2]:my-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:bg-emerald-50/40 [&_blockquote]:px-3 [&_blockquote]:py-2 [&_[data-callout='true']]:my-3 [&_[data-callout='true']]:rounded-xl [&_[data-callout='true']]:border [&_[data-callout='true']]:border-amber-200 [&_[data-callout='true']]:bg-amber-50 [&_[data-callout='true']]:px-3 [&_[data-callout='true']]:py-2 [&_img]:my-3 [&_img]:max-w-full [&_img]:rounded-xl [&_img]:border [&_img]:border-slate-200 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-slate-900 [&_pre]:px-4 [&_pre]:py-3 [&_pre]:text-sm [&_pre]:text-slate-100",
       },
     },
     onUpdate: ({ editor: nextEditor }) => {
       setContentJson(JSON.stringify(nextEditor.getJSON()));
       setPlainText(nextEditor.getText({ blockSeparator: "\n\n" }).trim());
       syncToolbarState(nextEditor);
-      syncSlashMenu(nextEditor);
     },
     onCreate: ({ editor: nextEditor }) => {
       if (restoreDraft) {
@@ -380,15 +237,12 @@ export default function ArticleRichEditor({
       setContentJson(JSON.stringify(nextEditor.getJSON()));
       setPlainText(nextEditor.getText({ blockSeparator: "\n\n" }).trim());
       syncToolbarState(nextEditor);
-      syncSlashMenu(nextEditor);
     },
     onSelectionUpdate: ({ editor: nextEditor }) => {
       syncToolbarState(nextEditor);
-      syncSlashMenu(nextEditor);
     },
     onTransaction: ({ editor: nextEditor }) => {
       syncToolbarState(nextEditor);
-      syncSlashMenu(nextEditor);
     },
   });
 
@@ -437,6 +291,42 @@ export default function ArticleRichEditor({
     if (didToggle) {
       syncToolbarState(currentEditor);
     }
+  };
+
+  const handleInsertImage = () => {
+    if (!editor) {
+      return;
+    }
+
+    const normalizedUrl = imageUrlInput.trim();
+
+    if (!normalizedUrl) {
+      setImagePanelError("Please provide an image URL.");
+      return;
+    }
+
+    const isAllowedUrl =
+      /^https?:\/\//i.test(normalizedUrl) ||
+      normalizedUrl.startsWith("/") ||
+      normalizedUrl.startsWith("data:image/");
+
+    if (!isAllowedUrl) {
+      setImagePanelError("Use a valid URL starting with https:// or /.");
+      return;
+    }
+
+    const alt = imageAltInput.trim() || "Article image";
+    const didInsert = editor.chain().focus().setImage({ src: normalizedUrl, alt }).run();
+
+    if (!didInsert) {
+      setImagePanelError("Unable to insert image. Try again.");
+      return;
+    }
+
+    setImagePanelError("");
+    setImageUrlInput("");
+    setImageAltInput("");
+    setIsImagePanelOpen(false);
   };
 
   if (!editor) {
@@ -510,7 +400,65 @@ export default function ArticleRichEditor({
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
             isActive={activeMarks.codeBlock}
           />
+          <ToolbarButton
+            label="Image"
+            onClick={() => {
+              setImagePanelError("");
+              setIsImagePanelOpen((current) => !current);
+            }}
+          />
         </div>
+
+        {isImagePanelOpen ? (
+          <div className="grid gap-2 rounded-xl border border-slate-200 bg-white p-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-600">Insert image</p>
+            <label className="grid gap-1 text-xs font-medium text-slate-700">
+              Image URL
+              <input
+                type="url"
+                value={imageUrlInput}
+                onChange={(event) => {
+                  setImageUrlInput(event.target.value);
+                  if (imagePanelError) {
+                    setImagePanelError("");
+                  }
+                }}
+                placeholder="https://example.com/image.jpg"
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-emerald-400 transition focus:ring"
+              />
+            </label>
+            <label className="grid gap-1 text-xs font-medium text-slate-700">
+              Alt text (optional)
+              <input
+                type="text"
+                value={imageAltInput}
+                onChange={(event) => setImageAltInput(event.target.value)}
+                placeholder="Describe the image"
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-emerald-400 transition focus:ring"
+              />
+            </label>
+            {imagePanelError ? <p className="text-xs text-rose-700">{imagePanelError}</p> : null}
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleInsertImage}
+                className="rounded-full bg-emerald-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800"
+              >
+                Insert image
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsImagePanelOpen(false);
+                  setImagePanelError("");
+                }}
+                className="rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
           <span className="shrink-0 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Text color</span>
@@ -565,35 +513,8 @@ export default function ArticleRichEditor({
         <EditorContent editor={editor} />
       </div>
 
-      {slashMenuRange ? (
-        <section className="grid gap-2 rounded-xl border border-cyan-200 bg-cyan-50/70 px-3 py-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-cyan-800">
-            Slash commands {slashMenuQuery ? `(/${slashMenuQuery})` : "(/)"}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {filteredSlashCommands.length > 0 ? (
-              filteredSlashCommands.map((command) => (
-                <button
-                  key={command.id}
-                  type="button"
-                  onMouseDown={(event) => {
-                    event.preventDefault();
-                    applySlashCommand(command);
-                  }}
-                  className="rounded-full border border-cyan-200 bg-white px-3 py-1 text-xs font-semibold text-cyan-800 transition hover:bg-cyan-100"
-                >
-                  {command.label}
-                </button>
-              ))
-            ) : (
-              <p className="text-xs text-cyan-800">No matching slash commands.</p>
-            )}
-          </div>
-        </section>
-      ) : null}
-
       <p className="text-xs text-slate-500">
-        Tip: type / to open block commands. You can also use Ctrl/Cmd + B for bold and Ctrl/Cmd + I for italic.
+        Tip: use Ctrl/Cmd + B for bold and Ctrl/Cmd + I for italic.
       </p>
 
       <input type="hidden" name="contentJson" value={contentJson} />

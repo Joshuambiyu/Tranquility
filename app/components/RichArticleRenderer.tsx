@@ -64,6 +64,27 @@ function sanitizeColor(value: unknown) {
   return null;
 }
 
+function sanitizeImageSrc(value: unknown) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  if (
+    /^https?:\/\//i.test(trimmed) ||
+    trimmed.startsWith("/") ||
+    /^data:image\//i.test(trimmed)
+  ) {
+    return trimmed;
+  }
+
+  return null;
+}
+
 function applyMarks(textNode: TiptapNode, key: string) {
   let output: React.ReactNode = typeof textNode.text === "string" ? textNode.text : "";
   const marks = Array.isArray(textNode.marks) ? textNode.marks : [];
@@ -227,6 +248,23 @@ function renderBlock(node: unknown, index: number, keyPrefix = "block"): React.R
           <code>{renderInline(node.content, key)}</code>
         </pre>
       );
+    case "image": {
+      const attrs = isJsonObject(node.attrs) ? node.attrs : null;
+      const src = sanitizeImageSrc(attrs?.src);
+
+      if (!src) {
+        return null;
+      }
+
+      const alt = typeof attrs?.alt === "string" && attrs.alt.trim() ? attrs.alt : "Article image";
+
+      return (
+        <div key={key} className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={src} alt={alt} className="h-auto w-full object-cover" loading="lazy" />
+        </div>
+      );
+    }
     default:
       return <p key={key} className="text-slate-700">{renderInline(node.content, key)}</p>;
   }

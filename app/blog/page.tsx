@@ -30,6 +30,20 @@ type ArticleApiResponse = {
   };
 };
 
+function truncateAtWordBoundary(text: string, maxLength: number) {
+  const normalized = text.replace(/\s+/g, " ").trim();
+
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+
+  const candidate = normalized.slice(0, maxLength);
+  const lastSpace = candidate.lastIndexOf(" ");
+  const safeCut = lastSpace > Math.floor(maxLength * 0.6) ? candidate.slice(0, lastSpace) : candidate;
+
+  return `${safeCut.trim()}...`;
+}
+
 export default function BlogPage() {
   const [query, setQuery] = useState("");
   const [queryInput, setQueryInput] = useState("");
@@ -157,7 +171,7 @@ export default function BlogPage() {
                   <h3 className="text-xl font-semibold text-[var(--text-strong)]">{post.title}</h3>
                   <p className="text-[var(--text-muted)]">{post.excerpt}</p>
                   <p className="rounded-xl bg-[var(--card-in-section-bg)] px-3 py-2 text-sm text-[var(--text-muted)] ring-1 ring-[var(--border-muted)]">
-                    Reflection moment: {post.reflectionMoment}
+                    Reflection moment: {truncateAtWordBoundary(post.reflectionMoment, 130)}
                   </p>
                   {relatedA && relatedB ? (
                     <p className="text-sm text-[var(--text-muted)]">

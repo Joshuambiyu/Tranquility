@@ -19,6 +19,10 @@
   },
   "dependencies": {
     "@prisma/client": "^6.17.1",
+    "@tiptap/extension-link": "^3.22.3",
+    "@tiptap/extension-placeholder": "^3.22.3",
+    "@tiptap/react": "^3.22.3",
+    "@tiptap/starter-kit": "^3.22.3",
     "better-auth": "^1.6.0",
     "google-auth-library": "^10.6.2",
     "next": "^15.5.14",

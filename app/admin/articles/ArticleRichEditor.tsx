@@ -73,6 +73,10 @@ export default function ArticleRichEditor() {
   const [plainText, setPlainText] = useState("");
   const [activeTextColor, setActiveTextColor] = useState<string | null>(null);
 
+  const syncActiveColor = (value: unknown) => {
+    setActiveTextColor(resolveActiveTextColor(value));
+  };
+
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -100,15 +104,18 @@ export default function ArticleRichEditor() {
     onUpdate: ({ editor: nextEditor }) => {
       setContentJson(JSON.stringify(nextEditor.getJSON()));
       setPlainText(nextEditor.getText({ blockSeparator: "\n\n" }).trim());
-      setActiveTextColor(resolveActiveTextColor(nextEditor.getAttributes("textStyle").color));
+      syncActiveColor(nextEditor.getAttributes("textStyle").color);
     },
     onCreate: ({ editor: nextEditor }) => {
       setContentJson(JSON.stringify(nextEditor.getJSON()));
       setPlainText(nextEditor.getText({ blockSeparator: "\n\n" }).trim());
-      setActiveTextColor(resolveActiveTextColor(nextEditor.getAttributes("textStyle").color));
+      syncActiveColor(nextEditor.getAttributes("textStyle").color);
     },
     onSelectionUpdate: ({ editor: nextEditor }) => {
-      setActiveTextColor(resolveActiveTextColor(nextEditor.getAttributes("textStyle").color));
+      syncActiveColor(nextEditor.getAttributes("textStyle").color);
+    },
+    onTransaction: ({ editor: nextEditor }) => {
+      syncActiveColor(nextEditor.getAttributes("textStyle").color);
     },
   });
 
@@ -183,7 +190,12 @@ export default function ArticleRichEditor() {
             <button
               key={tone.value}
               type="button"
-              onClick={() => editor.chain().focus().setColor(tone.value).run()}
+              onClick={() => {
+                const didApply = editor.chain().focus().setColor(tone.value).run();
+                if (didApply) {
+                  syncActiveColor(tone.value);
+                }
+              }}
               className="h-8 w-8 shrink-0 rounded-full border ring-offset-2 transition hover:scale-105 focus:outline-none"
               style={{
                 backgroundColor: tone.value,
@@ -200,7 +212,12 @@ export default function ArticleRichEditor() {
           ))}
           <button
             type="button"
-            onClick={() => editor.chain().focus().unsetColor().run()}
+            onClick={() => {
+              const didClear = editor.chain().focus().unsetColor().run();
+              if (didClear) {
+                syncActiveColor(null);
+              }
+            }}
             className="shrink-0 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
           >
             Clear color

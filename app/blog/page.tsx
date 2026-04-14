@@ -168,13 +168,13 @@ export default function BlogPage() {
                   <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
                     {post.author} • {new Date(post.publishedAt).toLocaleDateString()}
                   </p>
-                  <h3 className="text-xl font-semibold text-[var(--text-strong)]">{post.title}</h3>
-                  <p className="text-[var(--text-muted)]">{post.excerpt}</p>
-                  <p className="rounded-xl bg-[var(--card-in-section-bg)] px-3 py-2 text-sm text-[var(--text-muted)] ring-1 ring-[var(--border-muted)]">
+                  <h3 className="text-2xl font-semibold text-slate-950">{post.title}</h3>
+                  <p className="text-base text-slate-800">{post.excerpt}</p>
+                  <p className="rounded-xl bg-[var(--card-in-section-bg)] px-3 py-2 text-base text-slate-800 ring-1 ring-[var(--border-muted)]">
                     Reflection moment: {truncateAtWordBoundary(post.reflectionMoment, 130)}
                   </p>
                   {relatedA && relatedB ? (
-                    <p className="text-sm text-[var(--text-muted)]">
+                    <p className="text-base text-slate-700">
                       Related: {relatedA.title} • {relatedB.title}
                     </p>
                   ) : null}

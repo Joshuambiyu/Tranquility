@@ -53,7 +53,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
     <div className="grid min-h-screen bg-[radial-gradient(circle_at_top_left,_#d9e8f5,_#eaf4ee_40%,_#f7f8f4_75%)] text-slate-800">
       <main className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
         <SectionBlock className="gap-4">
-          <p className="text-sm font-medium text-emerald-700">
+          <p className="text-base font-semibold text-emerald-900">
             By {article.author} • {new Date(article.publishedAt).toLocaleDateString()}
           </p>
           <SectionTitle title={article.title} />
@@ -83,13 +83,13 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           ) : (
             <div className="grid gap-4">
               {article.content.map((paragraph, index) => (
-                <p key={`${article.id}-${index}`} className="text-slate-700">
+                <p key={`${article.id}-${index}`} className="text-lg leading-8 text-slate-900">
                   {paragraph}
                 </p>
               ))}
             </div>
           )}
-          <blockquote className="relative rounded-[24px] border border-white/80 bg-white/85 px-6 py-6 text-base leading-relaxed text-[var(--text-muted)] shadow-sm ring-1 ring-[var(--border-muted)]/70 backdrop-blur-sm lg:px-8 lg:text-lg">
+          <blockquote className="relative rounded-[24px] border border-white/80 bg-white/90 px-6 py-6 text-lg leading-relaxed text-slate-900 shadow-sm ring-1 ring-[var(--border-muted)]/70 backdrop-blur-sm lg:px-8 lg:text-xl">
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#4A7FA5]">Reflection moment</p>
             {article.reflectionMoment}
           </blockquote>
@@ -103,9 +103,9 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
                 <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
                   {related.author} • {new Date(related.publishedAt).toLocaleDateString()}
                 </p>
-                <h3 className="text-xl font-semibold text-[var(--text-strong)]">{related.title}</h3>
-                <p className="text-[var(--text-muted)]">{related.excerpt}</p>
-                <p className="rounded-xl bg-[var(--card-in-section-bg)] px-3 py-2 text-sm text-[var(--text-muted)] ring-1 ring-[var(--border-muted)]">
+                <h3 className="text-2xl font-semibold text-slate-950">{related.title}</h3>
+                <p className="text-base text-slate-800">{related.excerpt}</p>
+                <p className="rounded-xl bg-[var(--card-in-section-bg)] px-3 py-2 text-base text-slate-800 ring-1 ring-[var(--border-muted)]">
                   Reflection moment: {truncateAtWordBoundary(related.reflectionMoment, 130)}
                 </p>
                 <Link

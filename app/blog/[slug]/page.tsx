@@ -3,11 +3,25 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import RichArticleRenderer from "@/app/components/RichArticleRenderer";
-import { SectionBlock, SectionTitle } from "@/app/components/ui";
+import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import { getPublishedArticleBySlug, getRelatedPublishedArticles } from "@/lib/articles";
 
 interface BlogArticlePageProps {
   params: Promise<{ slug: string }>;
+}
+
+function truncateAtWordBoundary(text: string, maxLength: number) {
+  const normalized = text.replace(/\s+/g, " ").trim();
+
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+
+  const candidate = normalized.slice(0, maxLength);
+  const lastSpace = candidate.lastIndexOf(" ");
+  const safeCut = lastSpace > Math.floor(maxLength * 0.6) ? candidate.slice(0, lastSpace) : candidate;
+
+  return `${safeCut.trim()}...`;
 }
 
 export async function generateMetadata({ params }: BlogArticlePageProps): Promise<Metadata> {
@@ -75,10 +89,14 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           <SectionTitle title="Related Articles" />
           <div className="grid gap-4 md:grid-cols-2">
             {relatedArticles.map((related) => (
-              <article key={related.id} className="grid gap-2 rounded-2xl bg-white p-5 ring-1 ring-emerald-100">
-                <h3 className="text-lg font-semibold text-slate-900">{related.title}</h3>
-                <p className="text-sm text-slate-600">
-                  By {related.author} • {new Date(related.publishedAt).toLocaleDateString()}
+              <Card key={related.id} className="gap-3">
+                <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                  {related.author} • {new Date(related.publishedAt).toLocaleDateString()}
+                </p>
+                <h3 className="text-xl font-semibold text-[var(--text-strong)]">{related.title}</h3>
+                <p className="text-[var(--text-muted)]">{related.excerpt}</p>
+                <p className="rounded-xl bg-[var(--card-in-section-bg)] px-3 py-2 text-sm text-[var(--text-muted)] ring-1 ring-[var(--border-muted)]">
+                  Reflection moment: {truncateAtWordBoundary(related.reflectionMoment, 130)}
                 </p>
                 <Link
                   href={`/blog/${related.slug}`}
@@ -86,7 +104,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
                 >
                   Read related article
                 </Link>
-              </article>
+              </Card>
             ))}
           </div>
           <div>

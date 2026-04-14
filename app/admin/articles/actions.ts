@@ -39,6 +39,27 @@ function buildExcerptFallback(paragraphs: string[]) {
   return `${safeTruncated}...`;
 }
 
+async function resolveImageSource(formData: FormData) {
+  const uploadedImage = formData.get("imageFile");
+
+  if (uploadedImage instanceof File && uploadedImage.size > 0) {
+    if (!uploadedImage.type.startsWith("image/")) {
+      throw new Error("Uploaded file must be an image.");
+    }
+
+    const maxUploadBytes = 5 * 1024 * 1024;
+    if (uploadedImage.size > maxUploadBytes) {
+      throw new Error("Uploaded image must be 5MB or less.");
+    }
+
+    const buffer = Buffer.from(await uploadedImage.arrayBuffer());
+    return `data:${uploadedImage.type};base64,${buffer.toString("base64")}`;
+  }
+
+  const imageUrl = String(formData.get("imageSrc") ?? "").trim();
+  return imageUrl || "/featured-reflection.svg";
+}
+
 async function ensureAdminAccess() {
   const session = await getServerSession();
 
@@ -96,7 +117,7 @@ export async function createArticleAction(formData: FormData) {
   const requestedExcerpt = String(formData.get("excerpt") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
   const reflectionMoment = String(formData.get("reflectionMoment") ?? "").trim();
-  const imageSrc = String(formData.get("imageSrc") ?? "").trim() || "/featured-reflection.svg";
+  const imageSrc = await resolveImageSource(formData);
   const imageAlt = String(formData.get("imageAlt") ?? "").trim() || title;
   const requestedSlug = String(formData.get("slug") ?? "").trim();
   const shouldFeature = formData.get("isFeatured") === "on";

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createArticleAction } from "@/app/admin/articles/actions";
+import ImagePickerPreview from "@/app/admin/articles/ImagePickerPreview";
 import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -123,24 +124,19 @@ export default async function AdminArticlesPage() {
             />
           </label>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2 text-sm font-medium text-slate-700">
-              Image src
-              <input
-                name="imageSrc"
-                placeholder="/featured-reflection.svg"
-                className="rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none ring-emerald-400 transition focus:ring"
-              />
-            </label>
-            <label className="grid gap-2 text-sm font-medium text-slate-700">
-              Image alt
+          <ImagePickerPreview />
+
+          <label className="grid gap-2 text-sm font-medium text-slate-700">
+              Image description (optional)
               <input
                 name="imageAlt"
-                placeholder="A calm sunrise"
+                placeholder="A calm sunrise over quiet hills"
                 className="rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none ring-emerald-400 transition focus:ring"
               />
-            </label>
-          </div>
+              <span className="text-xs font-normal text-slate-500">
+                Short description for accessibility. If empty, the article title is used.
+              </span>
+          </label>
 
           <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
             <input type="checkbox" name="isFeatured" className="h-4 w-4" />

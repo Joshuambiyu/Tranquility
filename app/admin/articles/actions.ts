@@ -132,7 +132,7 @@ function buildExcerptFallback(paragraphs: string[]) {
   return `${safeTruncated}...`;
 }
 
-async function resolveImageSource(formData: FormData) {
+async function resolveImageSource(formData: FormData, fallbackImageSrc?: string) {
   const uploadedImage = formData.get("imageFile");
 
   if (uploadedImage instanceof File && uploadedImage.size > 0) {
@@ -150,7 +150,7 @@ async function resolveImageSource(formData: FormData) {
   }
 
   const imageUrl = String(formData.get("imageSrc") ?? "").trim();
-  return imageUrl || "/featured-reflection.svg";
+  return imageUrl || fallbackImageSrc || "/featured-reflection.svg";
 }
 
 async function ensureAdminAccess() {
@@ -201,6 +201,22 @@ function revalidateArticlePages() {
   revalidatePath("/admin/articles/delete");
 }
 
+async function resolveUniqueSlug(baseSlug: string, excludeArticleId?: string) {
+  let slug = baseSlug;
+  let suffix = 1;
+
+  while (true) {
+    const existing = await prisma.article.findUnique({ where: { slug }, select: { id: true } });
+
+    if (!existing || existing.id === excludeArticleId) {
+      return slug;
+    }
+
+    slug = `${baseSlug}-${suffix}`;
+    suffix += 1;
+  }
+}
+
 export async function createArticleAction(formData: FormData) {
   const user = await ensureAdminAccess();
   await assertSameOriginRequest();
@@ -228,13 +244,7 @@ export async function createArticleAction(formData: FormData) {
     throw new Error("Unable to build a valid slug from title.");
   }
 
-  let slug = baseSlug;
-  let suffix = 1;
-
-  while (await prisma.article.findUnique({ where: { slug }, select: { id: true } })) {
-    slug = `${baseSlug}-${suffix}`;
-    suffix += 1;
-  }
+  const slug = await resolveUniqueSlug(baseSlug);
 
   if (shouldFeature && isPublishIntent) {
     await prisma.article.updateMany({
@@ -262,6 +272,86 @@ export async function createArticleAction(formData: FormData) {
 
   revalidateArticlePages();
   redirect("/admin/articles?created=1");
+}
+
+export async function updateArticleAction(formData: FormData) {
+  await ensureAdminAccess();
+  await assertSameOriginRequest();
+
+  const articleId = getArticleId(formData);
+  const existingArticle = await prisma.article.findUnique({
+    where: { id: articleId },
+    select: {
+      id: true,
+      slug: true,
+      author: true,
+      imageSrc: true,
+      publishedAt: true,
+      status: true,
+    },
+  });
+
+  if (!existingArticle) {
+    throw new Error("Article not found.");
+  }
+
+  const title = String(formData.get("title") ?? "").trim();
+  const author = String(formData.get("author") ?? "").trim();
+  const requestedExcerpt = String(formData.get("excerpt") ?? "").trim();
+  const resolvedContent = resolveContentPayload(formData);
+  const reflectionMoment = String(formData.get("reflectionMoment") ?? "").trim();
+  const imageSrc = await resolveImageSource(formData, existingArticle.imageSrc);
+  const imageAlt = String(formData.get("imageAlt") ?? "").trim() || title;
+  const requestedSlug = String(formData.get("slug") ?? "").trim();
+  const shouldFeature = formData.get("isFeatured") === "on";
+  const submitIntent = String(formData.get("submitIntent") ?? "publish").trim().toLowerCase();
+  const isPublishIntent = submitIntent !== "draft";
+
+  if (title.length < 4) {
+    throw new Error("Title must be at least 4 characters.");
+  }
+
+  const excerpt = requestedExcerpt || buildExcerptFallback(resolvedContent.paragraphsForExcerpt);
+
+  const baseSlug = toSlug(requestedSlug || title);
+  if (!baseSlug) {
+    throw new Error("Unable to build a valid slug from title.");
+  }
+
+  const slug = await resolveUniqueSlug(baseSlug, articleId);
+
+  if (shouldFeature && isPublishIntent) {
+    await prisma.article.updateMany({
+      where: {
+        isFeatured: true,
+        id: { not: articleId },
+      },
+      data: { isFeatured: false },
+    });
+  }
+
+  await prisma.article.update({
+    where: { id: articleId },
+    data: {
+      slug,
+      title,
+      excerpt,
+      content: resolvedContent.content,
+      author: author || existingArticle.author,
+      imageSrc,
+      imageAlt,
+      reflectionMoment,
+      isFeatured: isPublishIntent ? shouldFeature : false,
+      status: isPublishIntent ? "published" : "draft",
+      publishedAt: isPublishIntent && existingArticle.status !== "published"
+        ? new Date()
+        : existingArticle.publishedAt,
+    },
+  });
+
+  revalidateArticlePages();
+  revalidatePath(`/admin/articles/edit/${articleId}`);
+  redirect(`/admin/articles/edit/${articleId}?updated=1`);
 }
 
 export async function deleteArticleAction(formData: FormData) {

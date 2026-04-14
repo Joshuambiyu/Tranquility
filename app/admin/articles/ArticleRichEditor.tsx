@@ -136,6 +136,24 @@ function getDraftFields(storageKey?: string) {
   }
 }
 
+function readFileAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+
+      reject(new Error("Unable to read image file."));
+    };
+
+    reader.onerror = () => reject(new Error("Unable to read image file."));
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function ArticleRichEditor({
   initialContent,
   draftStorageKey,
@@ -153,6 +171,8 @@ export default function ArticleRichEditor({
   const [isImagePanelOpen, setIsImagePanelOpen] = useState(false);
   const [imageUrlInput, setImageUrlInput] = useState("");
   const [imageAltInput, setImageAltInput] = useState("");
+  const [uploadedImageDataUrl, setUploadedImageDataUrl] = useState("");
+  const [uploadedImageName, setUploadedImageName] = useState("");
   const [imagePanelError, setImagePanelError] = useState("");
   const [activeMarks, setActiveMarks] = useState({
     heading1: false,
@@ -299,16 +319,17 @@ export default function ArticleRichEditor({
     }
 
     const normalizedUrl = imageUrlInput.trim();
+    const imageSrc = normalizedUrl || uploadedImageDataUrl;
 
-    if (!normalizedUrl) {
-      setImagePanelError("Please provide an image URL.");
+    if (!imageSrc) {
+      setImagePanelError("Provide an image URL or upload an image file.");
       return;
     }
 
     const isAllowedUrl =
-      /^https?:\/\//i.test(normalizedUrl) ||
-      normalizedUrl.startsWith("/") ||
-      normalizedUrl.startsWith("data:image/");
+      /^https?:\/\//i.test(imageSrc) ||
+      imageSrc.startsWith("/") ||
+      imageSrc.startsWith("data:image/");
 
     if (!isAllowedUrl) {
       setImagePanelError("Use a valid URL starting with https:// or /.");
@@ -316,7 +337,7 @@ export default function ArticleRichEditor({
     }
 
     const alt = imageAltInput.trim() || "Article image";
-    const didInsert = editor.chain().focus().setImage({ src: normalizedUrl, alt }).run();
+    const didInsert = editor.chain().focus().setImage({ src: imageSrc, alt }).run();
 
     if (!didInsert) {
       setImagePanelError("Unable to insert image. Try again.");
@@ -326,6 +347,8 @@ export default function ArticleRichEditor({
     setImagePanelError("");
     setImageUrlInput("");
     setImageAltInput("");
+    setUploadedImageDataUrl("");
+    setUploadedImageName("");
     setIsImagePanelOpen(false);
   };
 
@@ -427,6 +450,49 @@ export default function ArticleRichEditor({
                 className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-emerald-400 transition focus:ring"
               />
             </label>
+            <label className="grid gap-1 text-xs font-medium text-slate-700">
+              Upload image file (optional)
+              <input
+                type="file"
+                accept="image/*"
+                onChange={async (event) => {
+                  const file = event.currentTarget.files?.[0] ?? null;
+
+                  if (!file) {
+                    setUploadedImageDataUrl("");
+                    setUploadedImageName("");
+                    return;
+                  }
+
+                  if (!file.type.startsWith("image/")) {
+                    setImagePanelError("Uploaded file must be an image.");
+                    return;
+                  }
+
+                  const maxUploadBytes = 5 * 1024 * 1024;
+                  if (file.size > maxUploadBytes) {
+                    setImagePanelError("Uploaded image must be 5MB or less.");
+                    return;
+                  }
+
+                  try {
+                    const dataUrl = await readFileAsDataUrl(file);
+                    setUploadedImageDataUrl(dataUrl);
+                    setUploadedImageName(file.name);
+                    setImagePanelError("");
+                    if (!imageAltInput.trim()) {
+                      setImageAltInput(file.name.replace(/\.[^.]+$/, ""));
+                    }
+                  } catch {
+                    setImagePanelError("Unable to read selected image file.");
+                  }
+                }}
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 file:mr-3 file:rounded-full file:border-0 file:bg-emerald-100 file:px-3 file:py-1 file:font-semibold file:text-emerald-800"
+              />
+            </label>
+            {uploadedImageName ? (
+              <p className="text-xs text-slate-600">Selected file: {uploadedImageName}</p>
+            ) : null}
             <label className="grid gap-1 text-xs font-medium text-slate-700">
               Alt text (optional)
               <input

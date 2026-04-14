@@ -29,7 +29,7 @@ export default async function AdminArticlesPage() {
   }
 
   const latestArticles = await prisma.article.findMany({
-    orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
+    orderBy: [{ isFeatured: "desc" }, { updatedAt: "desc" }],
     take: 12,
     select: {
       id: true,
@@ -37,6 +37,7 @@ export default async function AdminArticlesPage() {
       title: true,
       author: true,
       isFeatured: true,
+      status: true,
       publishedAt: true,
     },
   });
@@ -136,17 +137,29 @@ export default async function AdminArticlesPage() {
             Set as featured article
           </label>
 
-          <button
-            type="submit"
-            className="inline-grid w-full place-items-center rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 sm:w-fit"
-          >
-            Publish Article
-          </button>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <button
+              type="submit"
+              name="submitIntent"
+              value="draft"
+              className="inline-grid w-full place-items-center rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-fit"
+            >
+              Save Draft
+            </button>
+            <button
+              type="submit"
+              name="submitIntent"
+              value="publish"
+              className="inline-grid w-full place-items-center rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 sm:w-fit"
+            >
+              Publish Article
+            </button>
+          </div>
         </form>
       </section>
 
       <section className="grid gap-4 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-        <h2 className="text-xl font-semibold text-slate-900">Recent Published Articles</h2>
+        <h2 className="text-xl font-semibold text-slate-900">Recent Articles</h2>
         <div className="grid gap-3">
           {latestArticles.map((article) => (
             <article key={article.id} className="grid gap-3 rounded-xl border border-slate-200 px-4 py-3 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
@@ -156,11 +169,22 @@ export default async function AdminArticlesPage() {
                   {article.author} • {new Date(article.publishedAt).toLocaleString()} • /blog/{article.slug}
                 </p>
               </div>
-              {article.isFeatured ? (
-                <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-amber-700">
-                  Featured
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${
+                    article.status === "published"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-slate-100 text-slate-600"
+                  }`}
+                >
+                  {article.status}
                 </span>
-              ) : null}
+                {article.isFeatured ? (
+                  <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-amber-700">
+                    Featured
+                  </span>
+                ) : null}
+              </div>
             </article>
           ))}
         </div>

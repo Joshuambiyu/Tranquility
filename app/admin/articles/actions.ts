@@ -213,6 +213,8 @@ export async function createArticleAction(formData: FormData) {
   const imageAlt = String(formData.get("imageAlt") ?? "").trim() || title;
   const requestedSlug = String(formData.get("slug") ?? "").trim();
   const shouldFeature = formData.get("isFeatured") === "on";
+  const submitIntent = String(formData.get("submitIntent") ?? "publish").trim().toLowerCase();
+  const isPublishIntent = submitIntent !== "draft";
 
   if (title.length < 4) {
     throw new Error("Title must be at least 4 characters.");
@@ -233,7 +235,7 @@ export async function createArticleAction(formData: FormData) {
     suffix += 1;
   }
 
-  if (shouldFeature) {
+  if (shouldFeature && isPublishIntent) {
     await prisma.article.updateMany({
       where: { isFeatured: true },
       data: { isFeatured: false },
@@ -250,8 +252,8 @@ export async function createArticleAction(formData: FormData) {
       imageSrc,
       imageAlt,
       reflectionMoment,
-      isFeatured: shouldFeature,
-      status: "published",
+      isFeatured: isPublishIntent ? shouldFeature : false,
+      status: isPublishIntent ? "published" : "draft",
       publishedAt: new Date(),
       createdById: user.id,
     },

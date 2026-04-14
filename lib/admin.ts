@@ -33,6 +33,23 @@ function getAdminAccessModel() {
   return (prisma as unknown as { adminAccess: AdminAccessReadModel }).adminAccess;
 }
 
+function isAdminAccessTableUnavailable(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const candidate = error as { code?: string; message?: string };
+  if (candidate.code === "P2021") {
+    return true;
+  }
+
+  if (typeof candidate.message === "string" && candidate.message.toLowerCase().includes("adminaccess")) {
+    return true;
+  }
+
+  return false;
+}
+
 export function normalizeEmail(input?: string | null) {
   return (input ?? "").trim().toLowerCase();
 }
@@ -68,22 +85,38 @@ export async function hasAdminAccess(email?: string | null) {
     return true;
   }
 
-  const record = await getAdminAccessModel().findUnique({
-    where: { email: normalized },
-    select: { id: true },
-  });
+  try {
+    const record = await getAdminAccessModel().findUnique({
+      where: { email: normalized },
+      select: { id: true },
+    });
 
-  return Boolean(record);
+    return Boolean(record);
+  } catch (error) {
+    if (isAdminAccessTableUnavailable(error)) {
+      return false;
+    }
+
+    throw error;
+  }
 }
 
 export async function listManagedAdminEmails() {
-  return getAdminAccessModel().findMany({
-    orderBy: { email: "asc" },
-    select: {
-      email: true,
-      createdAt: true,
-    },
-  });
+  try {
+    return await getAdminAccessModel().findMany({
+      orderBy: { email: "asc" },
+      select: {
+        email: true,
+        createdAt: true,
+      },
+    });
+  } catch (error) {
+    if (isAdminAccessTableUnavailable(error)) {
+      return [];
+    }
+
+    throw error;
+  }
 }
 
 export async function addManagedAdminEmail(email: string, createdById?: string) {
@@ -97,21 +130,39 @@ export async function addManagedAdminEmail(email: string, createdById?: string) 
     return;
   }
 
-  const existing = await getAdminAccessModel().findUnique({
-    where: { email: normalized },
-    select: { id: true },
-  });
+  let existing: { id: string } | null = null;
+
+  try {
+    existing = await getAdminAccessModel().findUnique({
+      where: { email: normalized },
+      select: { id: true },
+    });
+  } catch (error) {
+    if (isAdminAccessTableUnavailable(error)) {
+      throw new Error("Admin role storage is not ready yet. Run database migrations, then try again.");
+    }
+
+    throw error;
+  }
 
   if (existing) {
     return;
   }
 
-  await getAdminAccessModel().create({
-    data: {
-      email: normalized,
-      ...(createdById ? { createdById } : {}),
-    },
-  });
+  try {
+    await getAdminAccessModel().create({
+      data: {
+        email: normalized,
+        ...(createdById ? { createdById } : {}),
+      },
+    });
+  } catch (error) {
+    if (isAdminAccessTableUnavailable(error)) {
+      throw new Error("Admin role storage is not ready yet. Run database migrations, then try again.");
+    }
+
+    throw error;
+  }
 }
 
 export async function removeManagedAdminEmail(email: string) {
@@ -121,7 +172,15 @@ export async function removeManagedAdminEmail(email: string) {
     throw new Error("Email is required.");
   }
 
-  await getAdminAccessModel().deleteMany({
-    where: { email: normalized },
-  });
+  try {
+    await getAdminAccessModel().deleteMany({
+      where: { email: normalized },
+    });
+  } catch (error) {
+    if (isAdminAccessTableUnavailable(error)) {
+      throw new Error("Admin role storage is not ready yet. Run database migrations, then try again.");
+    }
+
+    throw error;
+  }
 }

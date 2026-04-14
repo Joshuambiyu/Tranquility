@@ -72,9 +72,31 @@ export default function ArticleRichEditor() {
   const [contentJson, setContentJson] = useState(JSON.stringify(EMPTY_DOC));
   const [plainText, setPlainText] = useState("");
   const [activeTextColor, setActiveTextColor] = useState<string | null>(null);
+  const [activeMarks, setActiveMarks] = useState({
+    heading1: false,
+    heading2: false,
+    bold: false,
+    italic: false,
+    strike: false,
+    bulletList: false,
+    orderedList: false,
+    blockquote: false,
+    codeBlock: false,
+  });
 
-  const syncActiveColor = (value: unknown) => {
-    setActiveTextColor(resolveActiveTextColor(value));
+  const syncToolbarState = (nextEditor: NonNullable<typeof editor>) => {
+    setActiveTextColor(resolveActiveTextColor(nextEditor.getAttributes("textStyle").color));
+    setActiveMarks({
+      heading1: nextEditor.isActive("heading", { level: 1 }),
+      heading2: nextEditor.isActive("heading", { level: 2 }),
+      bold: nextEditor.isActive("bold"),
+      italic: nextEditor.isActive("italic"),
+      strike: nextEditor.isActive("strike"),
+      bulletList: nextEditor.isActive("bulletList"),
+      orderedList: nextEditor.isActive("orderedList"),
+      blockquote: nextEditor.isActive("blockquote"),
+      codeBlock: nextEditor.isActive("codeBlock"),
+    });
   };
 
   const editor = useEditor({
@@ -104,18 +126,18 @@ export default function ArticleRichEditor() {
     onUpdate: ({ editor: nextEditor }) => {
       setContentJson(JSON.stringify(nextEditor.getJSON()));
       setPlainText(nextEditor.getText({ blockSeparator: "\n\n" }).trim());
-      syncActiveColor(nextEditor.getAttributes("textStyle").color);
+      syncToolbarState(nextEditor);
     },
     onCreate: ({ editor: nextEditor }) => {
       setContentJson(JSON.stringify(nextEditor.getJSON()));
       setPlainText(nextEditor.getText({ blockSeparator: "\n\n" }).trim());
-      syncActiveColor(nextEditor.getAttributes("textStyle").color);
+      syncToolbarState(nextEditor);
     },
     onSelectionUpdate: ({ editor: nextEditor }) => {
-      syncActiveColor(nextEditor.getAttributes("textStyle").color);
+      syncToolbarState(nextEditor);
     },
     onTransaction: ({ editor: nextEditor }) => {
-      syncActiveColor(nextEditor.getAttributes("textStyle").color);
+      syncToolbarState(nextEditor);
     },
   });
 
@@ -140,47 +162,47 @@ export default function ArticleRichEditor() {
           <ToolbarButton
             label="H1"
             onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-            isActive={editor.isActive("heading", { level: 1 })}
+            isActive={activeMarks.heading1}
           />
           <ToolbarButton
             label="H2"
             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-            isActive={editor.isActive("heading", { level: 2 })}
+            isActive={activeMarks.heading2}
           />
           <ToolbarButton
             label="Bold"
             onClick={() => editor.chain().focus().toggleBold().run()}
-            isActive={editor.isActive("bold")}
+            isActive={activeMarks.bold}
           />
           <ToolbarButton
             label="Italic"
             onClick={() => editor.chain().focus().toggleItalic().run()}
-            isActive={editor.isActive("italic")}
+            isActive={activeMarks.italic}
           />
           <ToolbarButton
             label="Strike"
             onClick={() => editor.chain().focus().toggleStrike().run()}
-            isActive={editor.isActive("strike")}
+            isActive={activeMarks.strike}
           />
           <ToolbarButton
             label="Bullet List"
             onClick={() => editor.chain().focus().toggleBulletList().run()}
-            isActive={editor.isActive("bulletList")}
+            isActive={activeMarks.bulletList}
           />
           <ToolbarButton
             label="Numbered List"
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
-            isActive={editor.isActive("orderedList")}
+            isActive={activeMarks.orderedList}
           />
           <ToolbarButton
             label="Quote"
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
-            isActive={editor.isActive("blockquote")}
+            isActive={activeMarks.blockquote}
           />
           <ToolbarButton
             label="Code"
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-            isActive={editor.isActive("codeBlock")}
+            isActive={activeMarks.codeBlock}
           />
         </div>
 
@@ -193,7 +215,7 @@ export default function ArticleRichEditor() {
               onClick={() => {
                 const didApply = editor.chain().focus().setColor(tone.value).run();
                 if (didApply) {
-                  syncActiveColor(tone.value);
+                  syncToolbarState(editor);
                 }
               }}
               className="h-8 w-8 shrink-0 rounded-full border ring-offset-2 transition hover:scale-105 focus:outline-none"
@@ -215,7 +237,7 @@ export default function ArticleRichEditor() {
             onClick={() => {
               const didClear = editor.chain().focus().unsetColor().run();
               if (didClear) {
-                syncActiveColor(null);
+                syncToolbarState(editor);
               }
             }}
             className="shrink-0 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"

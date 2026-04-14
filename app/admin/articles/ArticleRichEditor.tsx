@@ -416,16 +416,7 @@ export default function ArticleRichEditor({
 
     const alt = imageAltInput.trim() || "Article image";
 
-    const didInsert = editor
-      .chain()
-      .focus()
-      .setImage({
-        src: imageSrc,
-        alt,
-        width: 100,
-        maxHeight: 900,
-      })
-      .run();
+    const didInsert = insertImageAtSelection(editor.view, imageSrc, alt);
 
     if (!didInsert) {
       setImagePanelError("Unable to insert image. Try again.");
@@ -542,12 +533,16 @@ export default function ArticleRichEditor({
                   }
 
                   if (!file.type.startsWith("image/")) {
+                    setUploadedImageDataUrl("");
+                    setUploadedImageName("");
                     setImagePanelError("Uploaded file must be an image.");
                     return;
                   }
 
                   const maxUploadBytes = 5 * 1024 * 1024;
                   if (file.size > maxUploadBytes) {
+                    setUploadedImageDataUrl("");
+                    setUploadedImageName("");
                     setImagePanelError("Uploaded image must be 5MB or less.");
                     return;
                   }
@@ -561,6 +556,8 @@ export default function ArticleRichEditor({
                       setImageAltInput(file.name.replace(/\.[^.]+$/, ""));
                     }
                   } catch {
+                    setUploadedImageDataUrl("");
+                    setUploadedImageName("");
                     setImagePanelError("Unable to read selected image file.");
                   }
                 }}

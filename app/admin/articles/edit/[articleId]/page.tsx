@@ -13,7 +13,7 @@ import { prisma } from "@/lib/prisma";
 
 interface AdminEditArticlePageProps {
   params: Promise<{ articleId: string }>;
-  searchParams: Promise<{ updated?: string }>;
+  searchParams: Promise<{ updated?: string; duplicate?: string }>;
 }
 
 export default async function AdminEditArticlePage({ params, searchParams }: AdminEditArticlePageProps) {
@@ -37,7 +37,7 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
   }
 
   const { articleId } = await params;
-  const { updated } = await searchParams;
+  const { updated, duplicate } = await searchParams;
 
   const article = await prisma.article.findUnique({
     where: { id: articleId },
@@ -87,6 +87,11 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
         {updated === "1" ? (
           <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
             Article updated successfully.
+          </p>
+        ) : null}
+        {duplicate === "1" ? (
+          <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+            Duplicate submit blocked: this update request was already processed.
           </p>
         ) : null}
       </section>

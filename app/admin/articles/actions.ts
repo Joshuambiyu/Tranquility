@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
 import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
@@ -19,6 +20,15 @@ const EMPTY_TIPTAP_DOC = {
     },
   ],
 } as const;
+
+const SUBMIT_TOKEN_COOKIE = "article_submit_tokens";
+const SUBMIT_TOKEN_TTL_MS = 10 * 60 * 1000;
+const MAX_TRACKED_TOKENS = 40;
+
+type SubmitTokenEntry = {
+  token: string;
+  timestamp: number;
+};
 
 function toSlug(input: string) {
   return input
@@ -235,9 +245,70 @@ async function resolveUniqueSlug(baseSlug: string, excludeArticleId?: string) {
   }
 }
 
+function parseSubmitTokenCookie(value: string | undefined) {
+  if (!value) {
+    return [] as SubmitTokenEntry[];
+  }
+
+  return value
+    .split("|")
+    .map((entry) => {
+      const [token, timestampRaw] = entry.split(":");
+      const timestamp = Number(timestampRaw);
+
+      if (!token || !Number.isFinite(timestamp)) {
+        return null;
+      }
+
+      return { token, timestamp } as SubmitTokenEntry;
+    })
+    .filter((entry): entry is SubmitTokenEntry => entry !== null);
+}
+
+function serializeSubmitTokenCookie(entries: SubmitTokenEntry[]) {
+  return entries.map((entry) => `${entry.token}:${entry.timestamp}`).join("|");
+}
+
+async function consumeSubmitToken(formData: FormData) {
+  const token = String(formData.get("submitToken") ?? "").trim();
+
+  if (!token) {
+    throw new Error("Missing submit token.");
+  }
+
+  const cookieStore = await cookies();
+  const currentRaw = cookieStore.get(SUBMIT_TOKEN_COOKIE)?.value;
+  const now = Date.now();
+
+  const validEntries = parseSubmitTokenCookie(currentRaw).filter(
+    (entry) => now - entry.timestamp <= SUBMIT_TOKEN_TTL_MS,
+  );
+
+  if (validEntries.some((entry) => entry.token === token)) {
+    return { isDuplicate: true };
+  }
+
+  const nextEntries = [...validEntries, { token, timestamp: now }].slice(-MAX_TRACKED_TOKENS);
+
+  cookieStore.set(SUBMIT_TOKEN_COOKIE, serializeSubmitTokenCookie(nextEntries), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: true,
+    path: "/",
+    maxAge: Math.floor(SUBMIT_TOKEN_TTL_MS / 1000),
+  });
+
+  return { isDuplicate: false };
+}
+
 export async function createArticleAction(formData: FormData) {
   const user = await ensureAdminAccess();
   await assertSameOriginRequest();
+
+  const submitTokenState = await consumeSubmitToken(formData);
+  if (submitTokenState.isDuplicate) {
+    redirect("/admin/articles?created=1&duplicate=1");
+  }
 
   const submitIntent = String(formData.get("submitIntent") ?? "publish").trim().toLowerCase();
   const isPublishIntent = submitIntent !== "draft";
@@ -343,6 +414,12 @@ export async function updateArticleAction(formData: FormData) {
   await assertSameOriginRequest();
 
   const articleId = getArticleId(formData);
+
+  const submitTokenState = await consumeSubmitToken(formData);
+  if (submitTokenState.isDuplicate) {
+    redirect(`/admin/articles/edit/${articleId}?updated=1&duplicate=1`);
+  }
+
   const existingArticle = await prisma.article.findUnique({
     where: { id: articleId },
     select: {

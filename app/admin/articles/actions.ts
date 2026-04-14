@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
@@ -260,6 +261,7 @@ export async function createArticleAction(formData: FormData) {
   });
 
   revalidateArticlePages();
+  redirect("/admin/articles?created=1");
 }
 
 export async function deleteArticleAction(formData: FormData) {

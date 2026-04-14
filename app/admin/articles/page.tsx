@@ -152,10 +152,7 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
             />
           </label>
 
-          <ImagePickerPreview
-            draftStorageKey={CREATE_ARTICLE_DRAFT_STORAGE_KEY}
-            restoreDraft={created !== "1"}
-          />
+          <ImagePickerPreview />
 
           <label className="grid gap-2 text-sm font-medium text-slate-700">
               Image description (optional)

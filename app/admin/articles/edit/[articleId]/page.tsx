@@ -170,11 +170,7 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
             />
           </label>
 
-          <ImagePickerPreview
-            initialImageSrc={article.imageSrc}
-            draftStorageKey={editDraftStorageKey}
-            restoreDraft={updated !== "1"}
-          />
+          <ImagePickerPreview initialImageSrc={article.imageSrc} />
 
           <label className="grid gap-2 text-sm font-medium text-slate-700">
             Image description (optional)

@@ -169,7 +169,6 @@ export default function ArticleRichEditor({
   const [plainText, setPlainText] = useState("");
   const [activeTextColor, setActiveTextColor] = useState<string | null>(null);
   const [isImagePanelOpen, setIsImagePanelOpen] = useState(false);
-  const [imageUrlInput, setImageUrlInput] = useState("");
   const [imageAltInput, setImageAltInput] = useState("");
   const [uploadedImageDataUrl, setUploadedImageDataUrl] = useState("");
   const [uploadedImageName, setUploadedImageName] = useState("");
@@ -318,21 +317,10 @@ export default function ArticleRichEditor({
       return;
     }
 
-    const normalizedUrl = imageUrlInput.trim();
-    const imageSrc = normalizedUrl || uploadedImageDataUrl;
+    const imageSrc = uploadedImageDataUrl;
 
     if (!imageSrc) {
-      setImagePanelError("Provide an image URL or upload an image file.");
-      return;
-    }
-
-    const isAllowedUrl =
-      /^https?:\/\//i.test(imageSrc) ||
-      imageSrc.startsWith("/") ||
-      imageSrc.startsWith("data:image/");
-
-    if (!isAllowedUrl) {
-      setImagePanelError("Use a valid URL starting with https:// or /.");
+      setImagePanelError("Please upload an image file first.");
       return;
     }
 
@@ -345,7 +333,6 @@ export default function ArticleRichEditor({
     }
 
     setImagePanelError("");
-    setImageUrlInput("");
     setImageAltInput("");
     setUploadedImageDataUrl("");
     setUploadedImageName("");
@@ -427,6 +414,11 @@ export default function ArticleRichEditor({
             label="Image"
             onClick={() => {
               setImagePanelError("");
+              if (!isImagePanelOpen) {
+                setUploadedImageDataUrl("");
+                setUploadedImageName("");
+                setImageAltInput("");
+              }
               setIsImagePanelOpen((current) => !current);
             }}
           />
@@ -436,22 +428,7 @@ export default function ArticleRichEditor({
           <div className="grid gap-2 rounded-xl border border-slate-200 bg-white p-3">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-600">Insert image</p>
             <label className="grid gap-1 text-xs font-medium text-slate-700">
-              Image URL
-              <input
-                type="url"
-                value={imageUrlInput}
-                onChange={(event) => {
-                  setImageUrlInput(event.target.value);
-                  if (imagePanelError) {
-                    setImagePanelError("");
-                  }
-                }}
-                placeholder="https://example.com/image.jpg"
-                className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-emerald-400 transition focus:ring"
-              />
-            </label>
-            <label className="grid gap-1 text-xs font-medium text-slate-700">
-              Upload image file (optional)
+              Upload image file
               <input
                 type="file"
                 accept="image/*"
@@ -517,6 +494,8 @@ export default function ArticleRichEditor({
                 onClick={() => {
                   setIsImagePanelOpen(false);
                   setImagePanelError("");
+                  setUploadedImageDataUrl("");
+                  setUploadedImageName("");
                 }}
                 className="rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
               >

@@ -177,8 +177,7 @@ async function resolveImageSource(formData: FormData, fallbackImageSrc?: string)
     return `data:${uploadedImage.type};base64,${buffer.toString("base64")}`;
   }
 
-  const imageUrl = String(formData.get("imageSrc") ?? "").trim();
-  return imageUrl || fallbackImageSrc || "/featured-reflection.svg";
+  return fallbackImageSrc || "/featured-reflection.svg";
 }
 
 async function ensureAdminAccess() {

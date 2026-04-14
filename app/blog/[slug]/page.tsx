@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import RichArticleRenderer from "@/app/components/RichArticleRenderer";
 import { SectionBlock, SectionTitle } from "@/app/components/ui";
 import { getPublishedArticleBySlug, getRelatedPublishedArticles } from "@/lib/articles";
 
@@ -54,13 +55,17 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
         <SectionBlock>
           <SectionTitle title="Article" />
-          <div className="grid gap-4">
-            {article.content.map((paragraph, index) => (
-              <p key={`${article.id}-${index}`} className="text-slate-700">
-                {paragraph}
-              </p>
-            ))}
-          </div>
+          {article.richContent ? (
+            <RichArticleRenderer content={article.richContent} />
+          ) : (
+            <div className="grid gap-4">
+              {article.content.map((paragraph, index) => (
+                <p key={`${article.id}-${index}`} className="text-slate-700">
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          )}
           <p className="rounded-xl bg-cyan-50 px-4 py-3 text-slate-700 ring-1 ring-cyan-100">
             Reflection moment: {article.reflectionMoment}
           </p>

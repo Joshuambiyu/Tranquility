@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 export const DEFAULT_ARTICLE_PAGE_SIZE = 4;
 export const MAX_ARTICLE_PAGE_SIZE = 20;
 
+type JsonObject = Record<string, unknown>;
+
 function normalizePositiveInteger(value: number, fallback: number) {
   if (!Number.isFinite(value)) {
     return fallback;
@@ -18,6 +20,56 @@ function parseContentArray(content: unknown): string[] {
   }
 
   return content.filter((entry): entry is string => typeof entry === "string");
+}
+
+function isJsonObject(value: unknown): value is JsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isTiptapDocument(content: unknown): content is JsonObject {
+  return isJsonObject(content) && content.type === "doc" && (content.content === undefined || Array.isArray(content.content));
+}
+
+function extractTextFromNode(node: unknown): string {
+  if (!isJsonObject(node)) {
+    return "";
+  }
+
+  if (typeof node.text === "string") {
+    return node.text;
+  }
+
+  if (node.type === "hardBreak") {
+    return "\n";
+  }
+
+  if (!Array.isArray(node.content)) {
+    return "";
+  }
+
+  return node.content.map((entry) => extractTextFromNode(entry)).join("");
+}
+
+function parseParagraphsFromTiptap(content: JsonObject): string[] {
+  const blocks = Array.isArray(content.content) ? content.content : [];
+
+  return blocks
+    .map((block) => extractTextFromNode(block).replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+}
+
+function normalizeArticleContent(content: unknown) {
+  if (isTiptapDocument(content)) {
+    return {
+      content: parseParagraphsFromTiptap(content),
+      richContent: content,
+    };
+  }
+
+  return {
+    content: parseContentArray(content),
+    richContent: null,
+  };
 }
 
 const articleSelect = {
@@ -79,7 +131,7 @@ export async function getPublishedArticlesPage(options?: {
   return {
     articles: articles.map((article) => ({
       ...article,
-      content: parseContentArray(article.content),
+      ...normalizeArticleContent(article.content),
     })),
     pagination: {
       page,
@@ -103,7 +155,7 @@ export async function getFeaturedArticle() {
   if (featured) {
     return {
       ...featured,
-      content: parseContentArray(featured.content),
+      ...normalizeArticleContent(featured.content),
     };
   }
 
@@ -121,7 +173,7 @@ export async function getFeaturedArticle() {
 
   return {
     ...fallback,
-    content: parseContentArray(fallback.content),
+    ...normalizeArticleContent(fallback.content),
   };
 }
 
@@ -140,7 +192,7 @@ export async function getPublishedArticleBySlug(slug: string) {
 
   return {
     ...article,
-    content: parseContentArray(article.content),
+    ...normalizeArticleContent(article.content),
   };
 }
 
@@ -157,6 +209,6 @@ export async function getRelatedPublishedArticles(currentId: string, take = 2) {
 
   return related.map((article) => ({
     ...article,
-    content: parseContentArray(article.content),
+    ...normalizeArticleContent(article.content),
   }));
 }

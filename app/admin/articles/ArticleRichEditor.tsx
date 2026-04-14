@@ -54,7 +54,7 @@ const TEXT_COLORS = [
   { label: "Violet", value: "#6d28d9" },
 ];
 
-const DEFAULT_EDITOR_ACCENT = "#10b981";
+const DEFAULT_EDITOR_ACCENT = "#cbd5e1";
 
 function resolveActiveTextColor(value: unknown) {
   if (typeof value !== "string") {

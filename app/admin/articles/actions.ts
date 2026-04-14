@@ -10,6 +10,16 @@ import { prisma } from "@/lib/prisma";
 
 type JsonObject = Record<string, unknown>;
 
+const EMPTY_TIPTAP_DOC = {
+  type: "doc",
+  content: [
+    {
+      type: "paragraph",
+      content: [],
+    },
+  ],
+} as const;
+
 function toSlug(input: string) {
   return input
     .toLowerCase()
@@ -72,7 +82,8 @@ function extractParagraphsFromTiptapDoc(doc: JsonObject) {
     .filter(Boolean);
 }
 
-function resolveContentPayload(formData: FormData) {
+function resolveContentPayload(formData: FormData, options?: { allowEmpty?: boolean }) {
+  const allowEmpty = Boolean(options?.allowEmpty);
   const contentJsonRaw = String(formData.get("contentJson") ?? "").trim();
   const legacyContentRaw = String(formData.get("content") ?? "").trim();
 
@@ -91,7 +102,7 @@ function resolveContentPayload(formData: FormData) {
 
     const paragraphsFromJson = extractParagraphsFromTiptapDoc(parsedContent);
 
-    if (paragraphsFromJson.length === 0) {
+    if (paragraphsFromJson.length === 0 && !allowEmpty) {
       throw new Error("Please provide article content with at least one paragraph.");
     }
 
@@ -107,8 +118,15 @@ function resolveContentPayload(formData: FormData) {
   }
 
   const legacyParagraphs = parseParagraphs(legacyContentRaw);
-  if (legacyParagraphs.length === 0) {
+  if (legacyParagraphs.length === 0 && !allowEmpty) {
     throw new Error("Please provide article content with at least one paragraph.");
+  }
+
+  if (legacyParagraphs.length === 0) {
+    return {
+      content: EMPTY_TIPTAP_DOC,
+      paragraphsForExcerpt: [],
+    };
   }
 
   return {
@@ -221,21 +239,27 @@ export async function createArticleAction(formData: FormData) {
   const user = await ensureAdminAccess();
   await assertSameOriginRequest();
 
+  const submitIntent = String(formData.get("submitIntent") ?? "publish").trim().toLowerCase();
+  const isPublishIntent = submitIntent !== "draft";
+
   const title = String(formData.get("title") ?? "").trim();
   const author = String(formData.get("author") ?? "").trim();
   const requestedExcerpt = String(formData.get("excerpt") ?? "").trim();
-  const resolvedContent = resolveContentPayload(formData);
+  const resolvedContent = resolveContentPayload(formData, { allowEmpty: !isPublishIntent });
   const reflectionMoment = String(formData.get("reflectionMoment") ?? "").trim();
   const imageSrc = await resolveImageSource(formData);
-  const imageAlt = String(formData.get("imageAlt") ?? "").trim() || title;
+  const titleForStorage = title || "Untitled draft";
+  const imageAlt = String(formData.get("imageAlt") ?? "").trim() || titleForStorage;
   const requestedSlug = String(formData.get("slug") ?? "").trim();
   const shouldFeature = formData.get("isFeatured") === "on";
-  const submitIntent = String(formData.get("submitIntent") ?? "publish").trim().toLowerCase();
-  const isPublishIntent = submitIntent !== "draft";
   const resolvedAuthor = author || user.name || user.email || "Editorial";
 
-  if (title.length < 4) {
+  if (isPublishIntent && title.length < 4) {
     throw new Error("Title must be at least 4 characters.");
+  }
+
+  if (isPublishIntent && reflectionMoment.length < 10) {
+    throw new Error("Reflection moment must be at least 10 characters when publishing.");
   }
 
   const excerpt = requestedExcerpt || buildExcerptFallback(resolvedContent.paragraphsForExcerpt);
@@ -243,7 +267,7 @@ export async function createArticleAction(formData: FormData) {
   const recentDuplicate = await prisma.article.findFirst({
     where: {
       createdById: user.id,
-      title,
+      title: titleForStorage,
       status: isPublishIntent ? "published" : "draft",
       createdAt: {
         gte: new Date(Date.now() - 3 * 60 * 1000),
@@ -273,9 +297,15 @@ export async function createArticleAction(formData: FormData) {
     redirect("/admin/articles?created=1&duplicate=1");
   }
 
-  const baseSlug = toSlug(requestedSlug || title);
-  if (!baseSlug) {
+  const slugSource = requestedSlug || title;
+  let baseSlug = toSlug(slugSource);
+
+  if (!baseSlug && isPublishIntent) {
     throw new Error("Unable to build a valid slug from title.");
+  }
+
+  if (!baseSlug) {
+    baseSlug = `draft-${Date.now()}`;
   }
 
   const slug = await resolveUniqueSlug(baseSlug);
@@ -290,7 +320,7 @@ export async function createArticleAction(formData: FormData) {
   await prisma.article.create({
     data: {
       slug,
-      title,
+      title: titleForStorage,
       excerpt,
       content: resolvedContent.content,
       author: resolvedAuthor,
@@ -329,30 +359,40 @@ export async function updateArticleAction(formData: FormData) {
     throw new Error("Article not found.");
   }
 
-  const title = String(formData.get("title") ?? "").trim();
-  const author = String(formData.get("author") ?? "").trim();
-  const requestedExcerpt = String(formData.get("excerpt") ?? "").trim();
-  const resolvedContent = resolveContentPayload(formData);
-  const reflectionMoment = String(formData.get("reflectionMoment") ?? "").trim();
-  const imageSrc = await resolveImageSource(formData, existingArticle.imageSrc);
-  const imageAlt = String(formData.get("imageAlt") ?? "").trim() || title;
-  const requestedSlug = String(formData.get("slug") ?? "").trim();
-  const shouldFeature = formData.get("isFeatured") === "on";
   const submitIntent = String(formData.get("submitIntent") ?? "publish").trim().toLowerCase();
   const isPublishIntent = submitIntent !== "draft";
 
-  if (title.length < 4) {
+  const title = String(formData.get("title") ?? "").trim();
+  const author = String(formData.get("author") ?? "").trim();
+  const requestedExcerpt = String(formData.get("excerpt") ?? "").trim();
+  const resolvedContent = resolveContentPayload(formData, { allowEmpty: !isPublishIntent });
+  const reflectionMoment = String(formData.get("reflectionMoment") ?? "").trim();
+  const imageSrc = await resolveImageSource(formData, existingArticle.imageSrc);
+  const titleForStorage = title || "Untitled draft";
+  const imageAlt = String(formData.get("imageAlt") ?? "").trim() || titleForStorage;
+  const requestedSlug = String(formData.get("slug") ?? "").trim();
+  const shouldFeature = formData.get("isFeatured") === "on";
+
+  if (isPublishIntent && title.length < 4) {
     throw new Error("Title must be at least 4 characters.");
+  }
+
+  if (isPublishIntent && reflectionMoment.length < 10) {
+    throw new Error("Reflection moment must be at least 10 characters when publishing.");
   }
 
   const excerpt = requestedExcerpt || buildExcerptFallback(resolvedContent.paragraphsForExcerpt);
 
-  const baseSlug = toSlug(requestedSlug || title);
-  if (!baseSlug) {
+  const slugSource = requestedSlug || title;
+  const baseSlug = toSlug(slugSource);
+
+  const slug = baseSlug
+    ? await resolveUniqueSlug(baseSlug, articleId)
+    : existingArticle.slug;
+
+  if (isPublishIntent && !slug) {
     throw new Error("Unable to build a valid slug from title.");
   }
-
-  const slug = await resolveUniqueSlug(baseSlug, articleId);
 
   if (shouldFeature && isPublishIntent) {
     await prisma.article.updateMany({
@@ -368,7 +408,7 @@ export async function updateArticleAction(formData: FormData) {
     where: { id: articleId },
     data: {
       slug,
-      title,
+      title: titleForStorage,
       excerpt,
       content: resolvedContent.content,
       author: author || existingArticle.author,

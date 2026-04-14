@@ -1,11 +1,22 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { normalizeMonthKey } from "@/lib/resources";
+
+const SUBMIT_TOKEN_COOKIE = "resource_submit_tokens";
+const SUBMIT_TOKEN_TTL_MS = 10 * 60 * 1000;
+const MAX_TRACKED_TOKENS = 40;
+
+type SubmitTokenEntry = {
+  token: string;
+  timestamp: number;
+};
 
 type ResourceOfMonthWriteModel = {
   updateMany: (args: {
@@ -68,6 +79,27 @@ async function ensureAdminAccess() {
   return session.user;
 }
 
+async function assertSameOriginRequest() {
+  const requestHeaders = await headers();
+  const origin = requestHeaders.get("origin");
+
+  if (!origin) {
+    throw new Error("Missing request origin.");
+  }
+
+  const forwardedProto = requestHeaders.get("x-forwarded-proto");
+  const forwardedHost = requestHeaders.get("x-forwarded-host");
+  const host = requestHeaders.get("host");
+
+  const requestHost = (forwardedHost ?? host ?? "").split(",")[0].trim();
+  const requestProto = forwardedProto?.split(",")[0].trim() || (requestHost.includes("localhost") ? "http" : "https");
+  const expectedOrigin = `${requestProto}://${requestHost}`;
+
+  if (!requestHost || origin !== expectedOrigin) {
+    throw new Error("Cross-origin request blocked.");
+  }
+}
+
 function revalidateResourcePages() {
   revalidatePath("/");
   revalidatePath("/resources");
@@ -85,15 +117,78 @@ function parseResourceId(formData: FormData) {
   return resourceId;
 }
 
+function parseSubmitTokenCookie(value: string | undefined) {
+  if (!value) {
+    return [] as SubmitTokenEntry[];
+  }
+
+  return value
+    .split("|")
+    .map((entry) => {
+      const [token, timestampRaw] = entry.split(":");
+      const timestamp = Number(timestampRaw);
+
+      if (!token || !Number.isFinite(timestamp)) {
+        return null;
+      }
+
+      return { token, timestamp } as SubmitTokenEntry;
+    })
+    .filter((entry): entry is SubmitTokenEntry => entry !== null);
+}
+
+function serializeSubmitTokenCookie(entries: SubmitTokenEntry[]) {
+  return entries.map((entry) => `${entry.token}:${entry.timestamp}`).join("|");
+}
+
+async function consumeSubmitToken(formData: FormData) {
+  const token = String(formData.get("submitToken") ?? "").trim();
+
+  if (!token) {
+    throw new Error("Missing submit token.");
+  }
+
+  const cookieStore = await cookies();
+  const currentRaw = cookieStore.get(SUBMIT_TOKEN_COOKIE)?.value;
+  const now = Date.now();
+
+  const validEntries = parseSubmitTokenCookie(currentRaw).filter(
+    (entry) => now - entry.timestamp <= SUBMIT_TOKEN_TTL_MS,
+  );
+
+  if (validEntries.some((entry) => entry.token === token)) {
+    return { isDuplicate: true };
+  }
+
+  const nextEntries = [...validEntries, { token, timestamp: now }].slice(-MAX_TRACKED_TOKENS);
+
+  cookieStore.set(SUBMIT_TOKEN_COOKIE, serializeSubmitTokenCookie(nextEntries), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: true,
+    path: "/",
+    maxAge: Math.floor(SUBMIT_TOKEN_TTL_MS / 1000),
+  });
+
+  return { isDuplicate: false };
+}
+
 export async function createOrUpdateResourceAction(formData: FormData) {
   const user = await ensureAdminAccess();
+  await assertSameOriginRequest();
+
+  const submitTokenState = await consumeSubmitToken(formData);
+  if (submitTokenState.isDuplicate) {
+    redirect("/admin/resources?saved=1&duplicate=1");
+  }
 
   const monthKey = normalizeMonthKey(String(formData.get("monthKey") ?? ""));
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const linkUrlRaw = String(formData.get("linkUrl") ?? "").trim();
   const linkLabelRaw = String(formData.get("linkLabel") ?? "").trim();
-  const shouldPublish = formData.get("publishNow") === "on";
+  const submitIntent = String(formData.get("submitIntent") ?? "publish").trim().toLowerCase();
+  const shouldPublish = submitIntent !== "draft";
   const shouldSetCurrent = formData.get("setAsCurrent") === "on";
 
   if (!monthKey) {
@@ -126,7 +221,7 @@ export async function createOrUpdateResourceAction(formData: FormData) {
   const status = shouldPublish ? "published" : "draft";
 
   await prisma.$transaction(async (tx) => {
-    if (shouldSetCurrent) {
+    if (shouldSetCurrent && shouldPublish) {
       await getResourceOfMonthWriteModel(tx).updateMany({
         where: {
           isCurrent: true,
@@ -146,7 +241,7 @@ export async function createOrUpdateResourceAction(formData: FormData) {
         linkUrl,
         linkLabel,
         status,
-        isCurrent: shouldSetCurrent,
+        isCurrent: shouldSetCurrent && shouldPublish,
         publishedAt: shouldPublish ? new Date() : null,
         createdById: user.id,
       },
@@ -156,13 +251,14 @@ export async function createOrUpdateResourceAction(formData: FormData) {
         linkUrl,
         linkLabel,
         status,
-        isCurrent: shouldSetCurrent,
+        isCurrent: shouldSetCurrent && shouldPublish,
         publishedAt: shouldPublish ? new Date() : null,
       },
     });
   });
 
   revalidateResourcePages();
+  redirect("/admin/resources?saved=1");
 }
 
 export async function publishResourceAction(formData: FormData) {

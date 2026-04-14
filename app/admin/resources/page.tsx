@@ -6,6 +6,8 @@ import {
   publishResourceAction,
   setCurrentResourceAction,
 } from "@/app/admin/resources/actions";
+import ArticleFormEnhancements from "@/app/admin/articles/ArticleFormEnhancements";
+import ResourceSubmitButtons from "@/app/admin/resources/ResourceSubmitButtons";
 import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -46,7 +48,14 @@ function getResourceOfMonthListModel() {
   return (prisma as unknown as { resourceOfMonth: ResourceOfMonthListModel }).resourceOfMonth;
 }
 
-export default async function AdminResourcesPage() {
+const RESOURCE_FORM_ID = "admin-resource-upsert-form";
+const RESOURCE_DRAFT_STORAGE_KEY = "admin-resource-upsert-draft";
+
+export default async function AdminResourcesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ saved?: string; duplicate?: string }>;
+}) {
   const session = await getServerSession();
 
   if (!session?.user) {
@@ -83,6 +92,8 @@ export default async function AdminResourcesPage() {
     },
   });
 
+  const { saved, duplicate } = await searchParams;
+
   return (
     <main className="mx-auto grid min-h-[70vh] w-full max-w-6xl gap-6 px-5 py-8 sm:px-8 lg:px-10">
       <section className="grid gap-2 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100">
@@ -93,7 +104,25 @@ export default async function AdminResourcesPage() {
       </section>
 
       <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-        <form action={createOrUpdateResourceAction} className="grid gap-4">
+        {saved === "1" ? (
+          <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+            Monthly resource saved successfully.
+          </p>
+        ) : null}
+        {duplicate === "1" ? (
+          <p className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+            Duplicate submit blocked: this resource save request was already processed.
+          </p>
+        ) : null}
+
+        <form id={RESOURCE_FORM_ID} action={createOrUpdateResourceAction} className="grid gap-4">
+          <ArticleFormEnhancements
+            formId={RESOURCE_FORM_ID}
+            storageKey={RESOURCE_DRAFT_STORAGE_KEY}
+            clearDraft={saved === "1"}
+            restoreDraft={saved !== "1"}
+          />
+
           <div className="grid gap-4 md:grid-cols-2">
             <label className="grid gap-2 text-sm font-medium text-slate-700">
               Month key (YYYY-MM)
@@ -151,21 +180,12 @@ export default async function AdminResourcesPage() {
 
           <div className="flex flex-wrap gap-6 text-sm text-slate-700">
             <label className="flex items-center gap-3 font-medium">
-              <input type="checkbox" name="publishNow" className="h-4 w-4" />
-              Publish now
-            </label>
-            <label className="flex items-center gap-3 font-medium">
               <input type="checkbox" name="setAsCurrent" className="h-4 w-4" />
               Set as current Resource of the Month
             </label>
           </div>
 
-          <button
-            type="submit"
-            className="inline-grid w-full place-items-center rounded-full bg-emerald-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 sm:w-fit"
-          >
-            Save Monthly Resource
-          </button>
+          <ResourceSubmitButtons />
         </form>
       </section>
 

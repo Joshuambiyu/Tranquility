@@ -91,7 +91,6 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           )}
           <blockquote className="relative rounded-[24px] border border-white/80 bg-white/85 px-6 py-6 text-base leading-relaxed text-[var(--text-muted)] shadow-sm ring-1 ring-[var(--border-muted)]/70 backdrop-blur-sm lg:px-8 lg:text-lg">
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#4A7FA5]">Reflection moment</p>
-            <span className="mb-3 block font-serif text-4xl leading-none text-[#4A7FA5]">“</span>
             {article.reflectionMoment}
           </blockquote>
         </SectionBlock>

@@ -2,11 +2,17 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { deleteAllArticlesAction, deleteArticleAction } from "@/app/admin/articles/actions";
+import ActionSubmitButton from "@/app/components/feedback/ActionSubmitButton";
+import ToastOnMount from "@/app/components/feedback/ToastOnMount";
 import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export default async function DeleteArticlesAdminPage() {
+export default async function DeleteArticlesAdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ result?: string }>;
+}) {
   const session = await getServerSession();
 
   if (!session?.user) {
@@ -39,8 +45,33 @@ export default async function DeleteArticlesAdminPage() {
     },
   });
 
+  const { result } = await searchParams;
+
+  const toastByResult: Record<string, { type: "success" | "error"; title: string; message: string }> = {
+    "all-deleted": {
+      type: "success",
+      title: "All articles deleted",
+      message: "Every article was permanently removed.",
+    },
+    "confirm-required": {
+      type: "error",
+      title: "Confirmation required",
+      message: "Type DELETE ALL ARTICLES to continue.",
+    },
+  };
+  const activeToast = result ? toastByResult[result] : null;
+
   return (
     <main className="mx-auto grid min-h-[70vh] w-full max-w-6xl gap-6 px-5 py-8 sm:px-8 lg:px-10">
+      {activeToast ? (
+        <ToastOnMount
+          id={`delete-articles-${result}`}
+          type={activeToast.type}
+          title={activeToast.title}
+          message={activeToast.message}
+        />
+      ) : null}
+
       <section className="grid gap-3 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-rose-200">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="grid gap-1">
@@ -90,12 +121,11 @@ export default async function DeleteArticlesAdminPage() {
 
               <form action={deleteArticleAction} className="flex justify-end">
                 <input type="hidden" name="articleId" value={article.id} />
-                <button
-                  type="submit"
+                <ActionSubmitButton
+                  idleLabel="Delete Article"
+                  pendingLabel="Deleting..."
                   className="w-full rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-auto"
-                >
-                  Delete Article
-                </button>
+                />
               </form>
             </article>
           ))}
@@ -115,12 +145,11 @@ export default async function DeleteArticlesAdminPage() {
               placeholder="DELETE ALL ARTICLES"
               className="rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none ring-rose-400 transition focus:ring"
             />
-            <button
-              type="submit"
+            <ActionSubmitButton
+              idleLabel="Delete All Articles"
+              pendingLabel="Deleting..."
               className="inline-grid w-full place-items-center rounded-full bg-rose-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-rose-800 sm:w-fit"
-            >
-              Delete All Articles
-            </button>
+            />
           </form>
         </section>
       ) : null}

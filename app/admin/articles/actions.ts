@@ -522,6 +522,7 @@ export async function deleteArticleAction(formData: FormData) {
   });
 
   revalidateArticlePages();
+  redirect("/admin/articles?result=deleted");
 }
 
 export async function deleteAllArticlesAction(formData: FormData) {
@@ -530,9 +531,10 @@ export async function deleteAllArticlesAction(formData: FormData) {
 
   const confirmation = String(formData.get("confirmation") ?? "").trim();
   if (confirmation !== "DELETE ALL ARTICLES") {
-    throw new Error("Type DELETE ALL ARTICLES to confirm.");
+    redirect("/admin/articles/delete?result=confirm-required");
   }
 
   await prisma.article.deleteMany({});
   revalidateArticlePages();
+  redirect("/admin/articles/delete?result=all-deleted");
 }

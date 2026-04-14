@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
@@ -37,22 +38,26 @@ export async function approveVoiceSubmissionAction(formData: FormData) {
   await ensureAdminAccess();
   await updateVoiceSubmissionStatus(getVoiceId(formData), "approved");
   revalidateVoicePages();
+  redirect("/admin/voices?result=approved");
 }
 
 export async function rejectVoiceSubmissionAction(formData: FormData) {
   await ensureAdminAccess();
   await updateVoiceSubmissionStatus(getVoiceId(formData), "rejected");
   revalidateVoicePages();
+  redirect("/admin/voices?result=rejected");
 }
 
 export async function featureVoiceSubmissionAction(formData: FormData) {
   await ensureAdminAccess();
   await setVoiceOfWeek(getVoiceId(formData));
   revalidateVoicePages();
+  redirect("/admin/voices?result=featured");
 }
 
 export async function clearVoiceOfWeekAction(formData: FormData) {
   await ensureAdminAccess();
   await clearVoiceOfWeek(getVoiceId(formData));
   revalidateVoicePages();
+  redirect("/admin/voices?result=cleared");
 }

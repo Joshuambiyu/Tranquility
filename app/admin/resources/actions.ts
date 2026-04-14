@@ -273,6 +273,7 @@ export async function publishResourceAction(formData: FormData) {
   });
 
   revalidateResourcePages();
+  redirect("/admin/resources?result=published");
 }
 
 export async function archiveResourceAction(formData: FormData) {
@@ -287,6 +288,7 @@ export async function archiveResourceAction(formData: FormData) {
   });
 
   revalidateResourcePages();
+  redirect("/admin/resources?result=archived");
 }
 
 export async function setCurrentResourceAction(formData: FormData) {
@@ -311,4 +313,5 @@ export async function setCurrentResourceAction(formData: FormData) {
   });
 
   revalidateResourcePages();
+  redirect("/admin/resources?result=set-current");
 }

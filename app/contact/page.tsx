@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useToast } from "@/app/components/feedback/ToastProvider";
 import { SectionBlock, SectionTitle } from "@/app/components/ui";
 import { logClientError, parseApiError } from "@/lib/errors/client-error";
 import { contactPageContent } from "@/app/data/homepageData";
@@ -40,6 +41,7 @@ function validateContactFields(input: { name: string; email: string; message: st
 }
 
 export default function ContactPage() {
+  const { showToast } = useToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -96,6 +98,17 @@ export default function ContactPage() {
       setSubmitted(true);
       if (result.emailSent === false) {
         setSubmitError("Your message was saved, but email notification is currently unavailable.");
+        showToast({
+          type: "info",
+          title: "Message saved",
+          message: "Your message was saved, but email notification is currently unavailable.",
+        });
+      } else {
+        showToast({
+          type: "success",
+          title: "Message sent",
+          message: result.message ?? "Thank you for reaching out. We will respond soon.",
+        });
       }
       setName("");
       setEmail("");
@@ -106,7 +119,13 @@ export default function ContactPage() {
       logClientError(error, {
         scope: "contact.submit",
       });
-      setSubmitError(error instanceof Error ? error.message : "Unable to send your message.");
+      const message = error instanceof Error ? error.message : "Unable to send your message.";
+      setSubmitError(message);
+      showToast({
+        type: "error",
+        title: "Unable to send message",
+        message,
+      });
     } finally {
       setIsSubmitting(false);
     }

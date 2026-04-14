@@ -6,6 +6,8 @@ import {
   featureVoiceSubmissionAction,
   rejectVoiceSubmissionAction,
 } from "@/app/admin/voices/actions";
+import ActionSubmitButton from "@/app/components/feedback/ActionSubmitButton";
+import ToastOnMount from "@/app/components/feedback/ToastOnMount";
 import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -15,7 +17,11 @@ const visibilityLabels = {
   anonymous: "Anonymous",
 } as const;
 
-export default async function VoicesAdminPage() {
+export default async function VoicesAdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ result?: string }>;
+}) {
   const session = await getServerSession();
 
   if (!session?.user) {
@@ -58,8 +64,42 @@ export default async function VoicesAdminPage() {
     },
   });
 
+  const { result } = await searchParams;
+  const resultToastByKey: Record<string, { type: "success" | "info"; title: string; message: string }> = {
+    approved: {
+      type: "success",
+      title: "Voice approved",
+      message: "The submission is now visible in community voices.",
+    },
+    rejected: {
+      type: "info",
+      title: "Voice rejected",
+      message: "The submission has been marked as rejected.",
+    },
+    featured: {
+      type: "success",
+      title: "Voice of the Week updated",
+      message: "The selected submission is now featured.",
+    },
+    cleared: {
+      type: "info",
+      title: "Feature cleared",
+      message: "Voice of the Week was cleared.",
+    },
+  };
+  const resultToast = result ? resultToastByKey[result] : null;
+
   return (
     <main className="mx-auto grid min-h-[70vh] w-full max-w-6xl gap-6 px-5 py-8 sm:px-8 lg:px-10">
+      {resultToast ? (
+        <ToastOnMount
+          id={`voices-admin-${result}`}
+          type={resultToast.type}
+          title={resultToast.title}
+          message={resultToast.message}
+        />
+      ) : null}
+
       <section className="grid gap-2 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100">
         <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Community Voices</h1>
         <p className="text-sm text-slate-600">
@@ -122,48 +162,44 @@ export default async function VoicesAdminPage() {
                 {submission.status !== "approved" ? (
                   <form action={approveVoiceSubmissionAction}>
                     <input type="hidden" name="voiceId" value={submission.id} />
-                    <button
-                      type="submit"
+                    <ActionSubmitButton
+                      idleLabel="Approve"
+                      pendingLabel="Approving..."
                       className="w-full rounded-full bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 sm:w-auto"
-                    >
-                      Approve
-                    </button>
+                    />
                   </form>
                 ) : null}
 
                 {submission.status !== "rejected" ? (
                   <form action={rejectVoiceSubmissionAction}>
                     <input type="hidden" name="voiceId" value={submission.id} />
-                    <button
-                      type="submit"
+                    <ActionSubmitButton
+                      idleLabel="Reject"
+                      pendingLabel="Rejecting..."
                       className="w-full rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-auto"
-                    >
-                      Reject
-                    </button>
+                    />
                   </form>
                 ) : null}
 
                 {submission.status === "approved" && !submission.isVoiceOfWeek ? (
                   <form action={featureVoiceSubmissionAction}>
                     <input type="hidden" name="voiceId" value={submission.id} />
-                    <button
-                      type="submit"
+                    <ActionSubmitButton
+                      idleLabel="Make Voice of the Week"
+                      pendingLabel="Updating..."
                       className="w-full rounded-full border border-amber-200 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-50 sm:w-auto"
-                    >
-                      Make Voice of the Week
-                    </button>
+                    />
                   </form>
                 ) : null}
 
                 {submission.isVoiceOfWeek ? (
                   <form action={clearVoiceOfWeekAction}>
                     <input type="hidden" name="voiceId" value={submission.id} />
-                    <button
-                      type="submit"
+                    <ActionSubmitButton
+                      idleLabel="Clear Voice of the Week"
+                      pendingLabel="Clearing..."
                       className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto"
-                    >
-                      Clear Voice of the Week
-                    </button>
+                    />
                   </form>
                 ) : null}
               </div>

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import {
   addManagedAdminEmail,
@@ -45,6 +46,7 @@ export async function addAdminEmailAction(formData: FormData) {
 
   await addManagedAdminEmail(email);
   revalidateAdminPages();
+  redirect("/admin?adminAccess=added");
 }
 
 export async function removeAdminEmailAction(formData: FormData) {
@@ -52,9 +54,10 @@ export async function removeAdminEmailAction(formData: FormData) {
   const email = parseEmail(formData, "email");
 
   if (normalizeEmail(user.email) === email) {
-    throw new Error("You cannot remove your own admin access.");
+    redirect("/admin?adminAccess=self-remove-blocked");
   }
 
   await removeManagedAdminEmail(email);
   revalidateAdminPages();
+  redirect("/admin?adminAccess=removed");
 }

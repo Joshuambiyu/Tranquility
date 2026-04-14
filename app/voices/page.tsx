@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { authClient, useSession } from "@/lib/auth-client";
+import { useToast } from "@/app/components/feedback/ToastProvider";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import { AppError } from "@/lib/errors/app-error";
 import { logClientError, parseApiError } from "@/lib/errors/client-error";
@@ -63,6 +64,7 @@ function VoiceAttribution({ voice }: { voice: VoiceReflectionItem }) {
 
 export default function VoicesPage() {
   const { status } = useSession();
+  const { showToast } = useToast();
   const [isDesktop, setIsDesktop] = useState(false);
   const [title, setTitle] = useState("");
   const [reflection, setReflection] = useState("");
@@ -103,6 +105,13 @@ export default function VoicesPage() {
         logClientError(await parseApiError(response, "Unable to load voices right now."), {
           scope: "voices.load",
         });
+        if (!append) {
+          showToast({
+            type: "error",
+            title: "Unable to load voices",
+            message: "Please refresh and try again.",
+          });
+        }
         return;
       }
 
@@ -131,6 +140,14 @@ export default function VoicesPage() {
       logClientError("Unable to load voices right now.", {
         scope: "voices.load",
       });
+
+      if (!append) {
+        showToast({
+          type: "error",
+          title: "Unable to load voices",
+          message: "Please refresh and try again.",
+        });
+      }
 
       if (!append) {
         setSelectedVoiceOfWeek(null);
@@ -221,6 +238,11 @@ export default function VoicesPage() {
       setSubmitSuccess(
         result.message ?? "Your voice has been submitted and is pending review.",
       );
+      showToast({
+        type: "success",
+        title: "Voice submitted",
+        message: result.message ?? "Your voice has been submitted and is pending review.",
+      });
       setTitle("");
       setReflection("");
       setDescriptor("");
@@ -228,6 +250,11 @@ export default function VoicesPage() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to submit voice.";
       setSubmitError(message);
+      showToast({
+        type: "error",
+        title: "Unable to submit voice",
+        message,
+      });
 
       if (!(error instanceof AppError) || error.code === "INTERNAL_ERROR") {
         logClientError(error, {

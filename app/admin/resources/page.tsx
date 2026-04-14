@@ -7,6 +7,7 @@ import {
   setCurrentResourceAction,
 } from "@/app/admin/resources/actions";
 import ArticleFormEnhancements from "@/app/admin/articles/ArticleFormEnhancements";
+import ActionSubmitButton from "@/app/components/feedback/ActionSubmitButton";
 import ResourceSubmitButtons from "@/app/admin/resources/ResourceSubmitButtons";
 import ToastOnMount from "@/app/components/feedback/ToastOnMount";
 import { hasAdminAccess } from "@/lib/admin";
@@ -55,7 +56,7 @@ const RESOURCE_DRAFT_STORAGE_KEY = "admin-resource-upsert-draft";
 export default async function AdminResourcesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string; duplicate?: string }>;
+  searchParams: Promise<{ saved?: string; duplicate?: string; result?: string }>;
 }) {
   const session = await getServerSession();
 
@@ -93,7 +94,26 @@ export default async function AdminResourcesPage({
     },
   });
 
-  const { saved, duplicate } = await searchParams;
+  const { saved, duplicate, result } = await searchParams;
+
+  const resultToastByKey: Record<string, { type: "success" | "info"; title: string; message: string }> = {
+    published: {
+      type: "success",
+      title: "Resource published",
+      message: "This monthly resource is now published.",
+    },
+    archived: {
+      type: "info",
+      title: "Resource archived",
+      message: "This monthly resource has been archived.",
+    },
+    "set-current": {
+      type: "success",
+      title: "Current resource updated",
+      message: "The selected resource is now the current one.",
+    },
+  };
+  const resultToast = result ? resultToastByKey[result] : null;
 
   return (
     <main className="mx-auto grid min-h-[70vh] w-full max-w-6xl gap-6 px-5 py-8 sm:px-8 lg:px-10">
@@ -104,6 +124,14 @@ export default async function AdminResourcesPage({
         message={duplicate === "1" ? "Your previous save was already processed." : "Monthly resource changes were saved."}
         enabled={saved === "1"}
       />
+      {resultToast ? (
+        <ToastOnMount
+          id={`resources-result-${result}`}
+          type={resultToast.type}
+          title={resultToast.title}
+          message={resultToast.message}
+        />
+      ) : null}
 
       <section className="grid gap-2 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100">
         <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Resource of the Month</h1>
@@ -234,36 +262,33 @@ export default async function AdminResourcesPage({
                   {resource.status !== "published" ? (
                     <form action={publishResourceAction}>
                       <input type="hidden" name="resourceId" value={resource.id} />
-                      <button
-                        type="submit"
+                      <ActionSubmitButton
+                        idleLabel="Publish"
+                        pendingLabel="Publishing..."
                         className="w-full rounded-full bg-emerald-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800 sm:w-auto"
-                      >
-                        Publish
-                      </button>
+                      />
                     </form>
                   ) : null}
 
                   {!resource.isCurrent ? (
                     <form action={setCurrentResourceAction}>
                       <input type="hidden" name="resourceId" value={resource.id} />
-                      <button
-                        type="submit"
+                      <ActionSubmitButton
+                        idleLabel="Set Current"
+                        pendingLabel="Updating..."
                         className="w-full rounded-full border border-amber-200 px-4 py-2 text-xs font-semibold text-amber-700 transition hover:bg-amber-50 sm:w-auto"
-                      >
-                        Set Current
-                      </button>
+                      />
                     </form>
                   ) : null}
 
                   {resource.status !== "archived" ? (
                     <form action={archiveResourceAction}>
                       <input type="hidden" name="resourceId" value={resource.id} />
-                      <button
-                        type="submit"
+                      <ActionSubmitButton
+                        idleLabel="Archive"
+                        pendingLabel="Archiving..."
                         className="w-full rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto"
-                      >
-                        Archive
-                      </button>
+                      />
                     </form>
                   ) : null}
                 </div>

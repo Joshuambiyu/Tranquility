@@ -14,7 +14,7 @@ import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 interface AdminArticlesPageProps {
-  searchParams: Promise<{ created?: string; duplicate?: string }>;
+  searchParams: Promise<{ created?: string; duplicate?: string; result?: string }>;
 }
 
 const CREATE_ARTICLE_FORM_ID = "admin-article-create-form";
@@ -54,7 +54,7 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
     },
   });
 
-  const { created, duplicate } = await searchParams;
+  const { created, duplicate, result } = await searchParams;
 
   return (
     <main className="mx-auto grid min-h-[70vh] w-full max-w-6xl gap-6 px-5 py-8 sm:px-8 lg:px-10">
@@ -64,6 +64,13 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
         title={duplicate === "1" ? "Duplicate submission blocked" : "Article saved"}
         message={duplicate === "1" ? "Your previous submit was already processed." : "Your article was created successfully."}
         enabled={created === "1"}
+      />
+      <ToastOnMount
+        id={`articles-result-${result}`}
+        type="info"
+        title="Article deleted"
+        message="The article was removed successfully."
+        enabled={result === "deleted"}
       />
 
       <section className="grid gap-2 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100">

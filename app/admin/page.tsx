@@ -9,6 +9,8 @@ import {
   addAdminEmailAction,
   removeAdminEmailAction,
 } from "@/app/admin/admin-access/actions";
+import ActionSubmitButton from "@/app/components/feedback/ActionSubmitButton";
+import ToastOnMount from "@/app/components/feedback/ToastOnMount";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -23,7 +25,11 @@ function getResourceOfMonthAggregateModel() {
   return (prisma as unknown as { resourceOfMonth: ResourceOfMonthAggregateModel }).resourceOfMonth;
 }
 
-export default async function AdminHomePage() {
+export default async function AdminHomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ adminAccess?: string }>;
+}) {
   const session = await getServerSession();
 
   if (!session?.user) {
@@ -55,8 +61,39 @@ export default async function AdminHomePage() {
     listAdminUsers(),
   ]);
 
+  const { adminAccess } = await searchParams;
+
+  const accessToastByResult: Record<string, { type: "success" | "error" | "info"; title: string; message: string }> = {
+    added: {
+      type: "success",
+      title: "Admin added",
+      message: "The user now has admin access.",
+    },
+    removed: {
+      type: "success",
+      title: "Admin removed",
+      message: "Admin access was removed successfully.",
+    },
+    "self-remove-blocked": {
+      type: "error",
+      title: "Action blocked",
+      message: "You cannot remove your own admin access.",
+    },
+  };
+
+  const accessToast = adminAccess ? accessToastByResult[adminAccess] : null;
+
   return (
     <main className="mx-auto grid min-h-[70vh] w-full max-w-6xl gap-6 px-5 py-8 sm:px-8 lg:px-10">
+      {accessToast ? (
+        <ToastOnMount
+          id={`admin-access-${adminAccess}`}
+          type={accessToast.type}
+          title={accessToast.title}
+          message={accessToast.message}
+        />
+      ) : null}
+
       <section className="grid gap-2 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100">
         <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Admin Dashboard</h1>
         <p className="text-sm text-slate-600">
@@ -154,12 +191,11 @@ export default async function AdminHomePage() {
               className="rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none ring-emerald-400 transition focus:ring"
             />
           </label>
-          <button
-            type="submit"
+          <ActionSubmitButton
+            idleLabel="Add Admin"
+            pendingLabel="Adding..."
             className="inline-grid h-11 w-full place-items-center rounded-full bg-emerald-700 px-6 text-sm font-semibold text-white transition hover:bg-emerald-800 sm:w-fit"
-          >
-            Add Admin
-          </button>
+          />
         </form>
 
         <div className="grid gap-3">
@@ -178,12 +214,11 @@ export default async function AdminHomePage() {
                   </div>
                   <form action={removeAdminEmailAction}>
                     <input type="hidden" name="email" value={admin.email} />
-                    <button
-                      type="submit"
+                    <ActionSubmitButton
+                      idleLabel="Remove"
+                      pendingLabel="Removing..."
                       className="rounded-full border border-rose-300 px-4 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
-                    >
-                      Remove
-                    </button>
+                    />
                   </form>
                 </article>
               ))}

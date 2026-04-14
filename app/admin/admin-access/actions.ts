@@ -40,16 +40,20 @@ function revalidateAdminPages() {
 }
 
 export async function addAdminEmailAction(formData: FormData) {
-  const user = await ensureAdminAccess();
+  await ensureAdminAccess();
   const email = parseEmail(formData, "email");
 
-  await addManagedAdminEmail(email, user.id);
+  await addManagedAdminEmail(email);
   revalidateAdminPages();
 }
 
 export async function removeAdminEmailAction(formData: FormData) {
-  await ensureAdminAccess();
+  const user = await ensureAdminAccess();
   const email = parseEmail(formData, "email");
+
+  if (normalizeEmail(user.email) === email) {
+    throw new Error("You cannot remove your own admin access.");
+  }
 
   await removeManagedAdminEmail(email);
   revalidateAdminPages();

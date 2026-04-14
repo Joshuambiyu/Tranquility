@@ -70,12 +70,18 @@ export async function getServerSession() {
     return null;
   }
 
+  const userRoleRecord = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true },
+  });
+
   return {
     user: {
       id: session.user.id,
       email: session.user.email,
       name: session.user.name,
       image: session.user.image,
+      role: userRoleRecord?.role ?? "user",
     },
   };
 }

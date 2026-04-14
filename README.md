@@ -46,13 +46,10 @@ Contact and email:
 - RESEND_FROM_EMAIL
 - CONTACT_NOTIFY_TO
 
-Admin dashboard:
-- ADMIN_EMAILS (comma-separated list)
-
 Admin role management:
-- Bootstrap admins can be set with ADMIN_EMAILS (and CONTACT_NOTIFY_TO fallback).
+- Admin access is role-based using User.role (admin/user).
 - Additional admins can be added or removed from /admin via the Admin Access section.
-- Apply migrations after pulling changes so the AdminAccess table exists.
+- A user must sign in at least once before their role can be changed.
 
 Anti-spam tuning:
 - CONTACT_RATE_LIMIT_WINDOW_MS (default 60000)
@@ -72,7 +69,7 @@ Route:
 
 Access policy:
 - User must be signed in.
-- User email must exist in ADMIN_EMAILS or CONTACT_NOTIFY_TO.
+- User role must be admin.
 
 ## Google OAuth Console setup
 

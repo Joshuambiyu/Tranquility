@@ -11,6 +11,7 @@ model User {
   id             String            @id @default(cuid())
   name           String?
   email          String?           @unique
+  role           String            @default("user")
   emailVerified  Boolean           @default(false)
   image          String?
   accounts       Account[]
@@ -20,7 +21,6 @@ model User {
   contactSubmits ContactSubmission[]
   createdArticles Article[]
   createdResources ResourceOfMonth[]
-  createdAdminAccesses AdminAccess[]
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 }
@@ -173,13 +173,3 @@ model ResourceOfMonth {
   @@index([isCurrent])
 }
 
-model AdminAccess {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  createdById String?
-  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
-
-  @@index([createdAt])
-}

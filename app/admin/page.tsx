@@ -2,9 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import {
-  getAdminEmails,
   hasAdminAccess,
-  listManagedAdminEmails,
+  listAdminUsers,
 } from "@/lib/admin";
 import {
   addAdminEmailAction,
@@ -44,7 +43,7 @@ export default async function AdminHomePage() {
     );
   }
 
-  const [pendingVoices, totalContacts, resourceStats, managedAdmins] = await Promise.all([
+  const [pendingVoices, totalContacts, resourceStats, admins] = await Promise.all([
     prisma.voiceSubmission.count({ where: { status: "pending" } }),
     prisma.contactSubmission.count(),
     getResourceOfMonthAggregateModel().aggregate({
@@ -53,9 +52,8 @@ export default async function AdminHomePage() {
         OR: [{ status: "published" }, { isCurrent: true }],
       },
     }),
-    listManagedAdminEmails(),
+    listAdminUsers(),
   ]);
-  const staticAdmins = Array.from(getAdminEmails()).sort();
 
   return (
     <main className="mx-auto grid min-h-[70vh] w-full max-w-6xl gap-6 px-5 py-8 sm:px-8 lg:px-10">
@@ -142,7 +140,7 @@ export default async function AdminHomePage() {
       <section className="grid gap-4 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
         <h2 className="text-xl font-semibold text-slate-900">Admin Access</h2>
         <p className="text-sm text-slate-700">
-          Add or remove admin emails without changing environment variables. Emails in ADMIN_EMAILS or CONTACT_NOTIFY_TO are bootstrap admins and always retain access.
+          Admin privileges are role-based. Add or remove admins by updating signed-in users to the admin role.
         </p>
 
         <form action={addAdminEmailAction} className="grid gap-3 sm:max-w-xl sm:grid-cols-[1fr_auto] sm:items-end">
@@ -165,16 +163,18 @@ export default async function AdminHomePage() {
         </form>
 
         <div className="grid gap-3">
-          <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-600">Managed admin emails</h3>
-          {managedAdmins.length === 0 ? (
-            <p className="text-sm text-slate-600">No managed admins yet.</p>
+          <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-600">Current admins</h3>
+          {admins.length === 0 ? (
+            <p className="text-sm text-slate-600">No admins found.</p>
           ) : (
             <div className="grid gap-2">
-              {managedAdmins.map((admin) => (
-                <article key={admin.email} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3">
+              {admins.map((admin) => (
+                <article key={admin.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3">
                   <div className="grid gap-1">
                     <p className="text-sm font-medium text-slate-900">{admin.email}</p>
-                    <p className="text-xs text-slate-500">Added {new Date(admin.createdAt).toLocaleString()}</p>
+                    <p className="text-xs text-slate-500">
+                      {admin.name ? `${admin.name} • ` : ""}Role updated {new Date(admin.updatedAt).toLocaleString()}
+                    </p>
                   </div>
                   <form action={removeAdminEmailAction}>
                     <input type="hidden" name="email" value={admin.email} />
@@ -188,19 +188,6 @@ export default async function AdminHomePage() {
                 </article>
               ))}
             </div>
-          )}
-        </div>
-
-        <div className="grid gap-2 rounded-2xl border border-amber-200 bg-amber-50/60 px-4 py-3">
-          <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-amber-800">Bootstrap admins from env</h3>
-          {staticAdmins.length === 0 ? (
-            <p className="text-sm text-amber-900">No env admins configured.</p>
-          ) : (
-            <ul className="grid gap-1 text-sm text-amber-900">
-              {staticAdmins.map((email) => (
-                <li key={email}>{email}</li>
-              ))}
-            </ul>
           )}
         </div>
       </section>

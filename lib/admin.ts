@@ -1,53 +1,34 @@
 import { prisma } from "@/lib/prisma";
 
-const splitEmails = (value?: string | null) =>
-  (value ?? "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
-
-type AdminAccessReadModel = {
+type UserRoleModel = {
   findUnique: (args: {
-    where: { email: string };
-    select: { id: true };
-  }) => Promise<{ id: string } | null>;
+    where: { email?: string; id?: string };
+    select: {
+      id?: true;
+      role?: true;
+      email?: true;
+      name?: true;
+      updatedAt?: true;
+    };
+  }) => Promise<{ id?: string; role?: string; email?: string | null; name?: string | null; updatedAt?: Date } | null>;
   findMany: (args: {
+    where: { role: string };
     orderBy: { email: "asc" };
     select: {
+      id: true;
       email: true;
-      createdAt: true;
+      name: true;
+      updatedAt: true;
     };
-  }) => Promise<Array<{ email: string; createdAt: Date }>>;
-  create: (args: {
-    data: {
-      email: string;
-      createdById?: string;
-    };
+  }) => Promise<Array<{ id: string; email: string | null; name: string | null; updatedAt: Date }>>;
+  update: (args: {
+    where: { id: string };
+    data: { role: string };
   }) => Promise<unknown>;
-  deleteMany: (args: {
-    where: { email: string };
-  }) => Promise<{ count: number }>;
 };
 
-function getAdminAccessModel() {
-  return (prisma as unknown as { adminAccess: AdminAccessReadModel }).adminAccess;
-}
-
-function isAdminAccessTableUnavailable(error: unknown) {
-  if (!error || typeof error !== "object") {
-    return false;
-  }
-
-  const candidate = error as { code?: string; message?: string };
-  if (candidate.code === "P2021") {
-    return true;
-  }
-
-  if (typeof candidate.message === "string" && candidate.message.toLowerCase().includes("adminaccess")) {
-    return true;
-  }
-
-  return false;
+function getUserRoleModel() {
+  return (prisma as unknown as { user: UserRoleModel }).user;
 }
 
 export function normalizeEmail(input?: string | null) {
@@ -59,109 +40,63 @@ export function isValidEmail(input?: string | null) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-export function getAdminEmails() {
-  const explicitAdmins = splitEmails(process.env.ADMIN_EMAILS);
-  const fallbackAdmin = splitEmails(process.env.CONTACT_NOTIFY_TO);
-
-  return new Set([...explicitAdmins, ...fallbackAdmin]);
-}
-
-export function isAdminEmail(email?: string | null) {
-  const normalized = normalizeEmail(email);
-  if (!normalized) {
-    return false;
-  }
-
-  return getAdminEmails().has(normalized);
-}
-
 export async function hasAdminAccess(email?: string | null) {
   const normalized = normalizeEmail(email);
   if (!normalized) {
     return false;
   }
 
-  if (isAdminEmail(normalized)) {
-    return true;
-  }
+  const user = await getUserRoleModel().findUnique({
+    where: { email: normalized },
+    select: { role: true },
+  });
 
-  try {
-    const record = await getAdminAccessModel().findUnique({
-      where: { email: normalized },
-      select: { id: true },
-    });
-
-    return Boolean(record);
-  } catch (error) {
-    if (isAdminAccessTableUnavailable(error)) {
-      return false;
-    }
-
-    throw error;
-  }
+  return user?.role === "admin";
 }
 
-export async function listManagedAdminEmails() {
-  try {
-    return await getAdminAccessModel().findMany({
-      orderBy: { email: "asc" },
-      select: {
-        email: true,
-        createdAt: true,
-      },
-    });
-  } catch (error) {
-    if (isAdminAccessTableUnavailable(error)) {
-      return [];
-    }
+export async function listAdminUsers() {
+  const users = await getUserRoleModel().findMany({
+    where: { role: "admin" },
+    orderBy: { email: "asc" },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      updatedAt: true,
+    },
+  });
 
-    throw error;
-  }
+  return users
+    .filter((user): user is { id: string; email: string; name: string | null; updatedAt: Date } => Boolean(user.email))
+    .map((user) => ({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      updatedAt: user.updatedAt,
+    }));
 }
 
-export async function addManagedAdminEmail(email: string, createdById?: string) {
+export async function addManagedAdminEmail(email: string) {
   const normalized = normalizeEmail(email);
 
   if (!isValidEmail(normalized)) {
     throw new Error("Please provide a valid email address.");
   }
 
-  if (isAdminEmail(normalized)) {
-    return;
+  const existingUser = await getUserRoleModel().findUnique({
+    where: { email: normalized },
+    select: { id: true, role: true },
+  });
+
+  if (!existingUser?.id) {
+    throw new Error("User not found. They need to sign in at least once before you can assign admin role.");
   }
 
-  let existing: { id: string } | null = null;
-
-  try {
-    existing = await getAdminAccessModel().findUnique({
-      where: { email: normalized },
-      select: { id: true },
+  if (existingUser.role !== "admin") {
+    await getUserRoleModel().update({
+      where: { id: existingUser.id },
+      data: { role: "admin" },
     });
-  } catch (error) {
-    if (isAdminAccessTableUnavailable(error)) {
-      throw new Error("Admin role storage is not ready yet. Run database migrations, then try again.");
-    }
-
-    throw error;
-  }
-
-  if (existing) {
-    return;
-  }
-
-  try {
-    await getAdminAccessModel().create({
-      data: {
-        email: normalized,
-        ...(createdById ? { createdById } : {}),
-      },
-    });
-  } catch (error) {
-    if (isAdminAccessTableUnavailable(error)) {
-      throw new Error("Admin role storage is not ready yet. Run database migrations, then try again.");
-    }
-
-    throw error;
   }
 }
 
@@ -172,15 +107,19 @@ export async function removeManagedAdminEmail(email: string) {
     throw new Error("Email is required.");
   }
 
-  try {
-    await getAdminAccessModel().deleteMany({
-      where: { email: normalized },
-    });
-  } catch (error) {
-    if (isAdminAccessTableUnavailable(error)) {
-      throw new Error("Admin role storage is not ready yet. Run database migrations, then try again.");
-    }
+  const existingUser = await getUserRoleModel().findUnique({
+    where: { email: normalized },
+    select: { id: true, role: true },
+  });
 
-    throw error;
+  if (!existingUser?.id) {
+    throw new Error("User not found.");
+  }
+
+  if (existingUser.role === "admin") {
+    await getUserRoleModel().update({
+      where: { id: existingUser.id },
+      data: { role: "user" },
+    });
   }
 }

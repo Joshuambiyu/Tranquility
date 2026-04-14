@@ -4,6 +4,7 @@ import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import { Color, TextStyle } from "@tiptap/extension-text-style";
 import StarterKit from "@tiptap/starter-kit";
+import type { Editor as TiptapEditor } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { useState, type CSSProperties } from "react";
 
@@ -84,7 +85,7 @@ export default function ArticleRichEditor() {
     codeBlock: false,
   });
 
-  const syncToolbarState = (nextEditor: NonNullable<typeof editor>) => {
+  const syncToolbarState = (nextEditor: TiptapEditor) => {
     setActiveTextColor(resolveActiveTextColor(nextEditor.getAttributes("textStyle").color));
     setActiveMarks({
       heading1: nextEditor.isActive("heading", { level: 1 }),
@@ -144,32 +145,47 @@ export default function ArticleRichEditor() {
   const editorAccent = activeTextColor ?? DEFAULT_EDITOR_ACCENT;
 
   const handleToggleBulletList = () => {
+    const currentEditor = editor;
+    if (!currentEditor) {
+      return;
+    }
+
     const didToggle =
-      editor.chain().focus().toggleBulletList().run() ||
-      editor.chain().focus().clearNodes().toggleBulletList().run();
+      currentEditor.chain().focus().toggleBulletList().run() ||
+      currentEditor.chain().focus().clearNodes().toggleBulletList().run();
 
     if (didToggle) {
-      syncToolbarState(editor);
+      syncToolbarState(currentEditor);
     }
   };
 
   const handleToggleOrderedList = () => {
+    const currentEditor = editor;
+    if (!currentEditor) {
+      return;
+    }
+
     const didToggle =
-      editor.chain().focus().toggleOrderedList().run() ||
-      editor.chain().focus().clearNodes().toggleOrderedList().run();
+      currentEditor.chain().focus().toggleOrderedList().run() ||
+      currentEditor.chain().focus().clearNodes().toggleOrderedList().run();
 
     if (didToggle) {
-      syncToolbarState(editor);
+      syncToolbarState(currentEditor);
     }
   };
 
   const handleToggleQuote = () => {
+    const currentEditor = editor;
+    if (!currentEditor) {
+      return;
+    }
+
     const didToggle =
-      editor.chain().focus().toggleBlockquote().run() ||
-      editor.chain().focus().clearNodes().toggleBlockquote().run();
+      currentEditor.chain().focus().toggleBlockquote().run() ||
+      currentEditor.chain().focus().clearNodes().toggleBlockquote().run();
 
     if (didToggle) {
-      syncToolbarState(editor);
+      syncToolbarState(currentEditor);
     }
   };
 

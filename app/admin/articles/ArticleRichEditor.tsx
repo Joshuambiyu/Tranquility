@@ -35,7 +35,19 @@ function ToolbarButton({ label, onClick, isActive = false, disabled = false }: T
   );
 }
 
-const EMPTY_DOC = {
+type TiptapDocNode = {
+  type: string;
+  attrs?: Record<string, unknown>;
+  content?: TiptapDocNode[];
+  text?: string;
+};
+
+type TiptapDoc = {
+  type: "doc";
+  content: TiptapDocNode[];
+};
+
+const EMPTY_DOC: TiptapDoc = {
   type: "doc",
   content: [
     {
@@ -69,8 +81,45 @@ function resolveActiveTextColor(value: unknown) {
   return normalized;
 }
 
-export default function ArticleRichEditor() {
-  const [contentJson, setContentJson] = useState(JSON.stringify(EMPTY_DOC));
+function isTiptapDoc(value: unknown): value is TiptapDoc {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  if (candidate.type !== "doc") {
+    return false;
+  }
+
+  return Array.isArray(candidate.content);
+}
+
+function toTiptapDoc(content: unknown): TiptapDoc {
+  if (isTiptapDoc(content)) {
+    return content;
+  }
+
+  if (Array.isArray(content)) {
+    const paragraphs = content.filter((entry): entry is string => typeof entry === "string");
+
+    if (paragraphs.length > 0) {
+      return {
+        type: "doc",
+        content: paragraphs.map((paragraph) => ({
+          type: "paragraph",
+          content: paragraph.trim().length > 0 ? [{ type: "text", text: paragraph }] : [],
+        })),
+      };
+    }
+  }
+
+  return EMPTY_DOC;
+}
+
+export default function ArticleRichEditor({ initialContent }: { initialContent?: unknown }) {
+  const startingContent = toTiptapDoc(initialContent);
+
+  const [contentJson, setContentJson] = useState(JSON.stringify(startingContent));
   const [plainText, setPlainText] = useState("");
   const [activeTextColor, setActiveTextColor] = useState<string | null>(null);
   const [activeMarks, setActiveMarks] = useState({
@@ -117,7 +166,7 @@ export default function ArticleRichEditor() {
         placeholder: "Write your article here. Use headings, lists, and emphasis for structure.",
       }),
     ],
-    content: EMPTY_DOC,
+    content: startingContent,
     editorProps: {
       attributes: {
         class:

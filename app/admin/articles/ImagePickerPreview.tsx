@@ -4,9 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 
 const DEFAULT_IMAGE = "/featured-reflection.svg";
 
-export default function ImagePickerPreview() {
-  const [previewUrl, setPreviewUrl] = useState<string>(DEFAULT_IMAGE);
-  const [imageLink, setImageLink] = useState("");
+export default function ImagePickerPreview({ initialImageSrc }: { initialImageSrc?: string | null }) {
+  const initialLink = initialImageSrc?.trim() || "";
+  const [previewUrl, setPreviewUrl] = useState<string>(initialLink || DEFAULT_IMAGE);
+  const [imageLink, setImageLink] = useState(initialLink);
   const [fileObjectUrl, setFileObjectUrl] = useState<string | null>(null);
 
   useEffect(() => {

@@ -71,20 +71,6 @@ const TEXT_COLORS = [
 
 const DEFAULT_EDITOR_ACCENT = "#cbd5e1";
 
-function parseBoundedInteger(value: string, min: number, max: number) {
-  if (!value.trim()) {
-    return null;
-  }
-
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) {
-    return null;
-  }
-
-  const bounded = Math.max(min, Math.min(max, Math.round(numeric)));
-  return bounded;
-}
-
 function resolveActiveTextColor(value: unknown) {
   if (typeof value !== "string") {
     return null;
@@ -215,8 +201,6 @@ export default function ArticleRichEditor({
   const [imageAltInput, setImageAltInput] = useState("");
   const [uploadedImageDataUrl, setUploadedImageDataUrl] = useState("");
   const [uploadedImageName, setUploadedImageName] = useState("");
-  const [imageWidthPercentInput, setImageWidthPercentInput] = useState("100");
-  const [imageMaxHeightInput, setImageMaxHeightInput] = useState("420");
   const [imagePanelError, setImagePanelError] = useState("");
   const [activeMarks, setActiveMarks] = useState({
     heading1: false,
@@ -246,17 +230,6 @@ export default function ArticleRichEditor({
       codeBlock: nextEditor.isActive("codeBlock"),
     });
 
-    if (nextEditor.isActive("image")) {
-      const imageAttrs = nextEditor.getAttributes("image");
-
-      if (typeof imageAttrs.width === "number" && Number.isFinite(imageAttrs.width)) {
-        setImageWidthPercentInput(String(Math.round(imageAttrs.width)));
-      }
-
-      if (typeof imageAttrs.maxHeight === "number" && Number.isFinite(imageAttrs.maxHeight)) {
-        setImageMaxHeightInput(String(Math.round(imageAttrs.maxHeight)));
-      }
-    }
   };
 
   const editor = useEditor({
@@ -442,8 +415,6 @@ export default function ArticleRichEditor({
     }
 
     const alt = imageAltInput.trim() || "Article image";
-    const width = parseBoundedInteger(imageWidthPercentInput, 20, 100);
-    const maxHeight = parseBoundedInteger(imageMaxHeightInput, 120, 900);
 
     const didInsert = editor
       .chain()
@@ -451,8 +422,8 @@ export default function ArticleRichEditor({
       .setImage({
         src: imageSrc,
         alt,
-        ...(width ? { width } : {}),
-        ...(maxHeight ? { maxHeight } : {}),
+        width: 100,
+        maxHeight: 900,
       })
       .run();
 
@@ -465,35 +436,7 @@ export default function ArticleRichEditor({
     setImageAltInput("");
     setUploadedImageDataUrl("");
     setUploadedImageName("");
-    setImageWidthPercentInput("100");
-    setImageMaxHeightInput("420");
     setIsImagePanelOpen(false);
-  };
-
-  const handleApplySizeToSelectedImage = () => {
-    if (!editor || !editor.isActive("image")) {
-      setImagePanelError("Select an inserted image first.");
-      return;
-    }
-
-    const width = parseBoundedInteger(imageWidthPercentInput, 20, 100);
-    const maxHeight = parseBoundedInteger(imageMaxHeightInput, 120, 900);
-
-    const didUpdate = editor
-      .chain()
-      .focus()
-      .updateAttributes("image", {
-        ...(width ? { width } : { width: null }),
-        ...(maxHeight ? { maxHeight } : { maxHeight: null }),
-      })
-      .run();
-
-    if (!didUpdate) {
-      setImagePanelError("Unable to apply image size.");
-      return;
-    }
-
-    setImagePanelError("");
   };
 
   if (!editor) {
@@ -624,30 +567,6 @@ export default function ArticleRichEditor({
                 className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 file:mr-3 file:rounded-full file:border-0 file:bg-emerald-100 file:px-3 file:py-1 file:font-semibold file:text-emerald-800"
               />
             </label>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <label className="grid gap-1 text-xs font-medium text-slate-700">
-                Width (%)
-                <input
-                  type="number"
-                  min={20}
-                  max={100}
-                  value={imageWidthPercentInput}
-                  onChange={(event) => setImageWidthPercentInput(event.target.value)}
-                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-emerald-400 transition focus:ring"
-                />
-              </label>
-              <label className="grid gap-1 text-xs font-medium text-slate-700">
-                Max height (px)
-                <input
-                  type="number"
-                  min={120}
-                  max={900}
-                  value={imageMaxHeightInput}
-                  onChange={(event) => setImageMaxHeightInput(event.target.value)}
-                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none ring-emerald-400 transition focus:ring"
-                />
-              </label>
-            </div>
             {uploadedImageName ? (
               <p className="text-xs text-slate-600">Selected file: {uploadedImageName}</p>
             ) : null}
@@ -662,6 +581,9 @@ export default function ArticleRichEditor({
               />
             </label>
             {imagePanelError ? <p className="text-xs text-rose-700">{imagePanelError}</p> : null}
+            <p className="text-xs text-slate-500">
+              After insertion, drag the image corner handle in the editor to resize. Aspect ratio stays locked automatically.
+            </p>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
@@ -669,13 +591,6 @@ export default function ArticleRichEditor({
                 className="rounded-full bg-emerald-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800"
               >
                 Insert image
-              </button>
-              <button
-                type="button"
-                onClick={handleApplySizeToSelectedImage}
-                className="rounded-full border border-cyan-300 px-4 py-2 text-xs font-semibold text-cyan-800 transition hover:bg-cyan-50"
-              >
-                Apply size to selected image
               </button>
               <button
                 type="button"

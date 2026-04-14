@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { BlendedImageLayer } from "@/app/components/BlendedImageLayer";
 import RichArticleRenderer from "@/app/components/RichArticleRenderer";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import { getPublishedArticleBySlug, getRelatedPublishedArticles } from "@/lib/articles";
@@ -47,6 +47,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
   }
 
   const relatedArticles = await getRelatedPublishedArticles(article.id, 2);
+  const hasCoverImage = article.imageSrc.trim().length > 0 && article.imageSrc !== "/featured-reflection.svg";
 
   return (
     <div className="grid min-h-screen bg-[radial-gradient(circle_at_top_left,_#d9e8f5,_#eaf4ee_40%,_#f7f8f4_75%)] text-slate-800">
@@ -56,15 +57,23 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
             By {article.author} • {new Date(article.publishedAt).toLocaleDateString()}
           </p>
           <SectionTitle title={article.title} />
-          <div className="relative h-56 overflow-hidden rounded-2xl ring-1 ring-emerald-100 sm:h-72">
-            <Image
-              src={article.imageSrc}
-              alt={article.imageAlt}
-              fill
-              sizes="(max-width: 768px) 100vw, 70vw"
-              className="object-cover"
-            />
-          </div>
+          {hasCoverImage ? (
+            <div className="relative h-56 overflow-hidden rounded-2xl ring-1 ring-emerald-100 sm:h-72">
+              <div className="absolute inset-0 bg-[linear-gradient(110deg,_#ecf7f2_0%,_#f6fbf8_58%,_#eef6ff_100%)]" />
+              <BlendedImageLayer
+                imageSrc={article.imageSrc}
+                imageAlt={article.imageAlt}
+                sizes="(max-width: 768px) 100vw, 70vw"
+                roundedClassName="rounded-none"
+                objectPositionClassName="object-right"
+                showGradient={false}
+                priority={false}
+                opacity={1}
+                scale={1.05}
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/65 via-white/35 to-transparent" />
+            </div>
+          ) : null}
         </SectionBlock>
 
         <SectionBlock>

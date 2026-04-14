@@ -24,6 +24,7 @@ const EMPTY_TIPTAP_DOC = {
 const SUBMIT_TOKEN_COOKIE = "article_submit_tokens";
 const SUBMIT_TOKEN_TTL_MS = 10 * 60 * 1000;
 const MAX_TRACKED_TOKENS = 40;
+const DEFAULT_COVER_PLACEHOLDER_SRC = "/featured-reflection.svg";
 
 type SubmitTokenEntry = {
   token: string;
@@ -177,7 +178,13 @@ async function resolveImageSource(formData: FormData, fallbackImageSrc?: string)
     return `data:${uploadedImage.type};base64,${buffer.toString("base64")}`;
   }
 
-  return fallbackImageSrc || "/featured-reflection.svg";
+  const normalizedFallback = (fallbackImageSrc ?? "").trim();
+
+  if (!normalizedFallback || normalizedFallback === DEFAULT_COVER_PLACEHOLDER_SRC) {
+    return "";
+  }
+
+  return normalizedFallback;
 }
 
 async function ensureAdminAccess() {

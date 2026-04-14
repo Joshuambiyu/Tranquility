@@ -261,7 +261,7 @@ function renderBlock(node: unknown, index: number, keyPrefix = "block"): React.R
       return (
         <div key={key} className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={src} alt={alt} className="h-auto w-full object-cover" loading="lazy" />
+          <img src={src} alt={alt} className="mx-auto max-h-[560px] w-full object-contain" loading="lazy" />
         </div>
       );
     }

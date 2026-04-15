@@ -142,10 +142,10 @@ export default async function VoicesAdminPage({
               </div>
 
               <div className="grid gap-1 text-sm text-slate-700">
-                <p className="break-all">
+                <p className="break-words">
                   <span className="font-medium text-slate-900">Public author:</span> {submission.author}
                 </p>
-                <p className="break-all">
+                <p className="break-words">
                   <span className="font-medium text-slate-900">Signed-in user:</span>{" "}
                   {submission.user?.email ?? "Guest / not linked"}
                 </p>

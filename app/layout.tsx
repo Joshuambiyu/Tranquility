@@ -60,7 +60,7 @@ export default function RootLayout({
       className={`${manrope.variable} ${libreBaskerville.variable} h-full antialiased`}
     >
       <head />
-      <body className="min-h-full bg-background text-foreground">
+      <body className="min-h-full overflow-x-hidden bg-background text-foreground">
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
           strategy="afterInteractive"

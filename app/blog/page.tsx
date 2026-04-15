@@ -136,7 +136,7 @@ export default function BlogPage() {
           <SectionTitle title="Articles" description={blogPageIntro} />
           <form onSubmit={handleSearchSubmit} className="grid gap-2 text-sm font-medium text-[var(--text-muted)]">
             <label htmlFor="blog-search-input">Search articles</label>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <input
                 id="blog-search-input"
                 type="search"
@@ -147,7 +147,7 @@ export default function BlogPage() {
               />
               <button
                 type="submit"
-                className="rounded-xl border border-[var(--border-muted)] px-4 py-3 text-sm font-semibold text-emerald-700 transition hover:bg-[var(--accent-soft)]"
+                className="w-full rounded-xl border border-[var(--border-muted)] px-4 py-3 text-sm font-semibold text-emerald-700 transition hover:bg-[var(--accent-soft)] sm:w-auto"
               >
                 Search
               </button>
@@ -168,13 +168,13 @@ export default function BlogPage() {
                   <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
                     {post.author} • {new Date(post.publishedAt).toLocaleDateString()}
                   </p>
-                  <h3 className="break-words [overflow-wrap:anywhere] text-2xl font-semibold text-slate-950">{post.title}</h3>
-                  <p className="break-words [overflow-wrap:anywhere] text-base text-slate-800">{post.excerpt}</p>
-                  <p className="min-w-0 break-words [overflow-wrap:anywhere] xl:break-all rounded-xl bg-[var(--card-in-section-bg)] px-3 py-2 text-base text-slate-800 ring-1 ring-[var(--border-muted)]">
+                  <h3 className="break-words text-2xl font-semibold text-slate-950">{post.title}</h3>
+                  <p className="break-words text-base text-slate-800">{post.excerpt}</p>
+                  <p className="min-w-0 break-words rounded-xl bg-[var(--card-in-section-bg)] px-3 py-2 text-base text-slate-800 ring-1 ring-[var(--border-muted)]">
                     Reflection moment: {truncateAtWordBoundary(post.reflectionMoment, 130)}
                   </p>
                   {relatedA && relatedB ? (
-                    <p className="min-w-0 break-words [overflow-wrap:anywhere] xl:break-all text-base text-slate-700">
+                    <p className="min-w-0 break-words text-base text-slate-700">
                       Related: {relatedA.title} • {relatedB.title}
                     </p>
                   ) : null}

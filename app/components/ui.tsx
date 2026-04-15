@@ -52,7 +52,7 @@ export function SectionBlock({
 }: SectionBlockProps) {
   const resolvedBgVariant = bgVariant ?? (hasDescendantCard(children) ? "default" : "sectionBlockBg");
   const bgConfig = SECTION_BG_VARIANTS[resolvedBgVariant];
-  const baseClass = `grid gap-6 rounded-xl p-6 shadow-sm ring-1 ring-[var(--border-muted)] sm:p-8 lg:p-10`;
+  const baseClass = `grid min-w-0 gap-6 rounded-xl p-6 shadow-sm ring-1 ring-[var(--border-muted)] sm:p-8 lg:p-10`;
 
   // For default variant, include the default background
   const sectionClass =
@@ -117,7 +117,7 @@ function hasDescendantCard(node: ReactNode): boolean {
 
 export function Card({ children, bgVariant = "cardInSectionBg", href, className = "", ...props }: CardProps) {
   const bgClass = CARD_BG_VARIANTS[bgVariant];
-  const baseClass = `grid gap-2 rounded-xl p-5 ring-1 ring-[var(--border-muted)] transition duration-200`;
+  const baseClass = `grid min-w-0 gap-2 rounded-xl p-5 ring-1 ring-[var(--border-muted)] transition duration-200`;
   const hoverClass = bgVariant === "cardInSectionBg" ? "hover:bg-[var(--card-in-section-hover)]" : "hover:bg-[var(--accent-soft)]";
 
   if (href) {

@@ -253,7 +253,7 @@ export default async function AdminResourcesPage({
 
                 <p className="text-sm text-slate-700">{resource.description}</p>
                 {resource.linkUrl && resource.linkLabel ? (
-                  <p className="break-all text-xs text-slate-600">
+                  <p className="break-words text-xs text-slate-600">
                     Link: {resource.linkLabel} ({resource.linkUrl})
                   </p>
                 ) : null}

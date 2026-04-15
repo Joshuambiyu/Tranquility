@@ -107,7 +107,7 @@ export default async function DeleteArticlesAdminPage({
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="grid gap-1">
                   <h2 className="text-xl font-semibold text-slate-900">{article.title}</h2>
-                  <p className="break-all text-xs text-slate-600">
+                  <p className="break-words text-xs text-slate-600">
                     {article.author} • {new Date(article.publishedAt).toLocaleString()} • /blog/
                     {article.slug}
                   </p>

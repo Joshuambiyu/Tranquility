@@ -200,7 +200,7 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
             <article key={article.id} className="grid gap-3 rounded-xl border border-slate-200 px-4 py-3 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
               <div className="grid gap-1">
                 <p className="font-semibold text-slate-900">{article.title}</p>
-                <p className="break-all text-xs text-slate-600">
+                <p className="break-words text-xs text-slate-600">
                   {article.author} • {new Date(article.publishedAt).toLocaleString()} • /blog/{article.slug}
                 </p>
               </div>

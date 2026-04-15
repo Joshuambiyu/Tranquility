@@ -66,7 +66,7 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
   const editDraftStorageKey = `admin-article-edit-draft-${article.id}`;
 
   return (
-    <main className="mx-auto grid min-h-[70vh] w-full max-w-6xl gap-6 px-5 py-8 sm:px-8 lg:px-10">
+    <main className="mx-auto grid min-h-[70vh] w-full min-w-0 max-w-6xl gap-6 overflow-x-hidden px-5 py-8 sm:px-8 lg:px-10">
       <ToastOnMount
         id={`articles-updated-${article.id}-${updated}-${duplicate}`}
         type={duplicate === "1" ? "info" : "success"}
@@ -105,8 +105,8 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
         ) : null}
       </section>
 
-      <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-        <form id={editFormId} action={updateArticleAction} className="grid gap-4">
+      <section className="min-w-0 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+        <form id={editFormId} action={updateArticleAction} className="grid min-w-0 gap-4">
           <ArticleFormEnhancements
             formId={editFormId}
             storageKey={editDraftStorageKey}

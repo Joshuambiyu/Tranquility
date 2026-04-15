@@ -7,18 +7,30 @@ import StarterKit from "@tiptap/starter-kit";
 import type { Editor as TiptapEditor } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
 import type { EditorView } from "prosemirror-view";
-import { useState, type CSSProperties } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import CalloutNode from "@/app/admin/articles/extensions/CalloutNode";
 import ResizableImage from "@/app/admin/articles/extensions/ResizableImage";
 
 type ToolbarButtonProps = {
   label: string;
+  shortLabel?: string;
+  icon?: ReactNode;
+  compact?: boolean;
   onClick: () => void;
   isActive?: boolean;
   disabled?: boolean;
 };
 
-function ToolbarButton({ label, onClick, isActive = false, disabled = false }: ToolbarButtonProps) {
+function ToolbarButton({
+  label,
+  shortLabel,
+  icon,
+  compact = false,
+  onClick,
+  isActive = false,
+  disabled = false,
+}: ToolbarButtonProps) {
+  const display = icon ?? (compact ? shortLabel ?? label : label);
   return (
     <button
       type="button"
@@ -27,13 +39,17 @@ function ToolbarButton({ label, onClick, isActive = false, disabled = false }: T
         onClick();
       }}
       disabled={disabled}
-      className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
+      aria-label={label}
+      title={label}
+      className={`rounded-lg border text-xs font-semibold transition ${
+        compact ? "flex h-9 min-w-9 items-center justify-center px-2" : "px-3 py-1.5"
+      } ${
         isActive
           ? "border-emerald-300 bg-emerald-50 text-emerald-800"
           : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
       } disabled:cursor-not-allowed disabled:opacity-50`}
     >
-      {label}
+      {display}
     </button>
   );
 }
@@ -258,7 +274,7 @@ export default function ArticleRichEditor({
     editorProps: {
       attributes: {
         class:
-          "max-w-none min-h-[320px] text-slate-900 outline-none leading-7 [&_p]:my-3 [&_h1]:my-4 [&_h1]:text-3xl [&_h1]:font-semibold [&_h2]:my-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:bg-emerald-50/40 [&_blockquote]:px-3 [&_blockquote]:py-2 [&_[data-callout='true']]:my-3 [&_[data-callout='true']]:rounded-xl [&_[data-callout='true']]:border [&_[data-callout='true']]:border-amber-200 [&_[data-callout='true']]:bg-amber-50 [&_[data-callout='true']]:px-3 [&_[data-callout='true']]:py-2 [&_img]:my-3 [&_img]:mx-auto [&_img]:max-h-[900px] [&_img]:max-w-full [&_img]:rounded-xl [&_img]:border [&_img]:border-slate-200 [&_img]:object-contain [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-slate-900 [&_pre]:px-4 [&_pre]:py-3 [&_pre]:text-sm [&_pre]:text-slate-100",
+          "max-w-none min-h-[320px] break-words [overflow-wrap:anywhere] text-slate-900 outline-none leading-7 [&_p]:my-3 [&_h1]:my-4 [&_h1]:break-words [&_h1]:text-3xl [&_h1]:font-semibold [&_h2]:my-3 [&_h2]:break-words [&_h2]:text-2xl [&_h2]:font-semibold [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_li]:break-words [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:bg-emerald-50/40 [&_blockquote]:px-3 [&_blockquote]:py-2 [&_[data-callout='true']]:my-3 [&_[data-callout='true']]:rounded-xl [&_[data-callout='true']]:border [&_[data-callout='true']]:border-amber-200 [&_[data-callout='true']]:bg-amber-50 [&_[data-callout='true']]:px-3 [&_[data-callout='true']]:py-2 [&_img]:my-3 [&_img]:mx-auto [&_img]:max-h-[900px] [&_img]:max-w-full [&_img]:rounded-xl [&_img]:border [&_img]:border-slate-200 [&_img]:object-contain [&_pre]:my-3 [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-slate-900 [&_pre]:px-4 [&_pre]:py-3 [&_pre]:text-sm [&_pre]:text-slate-100",
       },
       handlePaste: (view, event) => {
         const imageFile = Array.from(event.clipboardData?.files ?? []).find((file) => file.type.startsWith("image/"));
@@ -472,11 +488,11 @@ export default function ArticleRichEditor({
   };
 
   return (
-    <section className="grid gap-3">
+    <section className="grid min-w-0 gap-3 overflow-x-hidden">
       <label className="text-sm font-medium text-slate-700">Article content</label>
 
-      <div className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2">
-        <div className="flex flex-wrap gap-2">
+      <div className="grid min-w-0 gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2">
+        <div className="hidden flex-wrap gap-2 sm:flex">
           <ToolbarButton
             label="H1"
             onClick={() => applyHeading(1)}
@@ -665,7 +681,7 @@ export default function ArticleRichEditor({
       </div>
 
       <div
-        className="rounded-2xl border bg-white px-4 py-3 transition focus-within:ring-2"
+        className="min-w-0 overflow-x-hidden rounded-2xl border bg-white px-4 py-3 transition focus-within:ring-2"
         style={
           {
             borderColor: editorAccent,
@@ -677,27 +693,19 @@ export default function ArticleRichEditor({
       </div>
 
       <div
-        className={`sticky bottom-3 z-20 flex items-center gap-2 overflow-x-auto rounded-xl border border-slate-200 bg-white/95 p-2 shadow-sm backdrop-blur transition-all duration-200 ${bottomToolbarVisibilityClass}`}
+        className={`sticky bottom-3 z-20 flex items-center gap-2 overflow-x-auto rounded-xl border border-slate-200 bg-white/95 p-2 shadow-sm backdrop-blur transition-all duration-200 sm:hidden ${bottomToolbarVisibilityClass}`}
       >
-        <button
-          type="button"
-          onClick={() => editor.commands.focus()}
-          className="shrink-0 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-800"
-          title="Quick formatting tools"
-        >
-          /
-        </button>
-        <ToolbarButton label="H1" onClick={() => applyHeading(1)} isActive={activeMarks.heading1} />
-        <ToolbarButton label="H2" onClick={() => applyHeading(2)} isActive={activeMarks.heading2} />
-        <ToolbarButton label="B" onClick={() => editor.chain().focus().toggleBold().run()} isActive={activeMarks.bold} />
-        <ToolbarButton label="I" onClick={() => editor.chain().focus().toggleItalic().run()} isActive={activeMarks.italic} />
-        <ToolbarButton label="S" onClick={() => editor.chain().focus().toggleStrike().run()} isActive={activeMarks.strike} />
-        <ToolbarButton label="• List" onClick={handleToggleBulletList} isActive={activeMarks.bulletList} />
-        <ToolbarButton label="1. List" onClick={handleToggleOrderedList} isActive={activeMarks.orderedList} />
-        <ToolbarButton label="Quote" onClick={handleToggleQuote} isActive={activeMarks.blockquote} />
-        <ToolbarButton label="Code" onClick={() => editor.chain().focus().toggleCodeBlock().run()} isActive={activeMarks.codeBlock} />
-        <ToolbarButton label="Callout" onClick={applyCallout} isActive={activeMarks.callout} />
-        <ToolbarButton label="Image" onClick={openImagePanel} />
+        <ToolbarButton compact label="Heading 1" shortLabel="H1" onClick={() => applyHeading(1)} isActive={activeMarks.heading1} />
+        <ToolbarButton compact label="Heading 2" shortLabel="H2" onClick={() => applyHeading(2)} isActive={activeMarks.heading2} />
+        <ToolbarButton compact label="Bold" shortLabel="B" onClick={() => editor.chain().focus().toggleBold().run()} isActive={activeMarks.bold} />
+        <ToolbarButton compact label="Italic" shortLabel="I" onClick={() => editor.chain().focus().toggleItalic().run()} isActive={activeMarks.italic} />
+        <ToolbarButton compact label="Strike" shortLabel="S" onClick={() => editor.chain().focus().toggleStrike().run()} isActive={activeMarks.strike} />
+        <ToolbarButton compact label="Bullet List" shortLabel="*" onClick={handleToggleBulletList} isActive={activeMarks.bulletList} />
+        <ToolbarButton compact label="Numbered List" shortLabel="1." onClick={handleToggleOrderedList} isActive={activeMarks.orderedList} />
+        <ToolbarButton compact label="Quote" shortLabel="Q" onClick={handleToggleQuote} isActive={activeMarks.blockquote} />
+        <ToolbarButton compact label="Code" shortLabel="{}" onClick={() => editor.chain().focus().toggleCodeBlock().run()} isActive={activeMarks.codeBlock} />
+        <ToolbarButton compact label="Callout" shortLabel="!" onClick={applyCallout} isActive={activeMarks.callout} />
+        <ToolbarButton compact label="Image" shortLabel="Img" onClick={openImagePanel} />
       </div>
 
       <p className="text-xs text-slate-500">

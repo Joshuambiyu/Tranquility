@@ -57,7 +57,7 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
   const { created, duplicate, result } = await searchParams;
 
   return (
-    <main className="mx-auto grid min-h-[70vh] w-full max-w-6xl gap-6 px-5 py-8 sm:px-8 lg:px-10">
+    <main className="mx-auto grid min-h-[70vh] w-full min-w-0 max-w-6xl gap-6 overflow-x-hidden px-5 py-8 sm:px-8 lg:px-10">
       <ToastOnMount
         id={`articles-created-${created}-${duplicate}`}
         type={duplicate === "1" ? "info" : "success"}
@@ -88,7 +88,7 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+      <section className="min-w-0 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
         {created === "1" ? (
           <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
             Article created successfully.
@@ -100,7 +100,7 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
           </p>
         ) : null}
 
-        <form id={CREATE_ARTICLE_FORM_ID} action={createArticleAction} className="grid gap-4">
+        <form id={CREATE_ARTICLE_FORM_ID} action={createArticleAction} className="grid min-w-0 gap-4">
           <ArticleFormEnhancements
             formId={CREATE_ARTICLE_FORM_ID}
             storageKey={CREATE_ARTICLE_DRAFT_STORAGE_KEY}

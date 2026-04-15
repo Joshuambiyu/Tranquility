@@ -212,3 +212,19 @@ export async function getRelatedPublishedArticles(currentId: string, take = 2) {
     ...normalizeArticleContent(article.content),
   }));
 }
+
+export async function getPublishedArticleSlugs() {
+  const rows = await prisma.article.findMany({
+    where: {
+      status: "published",
+    },
+    select: {
+      slug: true,
+    },
+    orderBy: {
+      publishedAt: "desc",
+    },
+  });
+
+  return rows.map((row) => row.slug);
+}

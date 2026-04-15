@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import "dotenv/config";
 
 const baseUrl = process.env.SMOKE_BASE_URL ?? "http://localhost:3000";

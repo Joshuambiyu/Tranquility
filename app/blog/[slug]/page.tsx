@@ -4,10 +4,22 @@ import { notFound } from "next/navigation";
 import { BlendedImageLayer } from "@/app/components/BlendedImageLayer";
 import RichArticleRenderer from "@/app/components/RichArticleRenderer";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
-import { getPublishedArticleBySlug, getRelatedPublishedArticles } from "@/lib/articles";
+import {
+  getPublishedArticleBySlug,
+  getPublishedArticleSlugs,
+  getRelatedPublishedArticles,
+} from "@/lib/articles";
 
 interface BlogArticlePageProps {
   params: Promise<{ slug: string }>;
+}
+
+export const revalidate = 300;
+
+export async function generateStaticParams() {
+  const slugs = await getPublishedArticleSlugs();
+
+  return slugs.map((slug) => ({ slug }));
 }
 
 function truncateAtWordBoundary(text: string, maxLength: number) {

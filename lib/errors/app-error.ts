@@ -1,6 +1,7 @@
 export type AppErrorCode =
   | "VALIDATION_ERROR"
   | "AUTH_REQUIRED"
+  | "FORBIDDEN"
   | "RATE_LIMITED"
   | "DB_UNAVAILABLE"
   | "DB_CONSTRAINT_ERROR"

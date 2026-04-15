@@ -1,5 +1,6 @@
 "use server";
 
+import type { Prisma } from "@prisma/client";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -399,7 +400,7 @@ export async function createArticleAction(formData: FormData) {
       slug,
       title: titleForStorage,
       excerpt,
-      content: resolvedContent.content,
+      content: resolvedContent.content as Prisma.InputJsonValue,
       author: resolvedAuthor,
       imageSrc,
       imageAlt,
@@ -493,7 +494,7 @@ export async function updateArticleAction(formData: FormData) {
       slug,
       title: titleForStorage,
       excerpt,
-      content: resolvedContent.content,
+      content: resolvedContent.content as Prisma.InputJsonValue,
       author: author || existingArticle.author,
       imageSrc,
       imageAlt,

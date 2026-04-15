@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 require("dotenv").config({ path: require("path").resolve(__dirname, "../.env"), override: true });
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();

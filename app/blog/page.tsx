@@ -161,8 +161,6 @@ export default function BlogPage() {
           <SectionTitle title="Latest Articles" />
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {visiblePosts.map((post, index) => {
-              const relatedA = visiblePosts[(index + 1) % visiblePosts.length];
-              const relatedB = visiblePosts[(index + 2) % visiblePosts.length];
               return (
                 <Card key={post.id} className="min-w-0 gap-3">
                   <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
@@ -173,11 +171,6 @@ export default function BlogPage() {
                   <p className="min-w-0 break-words rounded-xl bg-[var(--card-in-section-bg)] px-3 py-2 text-base text-slate-800 ring-1 ring-[var(--border-muted)]">
                     Reflection moment: {truncateAtWordBoundary(post.reflectionMoment, 130)}
                   </p>
-                  {relatedA && relatedB ? (
-                    <p className="min-w-0 break-words text-base text-slate-700">
-                      Related: {relatedA.title} • {relatedB.title}
-                    </p>
-                  ) : null}
                   <Link href={`/blog/${post.slug}`} className="text-sm font-semibold text-emerald-700 hover:text-emerald-800">
                     Read article
                   </Link>

@@ -6,6 +6,7 @@ import DeleteArticleInlineButton from "@/app/admin/articles/DeleteArticleInlineB
 import ArticleFormEnhancements from "@/app/admin/articles/ArticleFormEnhancements";
 import ArticleRichEditor from "@/app/admin/articles/ArticleRichEditor";
 import ArticleSubmitButtons from "@/app/admin/articles/ArticleSubmitButtons";
+import CollapsibleAdminSection from "@/app/admin/articles/CollapsibleAdminSection";
 import ImagePickerPreview from "@/app/admin/articles/ImagePickerPreview";
 import PublishReadinessChecklist from "@/app/admin/articles/PublishReadinessChecklist";
 import ToastOnMount from "@/app/components/feedback/ToastOnMount";
@@ -88,7 +89,11 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
         </div>
       </section>
 
-      <section className="min-w-0 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+      <CollapsibleAdminSection
+        panelId="admin-articles-create-panel"
+        title="Create Article"
+        sectionClassName="min-w-0 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200"
+      >
         {created === "1" ? (
           <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
             Article created successfully.
@@ -191,10 +196,13 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
 
           <ArticleSubmitButtons draftLabel="Save Draft" publishLabel="Publish Article" />
         </form>
-      </section>
+      </CollapsibleAdminSection>
 
-      <section className="grid gap-4 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-        <h2 className="text-xl font-semibold text-slate-900">Recent Articles</h2>
+      <CollapsibleAdminSection
+        panelId="admin-articles-recent-panel"
+        title="Recent Articles"
+        sectionClassName="grid gap-4 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200"
+      >
         <div className="grid gap-3">
           {latestArticles.map((article) => (
             <article key={article.id} className="grid gap-3 rounded-xl border border-slate-200 px-4 py-3 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
@@ -233,7 +241,7 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
             </article>
           ))}
         </div>
-      </section>
+      </CollapsibleAdminSection>
     </main>
   );
 }

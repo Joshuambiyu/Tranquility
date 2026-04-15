@@ -93,6 +93,7 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
         panelId="admin-articles-create-panel"
         title="Create Article"
         sectionClassName="min-w-0 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200"
+        defaultExpanded={false}
       >
         {created === "1" ? (
           <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
@@ -202,6 +203,7 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
         panelId="admin-articles-recent-panel"
         title="Recent Articles"
         sectionClassName="grid gap-4 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200"
+        defaultExpanded={false}
       >
         <div className="grid gap-3">
           {latestArticles.map((article) => (

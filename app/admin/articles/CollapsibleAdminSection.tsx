@@ -15,7 +15,7 @@ export default function CollapsibleAdminSection({
   title,
   sectionClassName,
   children,
-  defaultExpanded = true,
+  defaultExpanded = false,
 }: CollapsibleAdminSectionProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
@@ -23,6 +23,9 @@ export default function CollapsibleAdminSection({
     <section className={sectionClassName}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
+        {!isExpanded ? (
+          <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-500">Collapsed - tap Expand to view</p>
+        ) : null}
         <div className="flex w-full flex-wrap gap-2 sm:w-auto">
           <button
             type="button"
@@ -31,7 +34,7 @@ export default function CollapsibleAdminSection({
             className="w-full rounded-full border border-emerald-300 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             aria-controls={panelId}
           >
-            Reveal
+            Expand
           </button>
           <button
             type="button"

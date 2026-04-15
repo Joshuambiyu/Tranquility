@@ -42,7 +42,9 @@ function ToolbarButton({
       aria-label={label}
       title={label}
       className={`rounded-lg border text-xs font-semibold transition ${
-        compact ? "flex h-9 min-w-9 items-center justify-center px-2" : "px-3 py-1.5"
+        compact
+          ? "flex h-8 w-8 shrink-0 snap-start items-center justify-center px-0.5 text-[11px]"
+          : "px-3 py-1.5"
       } ${
         isActive
           ? "border-emerald-300 bg-emerald-50 text-emerald-800"
@@ -693,7 +695,7 @@ export default function ArticleRichEditor({
       </div>
 
       <div
-        className={`sticky bottom-3 z-20 flex items-center gap-2 overflow-x-auto rounded-xl border border-slate-200 bg-white/95 p-2 shadow-sm backdrop-blur transition-all duration-200 sm:hidden ${bottomToolbarVisibilityClass}`}
+        className={`sticky bottom-3 z-20 flex items-center gap-1.5 overflow-x-auto rounded-xl border border-slate-200 bg-white/95 p-1.5 shadow-sm backdrop-blur transition-all duration-200 snap-x snap-mandatory sm:hidden ${bottomToolbarVisibilityClass}`}
       >
         <ToolbarButton compact label="Heading 1" shortLabel="H1" onClick={() => applyHeading(1)} isActive={activeMarks.heading1} />
         <ToolbarButton compact label="Heading 2" shortLabel="H2" onClick={() => applyHeading(2)} isActive={activeMarks.heading2} />

@@ -164,17 +164,17 @@ export default function BlogPage() {
               const relatedA = visiblePosts[(index + 1) % visiblePosts.length];
               const relatedB = visiblePosts[(index + 2) % visiblePosts.length];
               return (
-                <Card key={post.id} className="min-w-0 gap-3">
+                <Card key={post.id} className="min-w-0 gap-3 overflow-hidden">
                   <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
                     {post.author} • {new Date(post.publishedAt).toLocaleDateString()}
                   </p>
                   <h3 className="break-words [overflow-wrap:anywhere] text-2xl font-semibold text-slate-950">{post.title}</h3>
                   <p className="break-words [overflow-wrap:anywhere] text-base text-slate-800">{post.excerpt}</p>
-                  <p className="break-words [overflow-wrap:anywhere] rounded-xl bg-[var(--card-in-section-bg)] px-3 py-2 text-base text-slate-800 ring-1 ring-[var(--border-muted)]">
+                  <p className="min-w-0 break-all rounded-xl bg-[var(--card-in-section-bg)] px-3 py-2 text-base text-slate-800 ring-1 ring-[var(--border-muted)]">
                     Reflection moment: {truncateAtWordBoundary(post.reflectionMoment, 130)}
                   </p>
                   {relatedA && relatedB ? (
-                    <p className="break-words [overflow-wrap:anywhere] text-base text-slate-700">
+                    <p className="min-w-0 break-all text-base text-slate-700">
                       Related: {relatedA.title} • {relatedB.title}
                     </p>
                   ) : null}

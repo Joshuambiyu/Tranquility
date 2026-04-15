@@ -141,8 +141,16 @@ export default function ArticleFormEnhancements({
   clearDraft?: boolean;
   restoreDraft?: boolean;
 }) {
-  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
-  const [wasRestored, setWasRestored] = useState(false);
+  const initialPersistedState = useMemo(() => {
+    if (typeof window === "undefined" || clearDraft || !restoreDraft) {
+      return null;
+    }
+
+    return safeParsePersistedState(localStorage.getItem(storageKey));
+  }, [clearDraft, restoreDraft, storageKey]);
+
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(initialPersistedState?.savedAt ?? null);
+  const [wasRestored] = useState(Boolean(initialPersistedState));
   const initialStateRef = useRef<Record<string, string> | null>(null);
   const dirtyRef = useRef(false);
   const submittingRef = useRef(false);
@@ -174,8 +182,6 @@ export default function ArticleFormEnhancements({
 
     if (!clearDraft && restoreDraft && persisted) {
       restoreFormState(form, persisted.fields);
-      setWasRestored(true);
-      setLastSavedAt(persisted.savedAt);
     }
 
     initialStateRef.current = captureFormState(form);

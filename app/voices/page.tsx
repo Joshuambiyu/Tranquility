@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { authClient, useSession } from "@/lib/auth-client";
 import { useToast } from "@/app/components/feedback/ToastProvider";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
@@ -91,7 +91,7 @@ export default function VoicesPage() {
     };
   }, []);
 
-  const loadApprovedVoices = async (page: number, append: boolean) => {
+  const loadApprovedVoices = useCallback(async (page: number, append: boolean) => {
     try {
       if (append) {
         setIsLoadingMoreCommunityVoices(true);
@@ -160,11 +160,11 @@ export default function VoicesPage() {
         setIsLoadingMoreCommunityVoices(false);
       }
     }
-  };
+  }, [showToast]);
 
   useEffect(() => {
     void loadApprovedVoices(1, false);
-  }, []);
+  }, [loadApprovedVoices]);
 
   const handleLoadMoreCommunityVoices = async () => {
     if (isLoadingMoreCommunityVoices || !hasMoreCommunityVoices) {

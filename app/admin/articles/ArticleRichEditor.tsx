@@ -641,7 +641,7 @@ export default function ArticleRichEditor({
           </div>
         ) : null}
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <div className="hidden items-center gap-2 overflow-x-auto pb-1 sm:flex">
           <span className="shrink-0 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Text color</span>
           {TEXT_COLORS.map((tone) => (
             <button
@@ -696,6 +696,7 @@ export default function ArticleRichEditor({
 
       <div
         className={`sticky bottom-3 z-20 flex items-center gap-1.5 overflow-x-auto rounded-xl border border-slate-200 bg-white/95 p-1.5 shadow-sm backdrop-blur transition-all duration-200 snap-x snap-mandatory sm:hidden ${bottomToolbarVisibilityClass}`}
+        style={{ WebkitOverflowScrolling: "touch" }}
       >
         <ToolbarButton compact label="Heading 1" shortLabel="H1" onClick={() => applyHeading(1)} isActive={activeMarks.heading1} />
         <ToolbarButton compact label="Heading 2" shortLabel="H2" onClick={() => applyHeading(2)} isActive={activeMarks.heading2} />
@@ -710,11 +711,11 @@ export default function ArticleRichEditor({
         <ToolbarButton compact label="Image" shortLabel="Img" onClick={openImagePanel} />
       </div>
 
-      <p className="text-xs text-slate-500">
+      <p className="hidden text-xs text-slate-500 sm:block">
         Tip: use Ctrl/Cmd + B for bold and Ctrl/Cmd + I for italic.
       </p>
       <p className="text-xs text-slate-500 sm:hidden">
-        Mobile tip: use the bottom formatting bar to apply headings and text styles.
+        Mobile tip: swipe the bottom bar for more formatting tools.
       </p>
 
       <input type="hidden" name="contentJson" value={contentJson} />

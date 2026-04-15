@@ -26,19 +26,19 @@ export default function ImagePickerPreview({
       : "No cover image selected.";
 
   return (
-    <section className="grid gap-4 rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-4">
+    <section className="grid min-w-0 gap-4 overflow-x-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-4">
       <div className="grid gap-1">
         <p className="text-sm font-semibold text-slate-800">Cover image (optional)</p>
         <p className="text-xs text-slate-500">Add a cover image if this article needs one. Leave empty to publish without a cover.</p>
       </div>
 
-      <label className="grid gap-2 rounded-xl border border-dashed border-slate-300 bg-white p-3 text-sm font-medium text-slate-700">
+      <label className="grid min-w-0 gap-2 rounded-xl border border-dashed border-slate-300 bg-white p-3 text-sm font-medium text-slate-700">
         Upload cover image
         <input
           type="file"
           name="imageFile"
           accept="image/*"
-          className="rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 file:mr-3 file:rounded-full file:border-0 file:bg-emerald-100 file:px-3 file:py-1.5 file:font-semibold file:text-emerald-800"
+          className="w-full min-w-0 max-w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 file:mr-3 file:max-w-full file:rounded-full file:border-0 file:bg-emerald-100 file:px-3 file:py-1.5 file:font-semibold file:text-emerald-800"
           onChange={(event) => {
             const file = event.currentTarget.files?.[0] ?? null;
 

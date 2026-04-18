@@ -13,17 +13,15 @@ import ArticleRichEditor from "@/app/admin/articles/ArticleRichEditor";
 import ArticleSubmitButtons from "@/app/admin/articles/ArticleSubmitButtons";
 import ImagePickerPreview from "@/app/admin/articles/ImagePickerPreview";
 import PublishReadinessChecklist from "@/app/admin/articles/PublishReadinessChecklist";
-import ToastOnMount from "@/app/components/feedback/ToastOnMount";
 import { hasAdminAccess } from "@/lib/admin";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 interface AdminEditArticlePageProps {
   params: Promise<{ articleId: string }>;
-  searchParams: Promise<{ updated?: string; duplicate?: string }>;
 }
 
-export default async function AdminEditArticlePage({ params, searchParams }: AdminEditArticlePageProps) {
+export default async function AdminEditArticlePage({ params }: AdminEditArticlePageProps) {
   const session = await getServerSession();
 
   if (!session?.user) {
@@ -35,7 +33,6 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
   }
 
   const { articleId } = await params;
-  const { updated, duplicate } = await searchParams;
 
   const article = await prisma.article.findUnique({
     where: { id: articleId },
@@ -64,14 +61,6 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
 
   return (
     <main className="mx-auto grid min-h-[70vh] w-full min-w-0 max-w-6xl gap-6 overflow-x-hidden px-5 py-8 sm:px-8 lg:px-10">
-      <ToastOnMount
-        id={`articles-updated-${article.id}-${updated}-${duplicate}`}
-        type={duplicate === "1" ? "info" : "success"}
-        title={duplicate === "1" ? "Duplicate submission blocked" : "Article updated"}
-        message={duplicate === "1" ? "Your previous update was already processed." : "Changes were saved successfully."}
-        enabled={updated === "1"}
-      />
-
       <section className={`${ADMIN_HERO_PANEL_CLASS} gap-3`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="grid gap-2">
@@ -90,16 +79,6 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
           Last updated: {new Date(article.updatedAt).toLocaleString()} • Status: {article.status}
         </p>
 
-        {updated === "1" ? (
-          <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
-            Article updated successfully.
-          </p>
-        ) : null}
-        {duplicate === "1" ? (
-          <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
-            Duplicate submit blocked: this update request was already processed.
-          </p>
-        ) : null}
       </section>
 
       <section className={`min-w-0 ${ADMIN_PANEL_CLASS}`}>
@@ -107,8 +86,8 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
           <ArticleFormEnhancements
             formId={editFormId}
             storageKey={editDraftStorageKey}
-            clearDraft={updated === "1"}
-            restoreDraft={updated !== "1"}
+            clearDraft
+            restoreDraft={false}
           />
 
           <input type="hidden" name="articleId" value={article.id} />
@@ -160,7 +139,7 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
           <ArticleRichEditor
             initialContent={article.content}
             draftStorageKey={editDraftStorageKey}
-            restoreDraft={updated !== "1"}
+            restoreDraft={false}
             formId={editFormId}
           />
 

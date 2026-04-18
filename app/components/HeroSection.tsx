@@ -18,9 +18,11 @@ export function HeroSection({ siteName, tagline, ctaHref, ctaLabel }: HeroSectio
         <div className="absolute right-20 top-12 h-10 w-24 rounded-full blur-sm" style={{ background: "var(--hero-glow-b)" }} />
         <div className="absolute bottom-10 left-1/3 h-24 w-24 rounded-full blur-2xl" style={{ background: "var(--hero-glow-c)" }} />
       </div>
-      <div className="relative grid gap-5">
+      <div className="relative grid gap-5 pr-2 sm:pr-0">
         <p className="text-sm font-medium uppercase tracking-[0.22em] text-emerald-700">Welcome</p>
-        <h1 className="text-4xl font-semibold tracking-tight text-[var(--text-strong)] sm:text-5xl lg:text-5xl">{siteName}</h1>
+        <h1 className="max-w-[min(100%,16ch)] text-[clamp(2.1rem,10.5vw,3rem)] font-semibold leading-[0.95] tracking-tight text-[var(--text-strong)] sm:max-w-none sm:text-5xl lg:text-5xl">
+          {siteName}
+        </h1>
         <p className="max-w-2xl text-lg leading-relaxed text-[var(--text-muted)] sm:text-xl lg:text-2xl">{tagline}</p>
         <div className="pt-2">
           <ActionLink href={ctaHref} label={ctaLabel} fadeIn />

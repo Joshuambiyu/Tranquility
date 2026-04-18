@@ -79,12 +79,6 @@ export default function AdminAccessDenied() {
             >
               Go to homepage
             </Link>
-            <Link
-              href="/auth/signin"
-              className="inline-grid place-items-center rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-            >
-              Sign in with a different account
-            </Link>
           </div>
         </div>
 

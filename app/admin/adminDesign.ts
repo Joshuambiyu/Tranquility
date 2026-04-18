@@ -33,10 +33,13 @@ export function adminButtonClass({
   fullWidth = true,
   className = "",
 }: AdminButtonClassOptions = {}) {
+  const defaultSpacingClass = size === "default" ? "mt-1" : "";
+
   return [
     ADMIN_BUTTON_BASE,
     ADMIN_BUTTON_TONE_STYLES[tone],
     ADMIN_BUTTON_SIZE_STYLES[size],
+    defaultSpacingClass,
     fullWidth ? "w-full sm:w-fit" : "",
     className,
   ]

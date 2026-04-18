@@ -9,6 +9,12 @@ import {
   addAdminEmailAction,
   removeAdminEmailAction,
 } from "@/app/admin/admin-access/actions";
+import {
+  ADMIN_CARD_CLASS,
+  ADMIN_HERO_PANEL_CLASS,
+  ADMIN_PANEL_CLASS,
+  adminButtonClass,
+} from "@/app/admin/adminDesign";
 import ActionSubmitButton from "@/app/components/feedback/ActionSubmitButton";
 import ToastOnMount from "@/app/components/feedback/ToastOnMount";
 import { getServerSession } from "@/lib/auth";
@@ -94,7 +100,7 @@ export default async function AdminHomePage({
         />
       ) : null}
 
-      <section className="grid gap-2 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100">
+      <section className={ADMIN_HERO_PANEL_CLASS}>
         <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Admin Dashboard</h1>
         <p className="text-sm text-slate-600">
           Manage moderation and submissions from one place.
@@ -102,7 +108,7 @@ export default async function AdminHomePage({
       </section>
 
       <section className="grid gap-4 md:grid-cols-2">
-        <article className="grid gap-3 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+        <article className={ADMIN_PANEL_CLASS}>
           <h2 className="text-xl font-semibold text-slate-900">Community Voices</h2>
           <p className="text-sm text-slate-600">
             Pending submissions: <span className="font-semibold text-slate-900">{pendingVoices}</span>
@@ -112,13 +118,13 @@ export default async function AdminHomePage({
           </p>
           <Link
             href="/admin/voices"
-            className="inline-grid w-full place-items-center rounded-full bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800 sm:w-fit"
+            className={adminButtonClass({ tone: "primary" })}
           >
             Open Voices Admin
           </Link>
         </article>
 
-        <article className="grid gap-3 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+        <article className={ADMIN_PANEL_CLASS}>
           <h2 className="text-xl font-semibold text-slate-900">Contact Submissions</h2>
           <p className="text-sm text-slate-600">
             Total submissions: <span className="font-semibold text-slate-900">{totalContacts}</span>
@@ -128,7 +134,7 @@ export default async function AdminHomePage({
           </p>
           <Link
             href="/admin/contact-submissions"
-            className="inline-grid w-full place-items-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 sm:w-fit"
+            className={adminButtonClass({ tone: "secondary" })}
           >
             Open Contact Admin
           </Link>
@@ -136,7 +142,7 @@ export default async function AdminHomePage({
       </section>
 
       <section className="grid gap-4 md:grid-cols-2">
-        <article className="grid gap-3 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+        <article className={ADMIN_PANEL_CLASS}>
           <h2 className="text-xl font-semibold text-slate-900">Editorial Articles</h2>
           <p className="text-sm text-slate-700">
             Publish and feature blog articles directly from the admin panel.
@@ -144,20 +150,20 @@ export default async function AdminHomePage({
           <div className="grid gap-2 sm:flex sm:flex-wrap">
             <Link
               href="/admin/articles"
-              className="inline-grid w-full place-items-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 sm:w-fit"
+              className={adminButtonClass({ tone: "secondary" })}
             >
               Open Articles Admin
             </Link>
             <Link
               href="/admin/articles/delete"
-              className="inline-grid w-full place-items-center rounded-full border border-rose-300 px-5 py-2.5 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-fit"
+              className={adminButtonClass({ tone: "danger" })}
             >
               Delete Articles
             </Link>
           </div>
         </article>
 
-        <article className="grid gap-3 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+        <article className={ADMIN_PANEL_CLASS}>
           <h2 className="text-xl font-semibold text-slate-900">Resource of the Month</h2>
           <p className="text-sm text-slate-600">
             Managed resources: <span className="font-semibold text-slate-900">{resourceStats._count._all}</span>
@@ -167,14 +173,14 @@ export default async function AdminHomePage({
           </p>
           <Link
             href="/admin/resources"
-            className="inline-grid w-full place-items-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 sm:w-fit"
+            className={adminButtonClass({ tone: "secondary" })}
           >
             Open Resources Admin
           </Link>
         </article>
       </section>
 
-      <section className="grid gap-4 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+      <section className={`grid gap-4 ${ADMIN_PANEL_CLASS}`}>
         <h2 className="text-xl font-semibold text-slate-900">Admin Access</h2>
         <p className="text-sm text-slate-700">
           Admin privileges are role-based. Add or remove admins by updating signed-in users to the admin role.
@@ -194,7 +200,7 @@ export default async function AdminHomePage({
           <ActionSubmitButton
             idleLabel="Add Admin"
             pendingLabel="Adding..."
-            className="inline-grid h-11 w-full place-items-center rounded-full bg-emerald-700 px-6 text-sm font-semibold text-white transition hover:bg-emerald-800 sm:w-fit"
+            className={adminButtonClass({ tone: "primary", className: "px-6" })}
           />
         </form>
 
@@ -205,7 +211,7 @@ export default async function AdminHomePage({
           ) : (
             <div className="grid gap-2">
               {admins.map((admin) => (
-                <article key={admin.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3">
+                <article key={admin.id} className={`flex flex-wrap items-center justify-between gap-3 ${ADMIN_CARD_CLASS}`}>
                   <div className="grid gap-1">
                     <p className="text-sm font-medium text-slate-900">{admin.email}</p>
                     <p className="text-xs text-slate-500">
@@ -217,7 +223,7 @@ export default async function AdminHomePage({
                     <ActionSubmitButton
                       idleLabel="Remove"
                       pendingLabel="Removing..."
-                      className="rounded-full border border-rose-300 px-4 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
+                      className={adminButtonClass({ tone: "danger", size: "compact", fullWidth: false })}
                     />
                   </form>
                 </article>

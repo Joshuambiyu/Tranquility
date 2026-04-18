@@ -2,6 +2,8 @@
 
 import { useFormStatus } from "react-dom";
 
+import { adminButtonClass } from "@/app/admin/adminDesign";
+
 export default function DeleteArticleInlineButton() {
   const { pending } = useFormStatus();
 
@@ -20,7 +22,7 @@ export default function DeleteArticleInlineButton() {
           event.preventDefault();
         }
       }}
-      className="rounded-full border border-rose-300 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
+      className={adminButtonClass({ tone: "danger", size: "compact", fullWidth: false })}
     >
       {pending ? "Deleting..." : "Delete"}
     </button>

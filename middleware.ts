@@ -11,8 +11,15 @@ import { NextRequest, NextResponse } from "next/server";
 export function middleware(request: NextRequest) {
   const host = request.headers.get("host") ?? "";
 
-  // Only redirect the apex domain → www (production only)
-  if (host === "tranquilityhub.co.ke") {
+  // Only redirect the apex domain → www (production only).
+  // IMPORTANT: never redirect /api/auth/* — OAuth callbacks carry a one-time
+  // `code` and a `state` that was bound to the cookie on the originating origin.
+  // Redirecting those requests to www causes the state-cookie mismatch that
+  // breaks the sign-in flow (One Tap is unaffected because it posts a credential
+  // directly rather than using a redirect round-trip).
+  const isAuthCallback = request.nextUrl.pathname.startsWith("/api/auth/");
+
+  if (host === "tranquilityhub.co.ke" && !isAuthCallback) {
     const url = request.nextUrl.clone();
     url.host = "www.tranquilityhub.co.ke";
     url.port = "";

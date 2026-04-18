@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import {
+  ADMIN_HERO_PANEL_CLASS,
+  ADMIN_PANEL_CLASS,
+  adminButtonClass,
+} from "@/app/admin/adminDesign";
 import { deleteAllArticlesAction, deleteArticleAction } from "@/app/admin/articles/actions";
 import ActionSubmitButton from "@/app/components/feedback/ActionSubmitButton";
 import ToastOnMount from "@/app/components/feedback/ToastOnMount";
@@ -72,7 +77,7 @@ export default async function DeleteArticlesAdminPage({
         />
       ) : null}
 
-      <section className="grid gap-3 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-rose-200">
+      <section className={`${ADMIN_HERO_PANEL_CLASS} gap-3 ring-rose-200`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="grid gap-1">
             <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Delete Articles</h1>
@@ -82,7 +87,7 @@ export default async function DeleteArticlesAdminPage({
           </div>
           <Link
             href="/admin/articles"
-            className="inline-grid w-full place-items-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 sm:w-fit"
+            className={adminButtonClass({ tone: "secondary" })}
           >
             Back to Articles Admin
           </Link>
@@ -102,7 +107,7 @@ export default async function DeleteArticlesAdminPage({
           {articles.map((article) => (
             <article
               key={article.id}
-              className="grid gap-3 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200"
+              className={`grid gap-3 ${ADMIN_PANEL_CLASS}`}
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="grid gap-1">
@@ -124,7 +129,7 @@ export default async function DeleteArticlesAdminPage({
                 <ActionSubmitButton
                   idleLabel="Delete Article"
                   pendingLabel="Deleting..."
-                  className="w-full rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-auto"
+                  className={adminButtonClass({ tone: "danger" })}
                 />
               </form>
             </article>
@@ -133,7 +138,7 @@ export default async function DeleteArticlesAdminPage({
       )}
 
       {articles.length > 0 ? (
-        <section className="grid gap-4 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-rose-200">
+        <section className={`grid gap-4 ${ADMIN_PANEL_CLASS} ring-rose-200`}>
           <h2 className="text-xl font-semibold text-slate-900">Danger Zone</h2>
           <p className="text-sm text-slate-700">
             Delete every article in one action. To continue, type <span className="font-semibold">DELETE ALL ARTICLES</span>.
@@ -148,7 +153,7 @@ export default async function DeleteArticlesAdminPage({
             <ActionSubmitButton
               idleLabel="Delete All Articles"
               pendingLabel="Deleting..."
-              className="inline-grid w-full place-items-center rounded-full bg-rose-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-rose-800 sm:w-fit"
+              className={adminButtonClass({ tone: "danger", className: "bg-rose-700 text-white hover:border-rose-800 hover:bg-rose-800" })}
             />
           </form>
         </section>

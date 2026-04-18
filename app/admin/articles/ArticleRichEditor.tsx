@@ -8,6 +8,7 @@ import type { Editor as TiptapEditor } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
 import type { EditorView } from "prosemirror-view";
 import { useState, type CSSProperties, type ReactNode } from "react";
+import { adminButtonClass } from "@/app/admin/adminDesign";
 import CalloutNode from "@/app/admin/articles/extensions/CalloutNode";
 import ResizableImage from "@/app/admin/articles/extensions/ResizableImage";
 
@@ -621,7 +622,12 @@ export default function ArticleRichEditor({
               <button
                 type="button"
                 onClick={handleInsertImage}
-                className="rounded-full bg-emerald-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800"
+                className={adminButtonClass({
+                  tone: "primary",
+                  size: "compact",
+                  fullWidth: false,
+                  className: "normal-case tracking-normal",
+                })}
               >
                 Insert image
               </button>
@@ -633,7 +639,12 @@ export default function ArticleRichEditor({
                   setUploadedImageDataUrl("");
                   setUploadedImageName("");
                 }}
-                className="rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+                className={adminButtonClass({
+                  tone: "secondary",
+                  size: "compact",
+                  fullWidth: false,
+                  className: "normal-case tracking-normal",
+                })}
               >
                 Cancel
               </button>

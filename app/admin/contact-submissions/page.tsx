@@ -1,4 +1,8 @@
 import { redirect } from "next/navigation";
+import {
+  ADMIN_HERO_PANEL_CLASS,
+  ADMIN_PANEL_CLASS,
+} from "@/app/admin/adminDesign";
 import { getServerSession } from "@/lib/auth";
 import { hasAdminAccess } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
@@ -45,7 +49,7 @@ export default async function ContactSubmissionsAdminPage() {
 
   return (
     <main className="mx-auto grid min-h-[70vh] w-full max-w-6xl gap-6 px-5 py-8 sm:px-8 lg:px-10">
-      <section className="grid gap-2 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100">
+      <section className={ADMIN_HERO_PANEL_CLASS}>
         <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Contact Submissions</h1>
         <p className="text-sm text-slate-600">
           Showing the latest {submissions.length} submissions captured from the contact form.
@@ -61,7 +65,7 @@ export default async function ContactSubmissionsAdminPage() {
           {submissions.map((submission) => (
             <article
               key={submission.id}
-              className="grid gap-3 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200"
+              className={`grid gap-3 ${ADMIN_PANEL_CLASS}`}
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-lg font-semibold text-slate-900">{submission.name}</h2>

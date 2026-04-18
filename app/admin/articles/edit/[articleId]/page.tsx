@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import {
+  ADMIN_HERO_PANEL_CLASS,
+  ADMIN_PANEL_CLASS,
+  adminButtonClass,
+} from "@/app/admin/adminDesign";
 import { updateArticleAction } from "@/app/admin/articles/actions";
 import ArticleFormEnhancements from "@/app/admin/articles/ArticleFormEnhancements";
 import ArticleRichEditor from "@/app/admin/articles/ArticleRichEditor";
@@ -75,7 +80,7 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
         enabled={updated === "1"}
       />
 
-      <section className="grid gap-3 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100">
+      <section className={`${ADMIN_HERO_PANEL_CLASS} gap-3`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="grid gap-2">
             <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Edit Article</h1>
@@ -83,7 +88,7 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
           </div>
           <Link
             href="/admin/articles"
-            className="inline-grid w-full place-items-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 sm:w-fit"
+            className={adminButtonClass({ tone: "secondary" })}
           >
             Back to Articles Admin
           </Link>
@@ -105,7 +110,7 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
         ) : null}
       </section>
 
-      <section className="min-w-0 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+      <section className={`min-w-0 ${ADMIN_PANEL_CLASS}`}>
         <form id={editFormId} action={updateArticleAction} className="grid min-w-0 gap-4">
           <ArticleFormEnhancements
             formId={editFormId}

@@ -6,6 +6,11 @@ import {
   featureVoiceSubmissionAction,
   rejectVoiceSubmissionAction,
 } from "@/app/admin/voices/actions";
+import {
+  ADMIN_HERO_PANEL_CLASS,
+  ADMIN_PANEL_CLASS,
+  adminButtonClass,
+} from "@/app/admin/adminDesign";
 import ActionSubmitButton from "@/app/components/feedback/ActionSubmitButton";
 import ToastOnMount from "@/app/components/feedback/ToastOnMount";
 import { hasAdminAccess } from "@/lib/admin";
@@ -100,7 +105,7 @@ export default async function VoicesAdminPage({
         />
       ) : null}
 
-      <section className="grid gap-2 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100">
+      <section className={ADMIN_HERO_PANEL_CLASS}>
         <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Community Voices</h1>
         <p className="text-sm text-slate-600">
           Approve, reject, and choose which approved submission appears as Voice of the Week.
@@ -116,7 +121,7 @@ export default async function VoicesAdminPage({
           {submissions.map((submission) => (
             <article
               key={submission.id}
-              className="grid gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200"
+              className={`grid gap-4 ${ADMIN_PANEL_CLASS}`}
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="grid gap-2">
@@ -165,7 +170,7 @@ export default async function VoicesAdminPage({
                     <ActionSubmitButton
                       idleLabel="Approve"
                       pendingLabel="Approving..."
-                      className="w-full rounded-full bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 sm:w-auto"
+                      className={adminButtonClass({ tone: "primary" })}
                     />
                   </form>
                 ) : null}
@@ -176,7 +181,7 @@ export default async function VoicesAdminPage({
                     <ActionSubmitButton
                       idleLabel="Reject"
                       pendingLabel="Rejecting..."
-                      className="w-full rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-auto"
+                      className={adminButtonClass({ tone: "danger" })}
                     />
                   </form>
                 ) : null}
@@ -187,7 +192,7 @@ export default async function VoicesAdminPage({
                     <ActionSubmitButton
                       idleLabel="Make Voice of the Week"
                       pendingLabel="Updating..."
-                      className="w-full rounded-full border border-amber-200 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-50 sm:w-auto"
+                      className={adminButtonClass({ tone: "warning" })}
                     />
                   </form>
                 ) : null}
@@ -198,7 +203,7 @@ export default async function VoicesAdminPage({
                     <ActionSubmitButton
                       idleLabel="Clear Voice of the Week"
                       pendingLabel="Clearing..."
-                      className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto"
+                      className={adminButtonClass({ tone: "secondary" })}
                     />
                   </form>
                 ) : null}

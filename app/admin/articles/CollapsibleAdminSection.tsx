@@ -2,6 +2,8 @@
 
 import { useState, type ReactNode } from "react";
 
+import { adminButtonClass } from "@/app/admin/adminDesign";
+
 type CollapsibleAdminSectionProps = {
   panelId: string;
   title: string;
@@ -31,7 +33,7 @@ export default function CollapsibleAdminSection({
             type="button"
             onClick={() => setIsExpanded(true)}
             disabled={isExpanded}
-            className="w-full rounded-full border border-emerald-300 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            className={adminButtonClass({ tone: "primary", size: "compact" })}
             aria-controls={panelId}
           >
             Expand
@@ -40,7 +42,7 @@ export default function CollapsibleAdminSection({
             type="button"
             onClick={() => setIsExpanded(false)}
             disabled={!isExpanded}
-            className="w-full rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            className={adminButtonClass({ tone: "secondary", size: "compact" })}
             aria-controls={panelId}
           >
             Collapse

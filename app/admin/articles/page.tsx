@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import {
+  ADMIN_CARD_CLASS,
+  ADMIN_HERO_PANEL_CLASS,
+  ADMIN_PANEL_CLASS,
+  adminButtonClass,
+} from "@/app/admin/adminDesign";
 import { createArticleAction, deleteArticleAction } from "@/app/admin/articles/actions";
 import DeleteArticleInlineButton from "@/app/admin/articles/DeleteArticleInlineButton";
 import ArticleFormEnhancements from "@/app/admin/articles/ArticleFormEnhancements";
@@ -74,7 +80,7 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
         enabled={result === "deleted"}
       />
 
-      <section className="grid gap-2 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100">
+      <section className={ADMIN_HERO_PANEL_CLASS}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="grid gap-2">
             <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Editorial Articles</h1>
@@ -82,7 +88,7 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
           </div>
           <Link
             href="/admin/articles/delete"
-            className="inline-grid w-full place-items-center rounded-full border border-rose-300 px-5 py-2.5 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-fit"
+            className={adminButtonClass({ tone: "danger" })}
           >
             Delete Articles
           </Link>
@@ -92,7 +98,7 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
       <CollapsibleAdminSection
         panelId="admin-articles-create-panel"
         title="Create Article"
-        sectionClassName="min-w-0 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200"
+        sectionClassName={`min-w-0 ${ADMIN_PANEL_CLASS}`}
         defaultExpanded={false}
       >
         {created === "1" ? (
@@ -202,12 +208,12 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
       <CollapsibleAdminSection
         panelId="admin-articles-recent-panel"
         title="Recent Articles"
-        sectionClassName="grid gap-4 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200"
+        sectionClassName={`grid gap-4 ${ADMIN_PANEL_CLASS}`}
         defaultExpanded={false}
       >
         <div className="grid gap-3">
           {latestArticles.map((article) => (
-            <article key={article.id} className="grid gap-3 rounded-xl border border-slate-200 px-4 py-3 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
+            <article key={article.id} className={`grid gap-3 ${ADMIN_CARD_CLASS} sm:flex sm:flex-wrap sm:items-center sm:justify-between`}>
               <div className="grid gap-1">
                 <p className="font-semibold text-slate-900">{article.title}</p>
                 <p className="break-words text-xs text-slate-600">
@@ -217,7 +223,7 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
               <div className="flex flex-wrap items-center gap-2">
                 <Link
                   href={`/admin/articles/edit/${article.id}`}
-                  className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 transition hover:bg-slate-50"
+                  className={adminButtonClass({ tone: "secondary", size: "compact", fullWidth: false })}
                 >
                   Edit
                 </Link>

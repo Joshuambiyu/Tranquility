@@ -7,6 +7,12 @@ import {
   setCurrentResourceAction,
 } from "@/app/admin/resources/actions";
 import ArticleFormEnhancements from "@/app/admin/articles/ArticleFormEnhancements";
+import {
+  ADMIN_CARD_CLASS,
+  ADMIN_HERO_PANEL_CLASS,
+  ADMIN_PANEL_CLASS,
+  adminButtonClass,
+} from "@/app/admin/adminDesign";
 import ActionSubmitButton from "@/app/components/feedback/ActionSubmitButton";
 import ResourceSubmitButtons from "@/app/admin/resources/ResourceSubmitButtons";
 import ToastOnMount from "@/app/components/feedback/ToastOnMount";
@@ -133,14 +139,14 @@ export default async function AdminResourcesPage({
         />
       ) : null}
 
-      <section className="grid gap-2 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100">
+      <section className={ADMIN_HERO_PANEL_CLASS}>
         <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Resource of the Month</h1>
         <p className="text-sm text-slate-600">
           Create monthly resources, publish them, and set which one is currently featured on the public resources page.
         </p>
       </section>
 
-      <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+      <section className={ADMIN_PANEL_CLASS}>
         {saved === "1" ? (
           <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
             Monthly resource saved successfully.
@@ -226,7 +232,7 @@ export default async function AdminResourcesPage({
         </form>
       </section>
 
-      <section className="grid gap-4 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+      <section className={`grid gap-4 ${ADMIN_PANEL_CLASS}`}>
         <h2 className="text-xl font-semibold text-slate-900">Recent Monthly Resources</h2>
         {resources.length === 0 ? (
           <p className="text-sm text-slate-600">No monthly resources yet.</p>
@@ -235,7 +241,7 @@ export default async function AdminResourcesPage({
             {resources.map((resource) => (
               <article
                 key={resource.id}
-                className="grid gap-3 rounded-xl border border-slate-200 px-4 py-3"
+                className={ADMIN_CARD_CLASS}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="break-words font-semibold text-slate-900">
@@ -265,7 +271,7 @@ export default async function AdminResourcesPage({
                       <ActionSubmitButton
                         idleLabel="Publish"
                         pendingLabel="Publishing..."
-                        className="w-full rounded-full bg-emerald-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800 sm:w-auto"
+                        className={adminButtonClass({ tone: "primary", size: "compact" })}
                       />
                     </form>
                   ) : null}
@@ -276,7 +282,7 @@ export default async function AdminResourcesPage({
                       <ActionSubmitButton
                         idleLabel="Set Current"
                         pendingLabel="Updating..."
-                        className="w-full rounded-full border border-amber-200 px-4 py-2 text-xs font-semibold text-amber-700 transition hover:bg-amber-50 sm:w-auto"
+                        className={adminButtonClass({ tone: "warning", size: "compact" })}
                       />
                     </form>
                   ) : null}
@@ -287,7 +293,7 @@ export default async function AdminResourcesPage({
                       <ActionSubmitButton
                         idleLabel="Archive"
                         pendingLabel="Archiving..."
-                        className="w-full rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto"
+                        className={adminButtonClass({ tone: "secondary", size: "compact" })}
                       />
                     </form>
                   ) : null}

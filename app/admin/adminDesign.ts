@@ -8,7 +8,7 @@ const ADMIN_BUTTON_TONE_STYLES: Record<AdminButtonTone, string> = {
   primary:
     "border-emerald-700 bg-emerald-700 text-white hover:border-emerald-800 hover:bg-emerald-800 focus-visible:outline-emerald-700",
   secondary:
-    "border-emerald-300 bg-emerald-100 text-emerald-800 hover:border-emerald-400 hover:bg-emerald-200 focus-visible:outline-emerald-500",
+    "border-emerald-700 bg-emerald-700 text-white hover:border-emerald-800 hover:bg-emerald-800 focus-visible:outline-emerald-700",
   danger:
     "border-rose-300 bg-rose-50 text-rose-700 hover:border-rose-400 hover:bg-rose-100 focus-visible:outline-rose-400",
   warning:

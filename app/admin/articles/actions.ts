@@ -163,6 +163,11 @@ function buildExcerptFallback(paragraphs: string[]) {
 }
 
 async function resolveImageSource(formData: FormData, fallbackImageSrc?: string) {
+  // If the user explicitly removed the image, clear it regardless of fallback.
+  if (formData.get("removeImage") === "1") {
+    return "";
+  }
+
   const uploadedImage = formData.get("imageFile");
 
   if (uploadedImage instanceof File && uploadedImage.size > 0) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ARTICLE_FORM_CLEAR_EVENT } from "@/app/admin/articles/ArticleFormEnhancements";
 
 export default function ImagePickerPreview({
@@ -13,6 +13,8 @@ export default function ImagePickerPreview({
   const initialLink = initialImageSrc?.trim() || "";
   const [previewUrl, setPreviewUrl] = useState<string>(initialLink);
   const [fileObjectUrl, setFileObjectUrl] = useState<string | null>(null);
+  const [removeImage, setRemoveImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     return () => {
@@ -36,6 +38,7 @@ export default function ImagePickerPreview({
 
       setFileObjectUrl(null);
       setPreviewUrl("");
+      setRemoveImage(false);
     };
 
     document.addEventListener(ARTICLE_FORM_CLEAR_EVENT, handleFormClear as EventListener);
@@ -53,6 +56,11 @@ export default function ImagePickerPreview({
       setFileObjectUrl(null);
     }
     setPreviewUrl("");
+    setRemoveImage(true);
+    // Clear the file input so the form doesn't re-upload anything
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const helperText = fileObjectUrl
@@ -62,7 +70,8 @@ export default function ImagePickerPreview({
       : "No cover image selected.";
 
   return (
-    <section className="grid min-w-0 gap-4 overflow-x-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-4">
+    <section className="grid min-w-0 gap-4 overflow-x-hidden rounded-2xl border border-slate-200 bg-[var(--surface)] p-4">
+      <input type="hidden" name="removeImage" value={removeImage ? "1" : "0"} />
       <div className="grid gap-1">
         <p className="text-sm font-semibold text-slate-800">Cover image (optional)</p>
         <p className="text-xs text-slate-500">Add a cover image if this article needs one. Leave empty to publish without a cover.</p>
@@ -75,8 +84,10 @@ export default function ImagePickerPreview({
           name="imageFile"
           accept="image/*"
           className="w-full min-w-0 max-w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 file:mr-3 file:max-w-full file:rounded-full file:border-0 file:bg-emerald-100 file:px-3 file:py-1.5 file:font-semibold file:text-emerald-800"
+          ref={fileInputRef}
           onChange={(event) => {
             const file = event.currentTarget.files?.[0] ?? null;
+            setRemoveImage(false);
 
             if (file) {
               if (fileObjectUrl) {

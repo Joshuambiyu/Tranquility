@@ -6,6 +6,7 @@ import {
   featureVoiceSubmissionAction,
   rejectVoiceSubmissionAction,
 } from "@/app/admin/voices/actions";
+import AdminAccessDenied from "@/app/admin/AdminAccessDenied";
 import {
   ADMIN_HERO_PANEL_CLASS,
   ADMIN_PANEL_CLASS,
@@ -34,16 +35,7 @@ export default async function VoicesAdminPage({
   }
 
   if (!(await hasAdminAccess(session.user.email))) {
-    return (
-      <main className="mx-auto grid min-h-[70vh] w-full max-w-4xl place-items-center px-5 py-10 sm:px-8 lg:px-10">
-        <section className="grid w-full gap-4 rounded-3xl bg-white p-8 shadow-sm ring-1 ring-rose-100">
-          <h1 className="text-2xl font-semibold text-slate-900">Access denied</h1>
-          <p className="text-slate-700">
-            Your account is signed in, but it is not allowed to manage community voices.
-          </p>
-        </section>
-      </main>
-    );
+    return <AdminAccessDenied />;
   }
 
   const submissions = await prisma.voiceSubmission.findMany({

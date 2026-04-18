@@ -35,3 +35,5 @@ export const config = {
     "/((?!_next|favicon\\.ico|icon\\.svg).*)",
   ],
 };
+
+//to be cleanly refactored

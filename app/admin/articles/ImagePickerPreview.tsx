@@ -45,9 +45,19 @@ export default function ImagePickerPreview({
     };
   }, [fileObjectUrl, formId]);
 
+  const hasPreview = Boolean(previewUrl);
+
+  const handleRemove = () => {
+    if (fileObjectUrl) {
+      URL.revokeObjectURL(fileObjectUrl);
+      setFileObjectUrl(null);
+    }
+    setPreviewUrl("");
+  };
+
   const helperText = fileObjectUrl
     ? "Previewing uploaded file."
-    : initialLink
+    : previewUrl
       ? "Previewing current cover image."
       : "No cover image selected.";
 
@@ -91,8 +101,20 @@ export default function ImagePickerPreview({
       </label>
 
       <div className="grid gap-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">Image preview</p>
-        {previewUrl ? (
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">Image preview</p>
+          {hasPreview && (
+            <button
+              type="button"
+              onClick={handleRemove}
+              className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
+            >
+              <span aria-hidden="true" className="text-[10px] font-bold">✕</span>
+              Remove image
+            </button>
+          )}
+        </div>
+        {hasPreview ? (
           <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={previewUrl} alt="Selected article cover preview" className="h-52 w-full object-cover" />

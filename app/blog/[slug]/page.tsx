@@ -70,20 +70,13 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           </p>
           <SectionTitle title={article.title} />
           {hasCoverImage ? (
-            <div className="relative h-56 overflow-hidden rounded-2xl ring-1 ring-emerald-100 sm:h-72">
-              <div className="absolute inset-0 bg-[linear-gradient(110deg,_#ecf7f2_0%,_#f6fbf8_58%,_#eef6ff_100%)]" />
-              <BlendedImageLayer
-                imageSrc={article.imageSrc}
-                imageAlt={article.imageAlt}
-                sizes="(max-width: 768px) 100vw, 70vw"
-                roundedClassName="rounded-none"
-                objectPositionClassName="object-right"
-                showGradient={false}
-                priority={false}
-                opacity={1}
-                scale={1.05}
+            <div className="overflow-hidden rounded-2xl ring-1 ring-emerald-100">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={article.imageSrc}
+                alt={article.imageAlt || article.title}
+                className="h-56 w-full object-cover sm:h-72"
               />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/65 via-white/35 to-transparent" />
             </div>
           ) : null}
         </SectionBlock>

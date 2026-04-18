@@ -10,7 +10,7 @@ interface HeroSectionProps {
 
 export function HeroSection({ siteName, tagline, ctaHref, ctaLabel }: HeroSectionProps) {
   return (
-    <section className="relative overflow-hidden rounded-xl p-8 shadow-sm ring-1 ring-[var(--border-muted)] sm:p-10 lg:p-12">
+    <section className="relative overflow-hidden rounded-xl p-6 shadow-sm ring-1 ring-[var(--border-muted)] sm:p-10 lg:p-12">
       <BlendedImageLayer imageSrc="/images/hero-section-image.jpeg" />
 
       <div className="pointer-events-none absolute inset-0">
@@ -20,7 +20,7 @@ export function HeroSection({ siteName, tagline, ctaHref, ctaLabel }: HeroSectio
       </div>
       <div className="relative grid gap-5">
         <p className="text-sm font-medium uppercase tracking-[0.22em] text-emerald-700">Welcome</p>
-        <h1 className="max-w-full text-[clamp(2rem,8vw,2.75rem)] font-semibold leading-[1.02] tracking-tight text-[var(--text-strong)] [overflow-wrap:anywhere] sm:text-5xl lg:text-5xl">
+        <h1 className="max-w-full whitespace-nowrap text-[clamp(1.75rem,7.2vw,2.4rem)] font-semibold leading-[1.02] tracking-tight text-[var(--text-strong)] sm:text-5xl lg:text-5xl">
           {siteName}
         </h1>
         <p className="max-w-2xl text-lg leading-relaxed text-[var(--text-muted)] sm:text-xl lg:text-2xl">{tagline}</p>

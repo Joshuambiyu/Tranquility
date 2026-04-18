@@ -8,6 +8,9 @@ type PersistedFormState = {
 };
 
 const NON_DIRTY_FIELD_NAMES = new Set(["submitToken"]);
+const NON_CLEARABLE_FIELD_NAMES = new Set(["submitToken", "articleId"]);
+
+export const ARTICLE_FORM_CLEAR_EVENT = "article-form:clear";
 
 function safeParsePersistedState(raw: string | null): PersistedFormState | null {
   if (!raw) {
@@ -130,16 +133,62 @@ function areStatesEqual(a: Record<string, string>, b: Record<string, string>) {
   return true;
 }
 
+function clearFormFields(form: HTMLFormElement) {
+  const fields = form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
+    "input[name], textarea[name], select[name]",
+  );
+
+  fields.forEach((field) => {
+    if (!field.name || field.disabled || NON_CLEARABLE_FIELD_NAMES.has(field.name)) {
+      return;
+    }
+
+    if (field instanceof HTMLInputElement) {
+      if (
+        field.type === "hidden" ||
+        field.type === "file" ||
+        field.type === "submit" ||
+        field.type === "button" ||
+        field.type === "reset"
+      ) {
+        return;
+      }
+
+      if (field.type === "checkbox" || field.type === "radio") {
+        field.checked = false;
+      } else {
+        field.value = "";
+      }
+
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      field.dispatchEvent(new Event("change", { bubbles: true }));
+      return;
+    }
+
+    if (field instanceof HTMLTextAreaElement) {
+      field.value = "";
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      field.dispatchEvent(new Event("change", { bubbles: true }));
+      return;
+    }
+
+    field.selectedIndex = 0;
+    field.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+}
+
 export default function ArticleFormEnhancements({
   formId,
   storageKey,
   clearDraft,
   restoreDraft,
+  resetOnSuccess,
 }: {
   formId: string;
   storageKey: string;
   clearDraft?: boolean;
   restoreDraft?: boolean;
+  resetOnSuccess?: boolean;
 }) {
   const initialPersistedState = useMemo(() => {
     if (typeof window === "undefined" || clearDraft || !restoreDraft) {
@@ -176,6 +225,11 @@ export default function ArticleFormEnhancements({
 
     if (clearDraft) {
       localStorage.removeItem(storageKey);
+
+      if (resetOnSuccess) {
+        clearFormFields(form);
+        document.dispatchEvent(new CustomEvent(ARTICLE_FORM_CLEAR_EVENT, { detail: { formId } }));
+      }
     }
 
     const persisted = safeParsePersistedState(localStorage.getItem(storageKey));
@@ -276,7 +330,7 @@ export default function ArticleFormEnhancements({
       form.removeEventListener("change", onFieldChange);
       form.removeEventListener("submit", onSubmit);
     };
-  }, [clearDraft, formId, restoreDraft, storageKey]);
+  }, [clearDraft, formId, resetOnSuccess, restoreDraft, storageKey]);
 
   if (!statusLabel) {
     return null;

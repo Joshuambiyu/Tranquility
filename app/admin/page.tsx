@@ -77,6 +77,21 @@ export default async function AdminHomePage({
       title: "Action blocked",
       message: "You cannot remove your own admin access.",
     },
+    "user-not-found": {
+      type: "info",
+      title: "User must sign in first",
+      message: "That email is not yet a registered user. Ask them to sign in once before granting admin access.",
+    },
+    "invalid-email": {
+      type: "error",
+      title: "Invalid email",
+      message: "Please provide a valid email address.",
+    },
+    "add-failed": {
+      type: "error",
+      title: "Could not add admin",
+      message: "We could not grant admin access right now. Please try again.",
+    },
   };
 
   const accessToast = adminAccess ? accessToastByResult[adminAccess] : null;

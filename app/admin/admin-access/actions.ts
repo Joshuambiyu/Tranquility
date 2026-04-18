@@ -42,11 +42,26 @@ function revalidateAdminPages() {
 
 export async function addAdminEmailAction(formData: FormData) {
   await ensureAdminAccess();
-  const email = parseEmail(formData, "email");
+  let adminAccessResult: "added" | "user-not-found" | "invalid-email" | "add-failed" = "added";
 
-  await addManagedAdminEmail(email);
-  revalidateAdminPages();
-  redirect("/admin?adminAccess=added");
+  try {
+    const email = parseEmail(formData, "email");
+
+    await addManagedAdminEmail(email);
+    revalidateAdminPages();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+
+    if (message.includes("sign in at least once") || message.includes("User not found")) {
+      adminAccessResult = "user-not-found";
+    } else if (message.includes("valid email") || message.includes("Email is required")) {
+      adminAccessResult = "invalid-email";
+    } else {
+      adminAccessResult = "add-failed";
+    }
+  }
+
+  redirect(`/admin?adminAccess=${adminAccessResult}`);
 }
 
 export async function removeAdminEmailAction(formData: FormData) {

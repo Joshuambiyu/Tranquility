@@ -7,8 +7,9 @@ import StarterKit from "@tiptap/starter-kit";
 import type { Editor as TiptapEditor } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
 import type { EditorView } from "prosemirror-view";
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { adminButtonClass } from "@/app/admin/adminDesign";
+import { ARTICLE_FORM_CLEAR_EVENT } from "@/app/admin/articles/ArticleFormEnhancements";
 import CalloutNode from "@/app/admin/articles/extensions/CalloutNode";
 import ResizableImage from "@/app/admin/articles/extensions/ResizableImage";
 
@@ -206,10 +207,12 @@ export default function ArticleRichEditor({
   initialContent,
   draftStorageKey,
   restoreDraft,
+  formId,
 }: {
   initialContent?: unknown;
   draftStorageKey?: string;
   restoreDraft?: boolean;
+  formId?: string;
 }) {
   const startingContent = toTiptapDoc(initialContent);
 
@@ -380,6 +383,35 @@ export default function ArticleRichEditor({
       setIsEditorFocused(false);
     },
   });
+
+  useEffect(() => {
+    const handleFormClear = (event: Event) => {
+      const currentEditor = editor;
+      if (!currentEditor) {
+        return;
+      }
+
+      const customEvent = event as CustomEvent<{ formId?: string }>;
+      if (formId && customEvent.detail?.formId !== formId) {
+        return;
+      }
+
+      currentEditor.commands.setContent(EMPTY_DOC, { emitUpdate: false });
+      setContentJson(JSON.stringify(EMPTY_DOC));
+      setPlainText("");
+      setIsImagePanelOpen(false);
+      setImagePanelError("");
+      setUploadedImageDataUrl("");
+      setUploadedImageName("");
+      setImageAltInput("");
+      syncToolbarState(currentEditor);
+    };
+
+    document.addEventListener(ARTICLE_FORM_CLEAR_EVENT, handleFormClear as EventListener);
+    return () => {
+      document.removeEventListener(ARTICLE_FORM_CLEAR_EVENT, handleFormClear as EventListener);
+    };
+  }, [editor, formId]);
 
   const editorAccent = activeTextColor ?? DEFAULT_EDITOR_ACCENT;
   const bottomToolbarVisibilityClass = isEditorFocused

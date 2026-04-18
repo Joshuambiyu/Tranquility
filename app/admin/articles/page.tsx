@@ -110,6 +110,7 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
             storageKey={CREATE_ARTICLE_DRAFT_STORAGE_KEY}
             clearDraft={created === "1"}
             restoreDraft={created !== "1"}
+            resetOnSuccess={created === "1"}
           />
 
           <label className="grid gap-2 text-sm font-medium text-slate-700">
@@ -158,6 +159,7 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
           <ArticleRichEditor
             draftStorageKey={CREATE_ARTICLE_DRAFT_STORAGE_KEY}
             restoreDraft={created !== "1"}
+            formId={CREATE_ARTICLE_FORM_ID}
           />
 
           <label className="grid gap-2 text-sm font-medium text-slate-700">
@@ -172,7 +174,7 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
             />
           </label>
 
-          <ImagePickerPreview />
+          <ImagePickerPreview formId={CREATE_ARTICLE_FORM_ID} />
 
           <label className="grid gap-2 text-sm font-medium text-slate-700">
               Image description (optional)

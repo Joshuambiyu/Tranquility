@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ARTICLE_FORM_CLEAR_EVENT } from "@/app/admin/articles/ArticleFormEnhancements";
 
 export default function ImagePickerPreview({
   initialImageSrc,
+  formId,
 }: {
   initialImageSrc?: string | null;
+  formId?: string;
 }) {
   const initialLink = initialImageSrc?.trim() || "";
   const [previewUrl, setPreviewUrl] = useState<string>(initialLink);
@@ -18,6 +21,29 @@ export default function ImagePickerPreview({
       }
     };
   }, [fileObjectUrl]);
+
+  useEffect(() => {
+    const handleFormClear = (event: Event) => {
+      const customEvent = event as CustomEvent<{ formId?: string }>;
+
+      if (formId && customEvent.detail?.formId !== formId) {
+        return;
+      }
+
+      if (fileObjectUrl) {
+        URL.revokeObjectURL(fileObjectUrl);
+      }
+
+      setFileObjectUrl(null);
+      setPreviewUrl("");
+    };
+
+    document.addEventListener(ARTICLE_FORM_CLEAR_EVENT, handleFormClear as EventListener);
+
+    return () => {
+      document.removeEventListener(ARTICLE_FORM_CLEAR_EVENT, handleFormClear as EventListener);
+    };
+  }, [fileObjectUrl, formId]);
 
   const helperText = fileObjectUrl
     ? "Previewing uploaded file."

@@ -215,7 +215,7 @@ export function SiteHeader({ links }: SiteHeaderProps) {
 
                     <motion.nav
                       aria-label="Mobile primary navigation"
-                      className="grid gap-2 py-5"
+                      className="mt-5 grid gap-2 rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50/80 via-[var(--surface-muted)] to-[var(--surface)] p-2"
                       initial="closed"
                       animate="open"
                       exit="closed"
@@ -248,10 +248,10 @@ export function SiteHeader({ links }: SiteHeaderProps) {
                             <Link
                               href={link.href}
                               onClick={closeMobileMenu}
-                              className={`rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                              className={`rounded-xl px-4 py-3 text-[13px] font-semibold uppercase tracking-[0.08em] transition ${
                                 isActive
-                                  ? "bg-emerald-50 text-emerald-700"
-                                  : "text-[var(--text-muted)] hover:bg-emerald-50 hover:text-emerald-700"
+                                  ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200"
+                                  : "bg-white/70 text-[var(--text-muted)] hover:bg-emerald-50 hover:text-emerald-700"
                               }`}
                             >
                               {link.label}

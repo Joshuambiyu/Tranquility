@@ -109,6 +109,7 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
             storageKey={editDraftStorageKey}
             clearDraft={updated === "1"}
             restoreDraft={updated !== "1"}
+            resetOnSuccess={updated === "1"}
           />
 
           <input type="hidden" name="articleId" value={article.id} />
@@ -161,6 +162,7 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
             initialContent={article.content}
             draftStorageKey={editDraftStorageKey}
             restoreDraft={updated !== "1"}
+            formId={editFormId}
           />
 
           <label className="grid gap-2 text-sm font-medium text-slate-700">
@@ -176,7 +178,7 @@ export default async function AdminEditArticlePage({ params, searchParams }: Adm
             />
           </label>
 
-          <ImagePickerPreview initialImageSrc={article.imageSrc} />
+          <ImagePickerPreview initialImageSrc={article.imageSrc} formId={editFormId} />
 
           <label className="grid gap-2 text-sm font-medium text-slate-700">
             Image description (optional)

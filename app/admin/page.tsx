@@ -97,7 +97,7 @@ export default async function AdminHomePage({
   const accessToast = adminAccess ? accessToastByResult[adminAccess] : null;
 
   return (
-    <main className="mx-auto grid min-h-[70vh] w-full max-w-6xl gap-6 px-5 py-8 sm:px-8 lg:px-10">
+    <main className="mx-auto grid min-h-[70vh] w-full max-w-6xl gap-6 px-4 py-8 sm:px-8 lg:px-10">
       {accessToast ? (
         <ToastOnMount
           id={`admin-access-${adminAccess}`}
@@ -107,9 +107,9 @@ export default async function AdminHomePage({
         />
       ) : null}
 
-      <section className={ADMIN_HERO_PANEL_CLASS}>
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Admin Dashboard</h1>
-        <p className="text-sm text-slate-600">
+      <section className={`${ADMIN_HERO_PANEL_CLASS} gap-3`}>
+        <h1 className="text-[clamp(2rem,7.2vw,2.6rem)] font-semibold tracking-tight text-slate-900">Admin Dashboard</h1>
+        <p className="text-base leading-relaxed text-slate-600">
           Manage moderation and submissions from one place.
         </p>
       </section>
@@ -117,15 +117,15 @@ export default async function AdminHomePage({
       <section className="grid gap-4 md:grid-cols-2">
         <article className={ADMIN_PANEL_CLASS}>
           <h2 className="text-xl font-semibold text-slate-900">Community Voices</h2>
-          <p className="text-sm text-slate-600">
+          <p className="text-base leading-relaxed text-slate-600">
             Pending submissions: <span className="font-semibold text-slate-900">{pendingVoices}</span>
           </p>
-          <p className="text-sm text-slate-700">
+          <p className="text-base leading-relaxed text-slate-700">
             Approve, reject, and set Voice of the Week.
           </p>
           <Link
             href="/admin/voices"
-            className={adminButtonClass({ tone: "primary" })}
+            className={adminButtonClass({ tone: "primary", className: "mt-1" })}
           >
             Open Voices Admin
           </Link>
@@ -133,15 +133,15 @@ export default async function AdminHomePage({
 
         <article className={ADMIN_PANEL_CLASS}>
           <h2 className="text-xl font-semibold text-slate-900">Contact Submissions</h2>
-          <p className="text-sm text-slate-600">
+          <p className="text-base leading-relaxed text-slate-600">
             Total submissions: <span className="font-semibold text-slate-900">{totalContacts}</span>
           </p>
-          <p className="text-sm text-slate-700">
+          <p className="text-base leading-relaxed text-slate-700">
             Review the latest messages from the contact page.
           </p>
           <Link
             href="/admin/contact-submissions"
-            className={adminButtonClass({ tone: "secondary" })}
+            className={adminButtonClass({ tone: "secondary", className: "mt-1" })}
           >
             Open Contact Admin
           </Link>
@@ -151,19 +151,19 @@ export default async function AdminHomePage({
       <section className="grid gap-4 md:grid-cols-2">
         <article className={ADMIN_PANEL_CLASS}>
           <h2 className="text-xl font-semibold text-slate-900">Editorial Articles</h2>
-          <p className="text-sm text-slate-700">
+          <p className="text-base leading-relaxed text-slate-700">
             Publish and feature blog articles directly from the admin panel.
           </p>
           <div className="grid gap-2 sm:flex sm:flex-wrap">
             <Link
               href="/admin/articles"
-              className={adminButtonClass({ tone: "secondary" })}
+              className={adminButtonClass({ tone: "secondary", className: "mt-1" })}
             >
               Open Articles Admin
             </Link>
             <Link
               href="/admin/articles/delete"
-              className={adminButtonClass({ tone: "danger" })}
+              className={adminButtonClass({ tone: "danger", className: "mt-1" })}
             >
               Delete Articles
             </Link>
@@ -172,15 +172,15 @@ export default async function AdminHomePage({
 
         <article className={ADMIN_PANEL_CLASS}>
           <h2 className="text-xl font-semibold text-slate-900">Resource of the Month</h2>
-          <p className="text-sm text-slate-600">
+          <p className="text-base leading-relaxed text-slate-600">
             Managed resources: <span className="font-semibold text-slate-900">{resourceStats._count._all}</span>
           </p>
-          <p className="text-sm text-slate-700">
+          <p className="text-base leading-relaxed text-slate-700">
             Create monthly resources, publish them, and select the current featured resource.
           </p>
           <Link
             href="/admin/resources"
-            className={adminButtonClass({ tone: "secondary" })}
+            className={adminButtonClass({ tone: "secondary", className: "mt-1" })}
           >
             Open Resources Admin
           </Link>
@@ -201,7 +201,7 @@ export default async function AdminHomePage({
               name="email"
               required
               placeholder="name@example.com"
-              className="rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none ring-emerald-400 transition focus:ring"
+              className="rounded-xl border border-slate-400 bg-slate-100 px-4 py-3 text-slate-900 placeholder:text-slate-500 outline-none ring-emerald-400 transition focus:bg-white focus:ring"
             />
           </label>
           <ActionSubmitButton

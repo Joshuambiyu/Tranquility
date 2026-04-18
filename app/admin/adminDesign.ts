@@ -8,11 +8,11 @@ const ADMIN_BUTTON_TONE_STYLES: Record<AdminButtonTone, string> = {
   primary:
     "border-emerald-700 bg-emerald-700 text-white hover:border-emerald-800 hover:bg-emerald-800 focus-visible:outline-emerald-700",
   secondary:
-    "border-slate-300 bg-white text-slate-800 hover:bg-slate-50 focus-visible:outline-slate-400",
+    "border-emerald-300 bg-emerald-100 text-emerald-800 hover:border-emerald-400 hover:bg-emerald-200 focus-visible:outline-emerald-500",
   danger:
-    "border-rose-300 bg-white text-rose-700 hover:bg-rose-50 focus-visible:outline-rose-400",
+    "border-rose-300 bg-rose-50 text-rose-700 hover:border-rose-400 hover:bg-rose-100 focus-visible:outline-rose-400",
   warning:
-    "border-amber-200 bg-white text-amber-700 hover:bg-amber-50 focus-visible:outline-amber-300",
+    "border-emerald-400 bg-emerald-600 text-white hover:border-emerald-500 hover:bg-emerald-700 focus-visible:outline-emerald-600",
 };
 
 const ADMIN_BUTTON_SIZE_STYLES: Record<AdminButtonSize, string> = {

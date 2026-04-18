@@ -22,7 +22,7 @@ import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 interface AdminArticlesPageProps {
-  searchParams: Promise<{ created?: string; duplicate?: string; result?: string }>;
+  searchParams: Promise<{ created?: string; duplicate?: string; result?: string; updated?: string; articleId?: string }>;
 }
 
 const CREATE_ARTICLE_FORM_ID = "admin-article-create-form";
@@ -53,10 +53,17 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
     },
   });
 
-  const { created, duplicate, result } = await searchParams;
+  const { created, duplicate, result, updated, articleId } = await searchParams;
 
   return (
     <main className="mx-auto grid min-h-[70vh] w-full min-w-0 max-w-6xl gap-6 overflow-x-hidden px-5 py-8 sm:px-8 lg:px-10">
+      <ToastOnMount
+        id={`articles-updated-${updated}-${articleId}`}
+        type="success"
+        title="Article updated"
+        message="Your changes were saved successfully."
+        enabled={updated === "1"}
+      />
       <ToastOnMount
         id={`articles-created-${created}-${duplicate}`}
         type={duplicate === "1" ? "info" : "success"}

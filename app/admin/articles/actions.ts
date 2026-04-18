@@ -514,7 +514,7 @@ export async function updateArticleAction(formData: FormData) {
 
   revalidateArticlePages();
   revalidatePath(`/admin/articles/edit/${articleId}`);
-  redirect(`/admin/articles/edit/${articleId}?updated=1`);
+  redirect(`/admin/articles?updated=1&articleId=${articleId}`);
 }
 
 export async function deleteArticleAction(formData: FormData) {

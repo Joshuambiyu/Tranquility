@@ -160,7 +160,7 @@ export default function BlogPage() {
         <SectionBlock>
           <SectionTitle title="Latest Articles" />
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {visiblePosts.map((post, index) => {
+            {visiblePosts.map((post) => {
               return (
                 <Card key={post.id} className="min-w-0 gap-3">
                   <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">

@@ -194,7 +194,7 @@ export function SiteHeader({ links }: SiteHeaderProps) {
                   <motion.div
                     key="mobile-menu-drawer"
                     id="mobile-site-menu"
-                    className="fixed inset-y-0 right-0 z-[80] flex h-dvh w-[min(88vw,22rem)] flex-col bg-[var(--surface)] shadow-[0_24px_80px_rgba(15,23,42,0.22)] md:hidden"
+                    className="fixed inset-y-0 right-0 z-[80] flex h-dvh w-[min(88vw,22rem)] flex-col overflow-hidden rounded-l-3xl border border-r-0 border-[var(--border-muted)] bg-[var(--surface)] shadow-[0_24px_80px_rgba(15,23,42,0.22)] md:hidden"
                     aria-hidden="false"
                     initial={{ x: "100%", opacity: 0.98 }}
                     animate={{ x: 0, opacity: 1 }}
@@ -204,11 +204,8 @@ export function SiteHeader({ links }: SiteHeaderProps) {
                       opacity: { duration: 0.2, ease: "easeOut" },
                     }}
                   >
-                    {/* ── Profile banner ──────────────────────────────── */}
-                    <div className="relative flex items-start gap-3 overflow-hidden bg-gradient-to-br from-[#0c2416] via-[#143320] to-[#1e4a2e] px-5 pb-6 pt-5">
-                      {/* subtle texture rings */}
-                      <div className="pointer-events-none absolute -right-8 -top-8 h-36 w-36 rounded-full bg-emerald-400/10" aria-hidden="true" />
-                      <div className="pointer-events-none absolute -right-4 -top-4 h-20 w-20 rounded-full bg-emerald-300/10" aria-hidden="true" />
+                    {/* ── Profile header ──────────────────────────────── */}
+                    <div className="flex items-start gap-3 border-b border-[var(--border-muted)] bg-[var(--surface-muted)] px-5 pb-4 pt-4">
 
                       {/* Avatar */}
                       <div className="relative mt-0.5 shrink-0">
@@ -219,10 +216,10 @@ export function SiteHeader({ links }: SiteHeaderProps) {
                             alt={session.user.name ?? "Profile"}
                             width={52}
                             height={52}
-                            className="h-[52px] w-[52px] rounded-full border-2 border-emerald-400/50 object-cover ring-2 ring-white/10"
+                            className="h-[52px] w-[52px] rounded-full border border-[var(--border-muted)] object-cover"
                           />
                         ) : (
-                          <span className="inline-flex h-[52px] w-[52px] items-center justify-center rounded-full border-2 border-emerald-400/40 bg-emerald-800/60 text-base font-bold text-emerald-200 ring-2 ring-white/10">
+                          <span className="inline-flex h-[52px] w-[52px] items-center justify-center rounded-full border border-[var(--border-muted)] bg-[var(--surface)] text-base font-bold text-[var(--text-strong)]">
                             {status === "authenticated" && session?.user
                               ? getInitials(session.user.name ?? session.user.email ?? "U")
                               : "T"}
@@ -234,17 +231,17 @@ export function SiteHeader({ links }: SiteHeaderProps) {
                       <div className="min-w-0 flex-1 pt-0.5">
                         {status === "authenticated" && session?.user ? (
                           <>
-                            <p className="truncate text-sm font-semibold text-white">
+                            <p className="truncate text-sm font-semibold text-[var(--text-strong)]">
                               {session.user.name ?? "Account"}
                             </p>
-                            <p className="truncate text-[12px] text-emerald-300/80">
+                            <p className="truncate text-[12px] text-[var(--text-muted)]">
                               {session.user.email ?? "Signed in"}
                             </p>
                           </>
                         ) : (
                           <>
-                            <p className="font-serif text-base text-white">TranquilityHub</p>
-                            <p className="text-[12px] text-emerald-300/70">Find your calm</p>
+                            <p className="font-serif text-base text-[var(--text-strong)]">TranquilityHub</p>
+                            <p className="text-[12px] text-[var(--text-muted)]">Find your calm</p>
                           </>
                         )}
                       </div>
@@ -253,7 +250,7 @@ export function SiteHeader({ links }: SiteHeaderProps) {
                       <button
                         type="button"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="ml-auto inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-emerald-300/70 transition hover:bg-white/10 hover:text-white"
+                        className="ml-auto inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--text-muted)] transition hover:bg-[var(--surface)] hover:text-[var(--text-strong)]"
                         aria-label="Close navigation menu"
                       >
                         <span className="relative block h-3.5 w-3.5" aria-hidden="true">

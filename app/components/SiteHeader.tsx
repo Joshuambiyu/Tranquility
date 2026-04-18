@@ -7,10 +7,46 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { createPortal } from "react-dom";
 import { usePathname, useSearchParams } from "next/navigation";
 import { AuthControls } from "@/app/components/AuthControls";
+import { authClient, useSession } from "@/lib/auth-client";
 import type { NavLinkItem } from "@/types";
+
+// ── Icon helpers ────────────────────────────────────────────────────────────
+function Icon({ d, className = "" }: { d: string; className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={`h-[18px] w-[18px] shrink-0 ${className}`}
+    >
+      <path d={d} />
+    </svg>
+  );
+}
+
+const NAV_ICONS: Record<string, string> = {
+  "/":          "M3 9.75L12 3l9 6.75V21a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.75z M9 22V12h6v10",
+  "/blog":      "M4 4h16v16H4z M8 9h8M8 13h6",
+  "/journals":  "M4 19.5A2.5 2.5 0 0 1 6.5 17H20 M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z M8 7h8M8 11h5",
+  "/voices":    "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
+  "/resources": "M12 2l9 4.5-9 4.5-9-4.5L12 2z M3 12l9 4.5 9-4.5 M3 17l9 4.5 9-4.5",
+  "/about":     "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M12 8h.01M12 12v4",
+  "/contact":   "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6",
+  "/privacy":   "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
+};
 
 interface SiteHeaderProps {
   links: NavLinkItem[];
+}
+
+function getInitials(nameOrEmail: string) {
+  const parts = nameOrEmail.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  return nameOrEmail.slice(0, 2).toUpperCase();
 }
 
 function subscribeToClientRender() {
@@ -24,6 +60,7 @@ export function SiteHeader({ links }: SiteHeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isClient = useSyncExternalStore(subscribeToClientRender, () => true, () => false);
   const searchQuery = searchParams.get("q") ?? "";
+  const { data: session, status } = useSession();
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
@@ -157,7 +194,7 @@ export function SiteHeader({ links }: SiteHeaderProps) {
                   <motion.div
                     key="mobile-menu-drawer"
                     id="mobile-site-menu"
-                    className="fixed inset-y-0 right-0 z-[80] flex h-dvh w-[min(88vw,22rem)] flex-col bg-[var(--surface)] px-5 pb-6 pt-5 shadow-[0_24px_80px_rgba(15,23,42,0.22)] md:hidden"
+                    className="fixed inset-y-0 right-0 z-[80] flex h-dvh w-[min(88vw,22rem)] flex-col bg-[var(--surface)] shadow-[0_24px_80px_rgba(15,23,42,0.22)] md:hidden"
                     aria-hidden="false"
                     initial={{ x: "100%", opacity: 0.98 }}
                     animate={{ x: 0, opacity: 1 }}
@@ -167,102 +204,180 @@ export function SiteHeader({ links }: SiteHeaderProps) {
                       opacity: { duration: 0.2, ease: "easeOut" },
                     }}
                   >
-                    <div className="flex items-center justify-between gap-4 border-b border-[var(--border-muted)] pb-4">
-                      <div className="min-w-0">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-700">Navigate</p>
-                        <p className="truncate pt-1 font-serif text-xl text-[var(--text-strong)]">TranquilityHub</p>
+                    {/* ── Profile banner ──────────────────────────────── */}
+                    <div className="relative flex items-start gap-3 overflow-hidden bg-gradient-to-br from-[#0c2416] via-[#143320] to-[#1e4a2e] px-5 pb-6 pt-5">
+                      {/* subtle texture rings */}
+                      <div className="pointer-events-none absolute -right-8 -top-8 h-36 w-36 rounded-full bg-emerald-400/10" aria-hidden="true" />
+                      <div className="pointer-events-none absolute -right-4 -top-4 h-20 w-20 rounded-full bg-emerald-300/10" aria-hidden="true" />
+
+                      {/* Avatar */}
+                      <div className="relative mt-0.5 shrink-0">
+                        {status === "authenticated" && session?.user?.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={session.user.image}
+                            alt={session.user.name ?? "Profile"}
+                            width={52}
+                            height={52}
+                            className="h-[52px] w-[52px] rounded-full border-2 border-emerald-400/50 object-cover ring-2 ring-white/10"
+                          />
+                        ) : (
+                          <span className="inline-flex h-[52px] w-[52px] items-center justify-center rounded-full border-2 border-emerald-400/40 bg-emerald-800/60 text-base font-bold text-emerald-200 ring-2 ring-white/10">
+                            {status === "authenticated" && session?.user
+                              ? getInitials(session.user.name ?? session.user.email ?? "U")
+                              : "T"}
+                          </span>
+                        )}
                       </div>
+
+                      {/* Identity text */}
+                      <div className="min-w-0 flex-1 pt-0.5">
+                        {status === "authenticated" && session?.user ? (
+                          <>
+                            <p className="truncate text-sm font-semibold text-white">
+                              {session.user.name ?? "Account"}
+                            </p>
+                            <p className="truncate text-[12px] text-emerald-300/80">
+                              {session.user.email ?? "Signed in"}
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="font-serif text-base text-white">TranquilityHub</p>
+                            <p className="text-[12px] text-emerald-300/70">Find your calm</p>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Close button */}
                       <button
                         type="button"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border-muted)] text-[var(--text-muted)] transition hover:bg-[var(--surface-muted)]"
+                        className="ml-auto inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-emerald-300/70 transition hover:bg-white/10 hover:text-white"
                         aria-label="Close navigation menu"
                       >
-                        <span className="relative block h-4 w-4" aria-hidden="true">
-                          <span className="absolute left-1/2 top-1/2 block h-0.5 w-4 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full bg-current" />
-                          <span className="absolute left-1/2 top-1/2 block h-0.5 w-4 -translate-x-1/2 -translate-y-1/2 -rotate-45 rounded-full bg-current" />
+                        <span className="relative block h-3.5 w-3.5" aria-hidden="true">
+                          <span className="absolute left-1/2 top-1/2 block h-0.5 w-full -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full bg-current" />
+                          <span className="absolute left-1/2 top-1/2 block h-0.5 w-full -translate-x-1/2 -translate-y-1/2 -rotate-45 rounded-full bg-current" />
                         </span>
                       </button>
                     </div>
 
-                    <form action="/search" method="get" onSubmit={closeMobileMenu} className="border-b border-[var(--border-muted)] py-4">
-                      <label className="sr-only" htmlFor="mobile-site-search">Search site content</label>
-                      <div className="flex items-center gap-2">
-                        <div className="relative min-w-0 flex-1">
-                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" aria-hidden="true">
-                            <span className="relative block h-4 w-4">
-                              <span className="absolute left-0 top-0 h-3 w-3 rounded-full border-2 border-current" />
-                              <span className="absolute bottom-0 right-0 h-2 w-0.5 rotate-[-45deg] rounded-full bg-current" />
+                    {/* ── Scrollable body ──────────────────────────────── */}
+                    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-4 pt-3">
+                      {/* Search */}
+                      <form action="/search" method="get" onSubmit={closeMobileMenu} className="mb-4">
+                        <label className="sr-only" htmlFor="mobile-site-search">Search site content</label>
+                        <div className="flex items-center gap-2">
+                          <div className="relative min-w-0 flex-1">
+                            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" aria-hidden="true">
+                              <span className="relative block h-4 w-4">
+                                <span className="absolute left-0 top-0 h-3 w-3 rounded-full border-2 border-current" />
+                                <span className="absolute bottom-0 right-0 h-2 w-0.5 rotate-[-45deg] rounded-full bg-current" />
+                              </span>
                             </span>
-                          </span>
-                          <input
-                            id="mobile-site-search"
-                            name="q"
-                            type="search"
-                            defaultValue={searchQuery}
-                            placeholder="Search articles and voices"
-                            className="min-w-0 w-full rounded-full border border-[var(--border-muted)] bg-[var(--surface)] py-2.5 pl-10 pr-4 text-sm text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
-                          />
-                        </div>
-                        <button
-                          type="submit"
-                          className="rounded-full border border-[var(--border-muted)] px-3 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-[var(--surface-muted)]"
-                        >
-                          Go
-                        </button>
-                      </div>
-                    </form>
-
-                    <motion.nav
-                      aria-label="Mobile primary navigation"
-                      className="mt-5 grid gap-2 rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50/80 via-[var(--surface-muted)] to-[var(--surface)] p-2"
-                      initial="closed"
-                      animate="open"
-                      exit="closed"
-                      variants={{
-                        open: {
-                          transition: {
-                            staggerChildren: prefersReducedMotion ? 0 : 0.06,
-                            delayChildren: prefersReducedMotion ? 0 : 0.06,
-                          },
-                        },
-                        closed: {
-                          transition: {
-                            staggerChildren: prefersReducedMotion ? 0 : 0.04,
-                            staggerDirection: -1,
-                          },
-                        },
-                      }}
-                    >
-                      {links.map((link) => {
-                        const isActive = pathname === link.href;
-                        return (
-                          <motion.div
-                            key={link.href}
-                            variants={{
-                              open: { opacity: 1, x: 0 },
-                              closed: { opacity: prefersReducedMotion ? 1 : 0, x: prefersReducedMotion ? 0 : 12 },
-                            }}
-                            transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: "easeOut" }}
+                            <input
+                              id="mobile-site-search"
+                              name="q"
+                              type="search"
+                              defaultValue={searchQuery}
+                              placeholder="Search articles and voices"
+                              className="min-w-0 w-full rounded-full border border-[var(--border-muted)] bg-[var(--surface-muted)] py-2.5 pl-10 pr-4 text-sm text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring focus:bg-[var(--surface)]"
+                            />
+                          </div>
+                          <button
+                            type="submit"
+                            className="rounded-full border border-[var(--border-muted)] px-3 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-[var(--surface-muted)]"
                           >
-                            <Link
-                              href={link.href}
-                              onClick={closeMobileMenu}
-                              className={`rounded-xl px-4 py-3 text-[13px] font-semibold uppercase tracking-[0.08em] transition ${
-                                isActive
-                                  ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200"
-                                  : "bg-white/70 text-[var(--text-muted)] hover:bg-emerald-50 hover:text-emerald-700"
-                              }`}
-                            >
-                              {link.label}
-                            </Link>
-                          </motion.div>
-                        );
-                      })}
-                    </motion.nav>
+                            Go
+                          </button>
+                        </div>
+                      </form>
 
-                    <div className="mt-auto border-t border-[var(--border-muted)] pt-5">
-                      <AuthControls variant="mobile" />
+                      {/* Nav section label */}
+                      <p className="mb-2 pl-1 text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--text-muted)]">
+                        Navigation
+                      </p>
+
+                      {/* Nav link rows */}
+                      <motion.nav
+                        aria-label="Mobile primary navigation"
+                        className="grid gap-0.5"
+                        initial="closed"
+                        animate="open"
+                        exit="closed"
+                        variants={{
+                          open: {
+                            transition: {
+                              staggerChildren: prefersReducedMotion ? 0 : 0.055,
+                              delayChildren: prefersReducedMotion ? 0 : 0.04,
+                            },
+                          },
+                          closed: {
+                            transition: {
+                              staggerChildren: prefersReducedMotion ? 0 : 0.03,
+                              staggerDirection: -1,
+                            },
+                          },
+                        }}
+                      >
+                        {links.map((link) => {
+                          const isActive = pathname === link.href;
+                          const iconPath = NAV_ICONS[link.href];
+                          return (
+                            <motion.div
+                              key={link.href}
+                              variants={{
+                                open: { opacity: 1, x: 0 },
+                                closed: { opacity: prefersReducedMotion ? 1 : 0, x: prefersReducedMotion ? 0 : 10 },
+                              }}
+                              transition={{ duration: prefersReducedMotion ? 0 : 0.18, ease: "easeOut" }}
+                            >
+                              <Link
+                                href={link.href}
+                                onClick={closeMobileMenu}
+                                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
+                                  isActive
+                                    ? "bg-emerald-50 font-semibold text-emerald-800 ring-1 ring-inset ring-emerald-200"
+                                    : "font-medium text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-strong)]"
+                                }`}
+                              >
+                                {iconPath ? (
+                                  <Icon
+                                    d={iconPath}
+                                    className={isActive ? "text-emerald-700" : "text-[var(--text-muted)]"}
+                                  />
+                                ) : (
+                                  <span className="h-[18px] w-[18px] shrink-0" />
+                                )}
+                                <span>{link.label}</span>
+                                {isActive && (
+                                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+                                )}
+                              </Link>
+                            </motion.div>
+                          );
+                        })}
+                      </motion.nav>
+                    </div>
+
+                    {/* ── Auth footer ──────────────────────────────────── */}
+                    <div className="shrink-0 border-t border-[var(--border-muted)] px-4 py-4">
+                      {status === "authenticated" ? (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await authClient.signOut();
+                            window.location.href = "/";
+                          }}
+                          className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--border-muted)] bg-[var(--surface-muted)] px-4 py-2.5 text-sm font-semibold text-[var(--text-muted)] transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
+                        >
+                          <Icon d="M17 16l4-4-4-4M21 12H9M13 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8" />
+                          Sign out
+                        </button>
+                      ) : (
+                        <AuthControls variant="mobile" />
+                      )}
                     </div>
                   </motion.div>
                 </>

@@ -290,11 +290,20 @@ function getArticleId(formData: FormData) {
   return articleId;
 }
 
-function revalidateArticlePages() {
+function revalidateArticlePages(slugs: string[] = []) {
   revalidatePath("/");
   revalidatePath("/blog");
+  revalidatePath("/search");
   revalidatePath("/admin/articles");
   revalidatePath("/admin/articles/delete");
+
+  for (const slug of slugs) {
+    if (!slug) {
+      continue;
+    }
+
+    revalidatePath(`/blog/${slug}`);
+  }
 }
 
 async function resolveUniqueSlug(baseSlug: string, excludeArticleId?: string) {
@@ -578,7 +587,7 @@ export async function createArticleAction(formData: FormData) {
     });
   }
 
-  revalidateArticlePages();
+  revalidateArticlePages([createdArticle.slug]);
   redirect("/admin/articles?created=1");
 }
 
@@ -685,7 +694,7 @@ export async function updateArticleAction(formData: FormData) {
     data: resolvedUpdate,
   });
 
-  revalidateArticlePages();
+  revalidateArticlePages([existingArticle.slug, resolvedUpdate.slug]);
   revalidatePath(`/admin/articles/edit/${articleId}`);
   redirect(`/admin/articles?updated=1&articleId=${articleId}`);
 }
@@ -696,11 +705,16 @@ export async function deleteArticleAction(formData: FormData) {
 
   const articleId = getArticleId(formData);
 
+  const existingArticle = await prisma.article.findUnique({
+    where: { id: articleId },
+    select: { slug: true },
+  });
+
   await prisma.article.delete({
     where: { id: articleId },
   });
 
-  revalidateArticlePages();
+  revalidateArticlePages(existingArticle?.slug ? [existingArticle.slug] : []);
   redirect("/admin/articles?result=deleted");
 }
 

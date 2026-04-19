@@ -31,6 +31,7 @@ function getVoiceId(formData: FormData) {
 
 function revalidateVoicePages() {
   revalidatePath("/voices");
+  revalidatePath("/search");
   revalidatePath("/admin/voices");
 }
 

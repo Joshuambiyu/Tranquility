@@ -57,18 +57,25 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
     excludeArticleId: featured?.id,
   });
 
-  const featuredPost = featured
+  const fallbackFeatured = !featured && articleResult.articles.length > 0 ? articleResult.articles[0] : null;
+
+  const featuredSource = featured ?? fallbackFeatured;
+
+  const featuredPost = featuredSource
     ? {
-        slug: featured.slug,
-        title: featured.title,
-        excerpt: featured.excerpt,
-        author: featured.author,
-        reflectionMoment: featured.reflectionMoment,
-        publishedAt: featured.publishedAt.toISOString(),
+        slug: featuredSource.slug,
+        title: featuredSource.title,
+        excerpt: featuredSource.excerpt,
+        author: featuredSource.author,
+        reflectionMoment: featuredSource.reflectionMoment,
+        publishedAt: featuredSource.publishedAt.toISOString(),
       }
     : null;
 
   const { articles, pagination } = articleResult;
+  const latestArticles = featuredPost
+    ? articles.filter((post) => post.slug !== featuredPost.slug)
+    : articles;
   const hasMore = Boolean(pagination.hasMore);
 
   return (
@@ -102,7 +109,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
         <SectionBlock>
           <SectionTitle title="Latest Articles" />
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {articles.map((post) => {
+            {latestArticles.map((post) => {
               return (
                 <Card key={post.id} className="min-w-0 gap-3">
                   <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
@@ -144,7 +151,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
             </div>
           ) : null}
 
-          {articles.length === 0 ? (
+          {latestArticles.length === 0 ? (
             <Card>
               <p className="text-[var(--text-muted)]">No articles matched your search yet. Try another keyword.</p>
             </Card>

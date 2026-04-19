@@ -63,13 +63,13 @@ export function AuthControls({ variant = "desktop" }: AuthControlsProps) {
       <div
         className={isMobile
           ? "grid gap-3"
-          : "flex shrink-0 items-center gap-2"}
+          : "flex min-w-0 shrink-0 items-center gap-1.5 max-w-[15.5rem]"}
       >
         <div
           className={
             isMobile
               ? "flex items-center gap-3 rounded-2xl border border-[var(--border-muted)] bg-[var(--surface-muted)] px-3 py-2.5"
-              : "flex items-center gap-2 rounded-full border border-[var(--border-muted)] bg-[var(--surface-muted)] px-2.5 py-1"
+              : "flex min-w-0 max-w-[11rem] items-center gap-1.5 rounded-full border border-[var(--border-muted)] bg-[var(--surface-muted)] px-1.5 py-1"
           }
         >
           {session.user?.image ? (
@@ -80,12 +80,17 @@ export function AuthControls({ variant = "desktop" }: AuthControlsProps) {
               {avatarLabel}
             </span>
           )}
-          <div className="min-w-0">
-            <p className="truncate text-xs font-semibold text-[var(--text-strong)]">{displayName}</p>
-            <p className={isMobile ? "text-[11px] text-[var(--text-muted)]" : "hidden text-[11px] text-[var(--text-muted)] xl:block"}>
-              Signed in
-            </p>
-          </div>
+          {isMobile ? (
+            <div className="min-w-0 max-w-[11rem]">
+              <p className="truncate text-xs font-semibold text-[var(--text-strong)]">{displayName}</p>
+              <p className="text-[11px] text-[var(--text-muted)]">Signed in</p>
+            </div>
+          ) : (
+            <div className="hidden min-w-0 max-w-[7.75rem] 2xl:block">
+              <p className="truncate text-xs font-semibold text-[var(--text-strong)]">{displayName}</p>
+              <p className="text-[11px] text-[var(--text-muted)]">Signed in</p>
+            </div>
+          )}
         </div>
 
         <button
@@ -96,7 +101,7 @@ export function AuthControls({ variant = "desktop" }: AuthControlsProps) {
           }}
           className={isMobile
             ? "inline-flex w-full items-center justify-center rounded-xl border border-emerald-200 px-4 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
-            : "inline-flex items-center justify-center rounded-full border border-[var(--border-muted)] px-3 py-1.5 text-xs font-medium text-[var(--text-muted)] transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"}
+            : "inline-flex shrink-0 items-center justify-center rounded-full border border-[var(--border-muted)] px-2.5 py-1.5 text-xs font-medium text-[var(--text-muted)] transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"}
         >
           Sign out
         </button>

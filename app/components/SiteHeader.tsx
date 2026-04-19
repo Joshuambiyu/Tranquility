@@ -39,6 +39,8 @@ const NAV_ICONS: Record<string, string> = {
   "/privacy":   "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
 };
 
+const SECONDARY_DESKTOP_LINKS = new Set(["/about", "/contact", "/privacy"]);
+
 interface SiteHeaderProps {
   links: NavLinkItem[];
 }
@@ -124,11 +126,11 @@ export function SiteHeader({ links }: SiteHeaderProps) {
           <Link
             href="/"
             onClick={closeMobileMenu}
-            className="inline-flex min-w-0 items-center gap-3"
+            className="inline-flex min-w-0 shrink-0 items-center gap-3"
             aria-label="TranquilityHub home"
           >
             <Image src="/tranquilityhub-mark.svg" alt="TranquilityHub logo" width={52} height={52} priority />
-            <span className="truncate font-serif text-2xl tracking-tight text-[var(--text-strong)] sm:text-3xl">TranquilityHub</span>
+            <span className="max-w-[11.5rem] truncate font-serif text-2xl tracking-tight text-[var(--text-strong)] lg:max-w-none lg:text-[2.2rem]">TranquilityHub</span>
           </Link>
 
           <div className="flex items-center gap-2 md:hidden">
@@ -148,16 +150,17 @@ export function SiteHeader({ links }: SiteHeaderProps) {
             </button>
           </div>
 
-          <div className="hidden min-w-0 flex-1 items-center justify-end gap-4 md:flex lg:gap-5">
-            <nav aria-label="Primary navigation" className="flex items-center gap-3 whitespace-nowrap lg:gap-4">
+          <div className="hidden min-w-0 flex-1 items-center justify-end gap-3 md:flex lg:gap-4">
+            <nav aria-label="Primary navigation" className="flex items-center gap-2 whitespace-nowrap lg:gap-3">
                 {links.map((link) => {
                   const isActive = pathname === link.href;
+                  const isSecondaryLink = SECONDARY_DESKTOP_LINKS.has(link.href);
                   return (
                     <Link
                       key={link.href}
                       href={link.href}
                       onClick={closeMobileMenu}
-                      className={`inline-flex items-center border-b-2 pb-1 text-[13px] transition lg:text-sm ${
+                      className={`${isSecondaryLink ? "hidden xl:inline-flex" : "inline-flex"} items-center border-b-2 pb-1 text-xs transition lg:text-[13px] ${
                         isActive
                           ? "border-emerald-700 font-semibold text-emerald-800"
                           : "border-transparent font-medium text-[var(--text-muted)] hover:border-emerald-300 hover:text-emerald-800"

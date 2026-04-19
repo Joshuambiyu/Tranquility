@@ -11,7 +11,10 @@ interface HeroSectionProps {
 export function HeroSection({ siteName, tagline, ctaHref, ctaLabel }: HeroSectionProps) {
   return (
     <section className="relative overflow-hidden rounded-xl p-6 shadow-sm ring-1 ring-[var(--border-muted)] sm:p-10 lg:p-12">
-      <BlendedImageLayer imageSrc="/images/hero-section-image.jpeg" />
+      <BlendedImageLayer
+        imageSrc="/images/hero-section-image.jpeg"
+        objectPositionClassName="object-right lg:object-[76%_80%]"
+      />
 
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-8 top-8 h-14 w-28 rounded-full blur-sm" style={{ background: "var(--hero-glow-a)" }} />

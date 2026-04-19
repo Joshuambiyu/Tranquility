@@ -13,9 +13,15 @@ export interface FeaturedArticleData {
 
 interface FeaturedArticleSectionProps {
   featuredPost: FeaturedArticleData | null;
+  title?: string;
+  emptyMessage?: string;
 }
 
-export function FeaturedArticleSection({ featuredPost }: FeaturedArticleSectionProps) {
+export function FeaturedArticleSection({
+  featuredPost,
+  title = "Featured Article",
+  emptyMessage = "No featured article yet.",
+}: FeaturedArticleSectionProps) {
   return (
     <SectionBlock className="relative overflow-hidden" bgVariant="default">
       {featuredPost ? (
@@ -23,7 +29,7 @@ export function FeaturedArticleSection({ featuredPost }: FeaturedArticleSectionP
       ) : null}
 
       <div className="relative">
-        <SectionTitle title="Featured Article" />
+        <SectionTitle title={title} />
       </div>
 
       {featuredPost ? (
@@ -45,7 +51,7 @@ export function FeaturedArticleSection({ featuredPost }: FeaturedArticleSectionP
         </article>
       ) : (
         <Card>
-          <p className="text-[var(--text-muted)]">No featured article yet.</p>
+          <p className="text-[var(--text-muted)]">{emptyMessage}</p>
         </Card>
       )}
     </SectionBlock>

@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { BlendedImageLayer } from "@/app/components/BlendedImageLayer";
-import { ActionLink, SectionBlock, SectionTitle } from "@/app/components/ui";
+import { SectionBlock, SectionTitle } from "@/app/components/ui";
 import type { FeaturedReflection } from "@/types";
 
 interface FeaturedReflectionSectionProps {
@@ -14,16 +15,16 @@ export function FeaturedReflectionSection({ reflection }: FeaturedReflectionSect
       <div className="relative">
         <SectionTitle title="Featured Reflection of the Week" />
       </div>
-      <div className="relative grid gap-6 md:grid-cols-[1.2fr_1fr] md:items-center">
-        <div className="grid gap-4">
-          <h3 className="text-2xl font-semibold text-[var(--text-strong)] lg:text-3xl">{reflection.title}</h3>
-          <p className="text-base leading-relaxed text-[var(--text-muted)] lg:text-lg">{reflection.summary}</p>
-          <div>
-            <ActionLink href={reflection.href} label="Read the Reflection" />
-          </div>
+      <article className="relative grid gap-5 md:grid-cols-[1.1fr_1fr] md:items-center">
+        <div className="grid gap-3">
+          <h3 className="text-2xl font-semibold text-[var(--text-strong)]">{reflection.title}</h3>
+          <p className="text-[var(--text-muted)]">{reflection.summary}</p>
+          <Link href={reflection.href} className="text-sm font-semibold text-emerald-700 hover:text-emerald-800">
+            Read full reflection
+          </Link>
         </div>
         <div className="hidden h-52 md:block" aria-hidden="true" />
-      </div>
+      </article>
     </SectionBlock>
   );
 }

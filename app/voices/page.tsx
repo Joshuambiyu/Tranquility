@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { authClient, useSession } from "@/lib/auth-client";
 import { useToast } from "@/app/components/feedback/ToastProvider";
+import { VoicesFeedLoading } from "@/app/components/loading/PageSkeletons";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import { AppError } from "@/lib/errors/app-error";
 import { logClientError, parseApiError } from "@/lib/errors/client-error";
@@ -75,6 +76,7 @@ export default function VoicesPage() {
   const [descriptor, setDescriptor] = useState("");
   const [selectedVoiceOfWeek, setSelectedVoiceOfWeek] = useState<PersistedVoice | null>(null);
   const [approvedVoices, setApprovedVoices] = useState<PersistedVoice[]>([]);
+  const [isLoadingInitialVoices, setIsLoadingInitialVoices] = useState(true);
   const [communityPage, setCommunityPage] = useState(1);
   const [hasMoreCommunityVoices, setHasMoreCommunityVoices] = useState(false);
   const [isLoadingMoreCommunityVoices, setIsLoadingMoreCommunityVoices] = useState(false);
@@ -93,6 +95,10 @@ export default function VoicesPage() {
 
   const loadApprovedVoices = useCallback(async (page: number, append: boolean) => {
     try {
+      if (!append) {
+        setIsLoadingInitialVoices(true);
+      }
+
       if (append) {
         setIsLoadingMoreCommunityVoices(true);
       }
@@ -156,6 +162,10 @@ export default function VoicesPage() {
         setHasMoreCommunityVoices(false);
       }
     } finally {
+      if (!append) {
+        setIsLoadingInitialVoices(false);
+      }
+
       if (append) {
         setIsLoadingMoreCommunityVoices(false);
       }
@@ -275,7 +285,14 @@ export default function VoicesPage() {
 
         <SectionBlock>
           <SectionTitle title="Voice of the Week" />
-          {featuredVoice ? (
+          {isLoadingInitialVoices ? (
+            <Card className="gap-3 p-6">
+              <div aria-hidden="true" className="th-shimmer h-8 w-3/5 rounded-xl" />
+              <div aria-hidden="true" className="th-shimmer h-4 w-full rounded-xl" />
+              <div aria-hidden="true" className="th-shimmer h-4 w-[92%] rounded-xl" />
+              <div aria-hidden="true" className="th-shimmer h-4 w-[78%] rounded-xl" />
+            </Card>
+          ) : featuredVoice ? (
             <Card className="gap-3 p-6">
               <h3 className="text-2xl font-semibold text-[var(--text-strong)] lg:text-3xl">{featuredVoice.title}</h3>
               <ReflectionPreview voice={featuredVoice} maxChars={featuredPreviewChars} />
@@ -291,7 +308,9 @@ export default function VoicesPage() {
 
         <SectionBlock>
           <SectionTitle title="Community Reflections" description="Short reflections shared by our readers and contributors." />
-          {mergedVoices.length === 0 ? (
+          {isLoadingInitialVoices ? (
+            <VoicesFeedLoading />
+          ) : mergedVoices.length === 0 ? (
             <Card className="gap-3 p-6">
               <p className="text-sm text-[var(--text-muted)]">
                 No approved community reflections yet. Submitted voices appear here after admin approval.

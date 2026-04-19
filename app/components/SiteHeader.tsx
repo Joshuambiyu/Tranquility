@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { createPortal } from "react-dom";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -58,9 +58,12 @@ export function SiteHeader({ links }: SiteHeaderProps) {
   const searchParams = useSearchParams();
   const prefersReducedMotion = useReducedMotion();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDesktopSearchOpen, setIsDesktopSearchOpen] = useState(false);
   const isClient = useSyncExternalStore(subscribeToClientRender, () => true, () => false);
   const searchQuery = searchParams.get("q") ?? "";
   const { data: session, status } = useSession();
+  const desktopSearchPanelRef = useRef<HTMLDivElement | null>(null);
+  const desktopSearchInputRef = useRef<HTMLInputElement | null>(null);
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
@@ -79,8 +82,47 @@ export function SiteHeader({ links }: SiteHeaderProps) {
     };
   }, [isMobileMenuOpen]);
 
+  useEffect(() => {
+    setIsDesktopSearchOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!isDesktopSearchOpen) {
+      return;
+    }
+
+    desktopSearchInputRef.current?.focus();
+
+    const handleDocumentPointerDown = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (!target) {
+        return;
+      }
+
+      if (desktopSearchPanelRef.current?.contains(target)) {
+        return;
+      }
+
+      setIsDesktopSearchOpen(false);
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsDesktopSearchOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleDocumentPointerDown);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleDocumentPointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isDesktopSearchOpen]);
+
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--border-muted)] bg-[var(--header-bg)] backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-[var(--border-muted)] bg-[var(--header-bg)]/95 shadow-[0_1px_0_rgba(15,23,42,0.04)] backdrop-blur">
       <div className="mx-auto w-full max-w-6xl px-5 py-4 sm:px-8 lg:px-10">
         <div className="flex items-center justify-between gap-4">
           <Link
@@ -110,9 +152,8 @@ export function SiteHeader({ links }: SiteHeaderProps) {
             </button>
           </div>
 
-          <div className="hidden w-fit items-end gap-2 md:flex md:flex-col md:items-stretch">
-            <div className="flex items-center gap-4">
-              <nav aria-label="Primary navigation" className="grid grid-flow-col auto-cols-max gap-4 overflow-x-auto">
+          <div className="hidden min-w-0 flex-1 items-center justify-end gap-4 md:flex lg:gap-5">
+            <nav aria-label="Primary navigation" className="flex items-center gap-3 whitespace-nowrap lg:gap-4">
                 {links.map((link) => {
                   const isActive = pathname === link.href;
                   return (
@@ -120,56 +161,74 @@ export function SiteHeader({ links }: SiteHeaderProps) {
                       key={link.href}
                       href={link.href}
                       onClick={closeMobileMenu}
-                      className={`text-sm font-medium transition ${
-                        isActive ? "text-emerald-700" : "text-[var(--text-muted)] hover:text-emerald-700"
+                      className={`inline-flex items-center border-b-2 pb-1 text-[13px] transition lg:text-sm ${
+                        isActive
+                          ? "border-emerald-700 font-semibold text-emerald-800"
+                          : "border-transparent font-medium text-[var(--text-muted)] hover:border-emerald-300 hover:text-emerald-800"
                       }`}
                     >
                       {link.label}
                     </Link>
                   );
                 })}
-              </nav>
+            </nav>
 
-              <Link
-                href="/search"
-                aria-label="Open search"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-muted)] text-[var(--text-muted)] transition hover:bg-[var(--surface-muted)] lg:hidden"
+            <div className="relative" ref={desktopSearchPanelRef}>
+              <button
+                type="button"
+                onClick={() => setIsDesktopSearchOpen((current) => !current)}
+                aria-label="Toggle search"
+                aria-expanded={isDesktopSearchOpen}
+                aria-controls="desktop-search-popover"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-muted)] text-[var(--text-muted)] transition hover:bg-[var(--surface-muted)] hover:text-emerald-700"
               >
                 <span className="relative block h-4 w-4" aria-hidden="true">
                   <span className="absolute left-0 top-0 h-3 w-3 rounded-full border-2 border-current" />
                   <span className="absolute bottom-0 right-0 h-2 w-0.5 rotate-[-45deg] rounded-full bg-current" />
                 </span>
-              </Link>
-              <AuthControls variant="desktop" />
+              </button>
+
+              {isDesktopSearchOpen ? (
+                <div
+                  id="desktop-search-popover"
+                  className="absolute right-0 top-full z-50 mt-2 w-[min(84vw,24rem)] rounded-2xl border border-[var(--border-muted)] bg-[var(--surface)] p-3 shadow-[0_16px_42px_rgba(15,23,42,0.14)]"
+                >
+                  <form
+                    action="/search"
+                    method="get"
+                    className="flex items-center gap-2"
+                    onSubmit={() => setIsDesktopSearchOpen(false)}
+                  >
+                    <label className="sr-only" htmlFor="desktop-site-search-popover">Search site content</label>
+                    <div className="relative min-w-0 flex-1">
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" aria-hidden="true">
+                        <span className="relative block h-4 w-4">
+                          <span className="absolute left-0 top-0 h-3 w-3 rounded-full border-2 border-current" />
+                          <span className="absolute bottom-0 right-0 h-2 w-0.5 rotate-[-45deg] rounded-full bg-current" />
+                        </span>
+                      </span>
+                      <input
+                        id="desktop-site-search-popover"
+                        ref={desktopSearchInputRef}
+                        name="q"
+                        type="search"
+                        defaultValue={searchQuery}
+                        placeholder="Search articles and voices"
+                        className="w-full min-w-0 rounded-full border border-[var(--border-muted)] bg-[var(--surface-muted)] py-2 pl-10 pr-4 text-sm text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:bg-[var(--surface)] focus:ring"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="rounded-full border border-[var(--border-muted)] px-3 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-[var(--surface-muted)]"
+                    >
+                      Go
+                    </button>
+                  </form>
+                </div>
+              ) : null}
             </div>
 
-            <form action="/search" method="get" className="hidden w-full lg:flex">
-              <label className="sr-only" htmlFor="desktop-site-search">Search site content</label>
-              <div className="flex w-full items-center gap-2">
-                <div className="relative min-w-0 flex-1">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" aria-hidden="true">
-                    <span className="relative block h-4 w-4">
-                      <span className="absolute left-0 top-0 h-3 w-3 rounded-full border-2 border-current" />
-                      <span className="absolute bottom-0 right-0 h-2 w-0.5 rotate-[-45deg] rounded-full bg-current" />
-                    </span>
-                  </span>
-                  <input
-                    id="desktop-site-search"
-                    name="q"
-                    type="search"
-                    defaultValue={searchQuery}
-                    placeholder="Search articles and voices"
-                    className="w-full min-w-0 rounded-full border border-[var(--border-muted)] bg-[var(--surface)] py-2 pl-10 pr-4 text-sm text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="rounded-full border border-[var(--border-muted)] px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-[var(--surface-muted)]"
-                >
-                  Search
-                </button>
-              </div>
-            </form>
+            <AuthControls variant="desktop" />
           </div>
         </div>
 

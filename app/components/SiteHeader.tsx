@@ -83,10 +83,6 @@ export function SiteHeader({ links }: SiteHeaderProps) {
   }, [isMobileMenuOpen]);
 
   useEffect(() => {
-    setIsDesktopSearchOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
     if (!isDesktopSearchOpen) {
       return;
     }

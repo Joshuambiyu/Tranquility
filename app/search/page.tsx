@@ -1,18 +1,12 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { SearchResultsLoading } from "@/app/components/loading/PageSkeletons";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
-import type { GlobalSearchResult, SearchItem } from "@/lib/global-search";
+import { searchGlobalContent, type SearchItem } from "@/lib/global-search";
 
-const EMPTY_RESULT: GlobalSearchResult = {
-  query: "",
-  total: 0,
-  articles: [],
-  voices: [],
-};
+export const revalidate = 120;
+
+interface SearchPageProps {
+  searchParams: Promise<{ q?: string }>;
+}
 
 function normalizeSearchParam(value: string | null) {
   return (value ?? "").trim();
@@ -48,70 +42,17 @@ function SearchResultGroup({
   );
 }
 
-export default function SearchPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const queryFromUrl = useMemo(() => normalizeSearchParam(searchParams.get("q")), [searchParams]);
-
-  const [queryInput, setQueryInput] = useState(queryFromUrl);
-  const [result, setResult] = useState<GlobalSearchResult>({ ...EMPTY_RESULT, query: queryFromUrl });
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    setQueryInput(queryFromUrl);
-
-    if (queryFromUrl.length < 2) {
-      setResult({ ...EMPTY_RESULT, query: queryFromUrl });
-      setIsLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-
-    const load = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch(`/api/search?q=${encodeURIComponent(queryFromUrl)}`, {
-          cache: "no-store",
-        });
-
-        if (!response.ok) {
-          throw new Error("Unable to search right now.");
-        }
-
-        const payload = (await response.json()) as GlobalSearchResult;
-        if (!cancelled) {
-          setResult(payload);
-        }
-      } catch {
-        if (!cancelled) {
-          setResult({ ...EMPTY_RESULT, query: queryFromUrl });
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    void load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [queryFromUrl]);
-
-  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const nextQuery = queryInput.trim();
-    if (!nextQuery) {
-      router.push("/search");
-      return;
-    }
-
-    router.push(`/search?q=${encodeURIComponent(nextQuery)}`);
-  };
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const queryFromUrl = normalizeSearchParam(resolvedSearchParams.q ?? null);
+  const result = queryFromUrl.length >= 2
+    ? await searchGlobalContent(queryFromUrl)
+    : {
+        query: queryFromUrl,
+        total: 0,
+        articles: [],
+        voices: [],
+      };
 
   return (
     <div className="grid min-h-screen bg-background text-foreground">
@@ -121,7 +62,7 @@ export default function SearchPage() {
             title="Search"
             description="Find articles and community voices in one place."
           />
-          <form onSubmit={handleSearchSubmit} className="grid gap-2 text-sm font-medium text-[var(--text-muted)]">
+          <form action="/search" method="get" className="grid gap-2 text-sm font-medium text-[var(--text-muted)]">
             Search everything
             <div className="flex items-center gap-2">
               <div className="relative min-w-0 flex-1">
@@ -134,8 +75,7 @@ export default function SearchPage() {
                 <input
                   name="q"
                   type="search"
-                  value={queryInput}
-                  onChange={(event) => setQueryInput(event.target.value)}
+                  defaultValue={queryFromUrl}
                   placeholder="Try: clarity, gratitude, exam"
                   className="w-full rounded-xl border border-[var(--border-muted)] bg-[var(--surface)] py-3 pl-10 pr-4 text-[var(--text-strong)] outline-none ring-emerald-400 transition focus:ring"
                 />
@@ -162,28 +102,20 @@ export default function SearchPage() {
           <SectionBlock>
             <Card>
               <p className="text-[var(--text-muted)]">
-                {isLoading ? "Searching..." : `Showing ${result.total} results for `}
-                {!isLoading ? <span className="font-semibold text-[var(--text-strong)]">&quot;{result.query}&quot;</span> : null}
+                Showing {result.total} results for <span className="font-semibold text-[var(--text-strong)]">&quot;{result.query}&quot;</span>
               </p>
             </Card>
           </SectionBlock>
         ) : null}
 
-        {queryFromUrl.length >= 2 && isLoading ? (
-          <SectionBlock>
-            <SectionTitle title="Searching..." />
-            <SearchResultsLoading />
-          </SectionBlock>
-        ) : null}
-
-        {queryFromUrl.length >= 2 && !isLoading ? (
+        {queryFromUrl.length >= 2 ? (
           <>
             <SearchResultGroup title="Articles" items={result.articles} />
             <SearchResultGroup title="Voices" items={result.voices} />
           </>
         ) : null}
 
-        {queryFromUrl.length >= 2 && !isLoading && result.total === 0 ? (
+        {queryFromUrl.length >= 2 && result.total === 0 ? (
           <SectionBlock>
             <Card>
               <p className="text-[var(--text-muted)]">No matches yet. Try a different keyword.</p>

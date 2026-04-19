@@ -1,11 +1,11 @@
 //smart parent
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
 import { AboutSection } from "@/app/components/AboutSection";
 import { DailyReflectionSection } from "@/app/components/DailyReflectionSection";
-import { FeaturedReflectionSection } from "@/app/components/FeaturedReflectionSection";
+import { FeaturedArticleSection, type FeaturedArticleData } from "@/app/components/FeaturedArticleSection";
 import { HelpsSection } from "@/app/components/HelpsSection";
 import { HeroSection } from "@/app/components/HeroSection";
 import { MissionSection } from "@/app/components/MissionSection";
@@ -14,7 +14,6 @@ import { VoicesSection } from "@/app/components/VoicesSection";
 import {
   aboutSnippet,
   communityVoices,
-  featuredReflection,
   helpItems,
   heroContent,
   missionText,
@@ -27,8 +26,45 @@ export default function Home() {
   const { status: authStatus } = useSession();
   const [reflectionAnswer, setReflectionAnswer] = useState("");
   const [stressLevel, setStressLevel] = useState<StressLevel>("medium");
+  const [featuredPost, setFeaturedPost] = useState<FeaturedArticleData | null>(null);
+  const [isLoadingFeaturedPost, setIsLoadingFeaturedPost] = useState(true);
   const [submissionState, setSubmissionState] =
     useState<ReflectionSubmissionState>({ status: "idle" });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadFeaturedPost = async () => {
+      try {
+        setIsLoadingFeaturedPost(true);
+        const response = await fetch("/api/articles?page=1&pageSize=1", { cache: "no-store" });
+
+        if (!response.ok) {
+          throw new Error("Unable to load featured article.");
+        }
+
+        const payload = (await response.json()) as { featured: FeaturedArticleData | null };
+
+        if (!cancelled) {
+          setFeaturedPost(payload.featured ?? null);
+        }
+      } catch {
+        if (!cancelled) {
+          setFeaturedPost(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingFeaturedPost(false);
+        }
+      }
+    };
+
+    void loadFeaturedPost();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleReflectionSubmit = async () => {
     if (authStatus !== "authenticated") {
@@ -91,7 +127,11 @@ export default function Home() {
           onSubmit={handleReflectionSubmit}
         />
 
-        <FeaturedReflectionSection reflection={featuredReflection} />
+        <FeaturedArticleSection
+          featuredPost={featuredPost}
+          title="Featured Reflection of the Week"
+          emptyMessage={isLoadingFeaturedPost ? "Loading featured reflection..." : "No featured reflection yet."}
+        />
         <VoicesSection voices={communityVoices} />
         <RecentArticlesSection />
         <AboutSection description={aboutSnippet} />

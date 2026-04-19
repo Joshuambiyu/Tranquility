@@ -15,6 +15,10 @@ export const SECTION_BG_VARIANTS = {
     className: "",
     style: {},
   },
+  light: {
+    className: "",
+    style: { background: "var(--accent-soft)" },
+  },
 };
 
 // Background variants for cards

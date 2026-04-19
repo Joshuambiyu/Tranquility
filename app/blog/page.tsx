@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ArticlesGridLoading } from "@/app/components/loading/PageSkeletons";
 import { FeaturedArticleSection } from "@/app/components/FeaturedArticleSection";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import { blogPageIntro } from "@/app/data/homepageData";
@@ -159,25 +160,29 @@ export default function BlogPage() {
 
         <SectionBlock>
           <SectionTitle title="Latest Articles" />
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {visiblePosts.map((post) => {
-              return (
-                <Card key={post.id} className="min-w-0 gap-3">
-                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                    {post.author} • {new Date(post.publishedAt).toLocaleDateString()}
-                  </p>
-                  <h3 className="break-words text-2xl font-semibold text-slate-950">{post.title}</h3>
-                  <p className="break-words text-base text-slate-800">{post.excerpt}</p>
-                  <p className="min-w-0 break-words rounded-xl bg-[var(--card-in-section-bg)] px-3 py-2 text-base text-slate-800 ring-1 ring-[var(--border-muted)]">
-                    Reflection moment: {truncateAtWordBoundary(post.reflectionMoment, 130)}
-                  </p>
-                  <Link href={`/blog/${post.slug}`} className="text-sm font-semibold text-emerald-700 hover:text-emerald-800">
-                    Read article
-                  </Link>
-                </Card>
-              );
-            })}
-          </div>
+          {isLoading && visiblePosts.length === 0 ? (
+            <ArticlesGridLoading count={6} />
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {visiblePosts.map((post) => {
+                return (
+                  <Card key={post.id} className="min-w-0 gap-3">
+                    <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                      {post.author} • {new Date(post.publishedAt).toLocaleDateString()}
+                    </p>
+                    <h3 className="break-words text-2xl font-semibold text-slate-950">{post.title}</h3>
+                    <p className="break-words text-base text-slate-800">{post.excerpt}</p>
+                    <p className="min-w-0 break-words rounded-xl bg-[var(--card-in-section-bg)] px-3 py-2 text-base text-slate-800 ring-1 ring-[var(--border-muted)]">
+                      Reflection moment: {truncateAtWordBoundary(post.reflectionMoment, 130)}
+                    </p>
+                    <Link href={`/blog/${post.slug}`} className="text-sm font-semibold text-emerald-700 hover:text-emerald-800">
+                      Read article
+                    </Link>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
           {hasMore ? (
             <div className="flex justify-center">
               <button

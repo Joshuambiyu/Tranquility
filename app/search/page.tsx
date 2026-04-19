@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { SearchResultsLoading } from "@/app/components/loading/PageSkeletons";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import type { GlobalSearchResult, SearchItem } from "@/lib/global-search";
 
@@ -165,6 +166,13 @@ export default function SearchPage() {
                 {!isLoading ? <span className="font-semibold text-[var(--text-strong)]">&quot;{result.query}&quot;</span> : null}
               </p>
             </Card>
+          </SectionBlock>
+        ) : null}
+
+        {queryFromUrl.length >= 2 && isLoading ? (
+          <SectionBlock>
+            <SectionTitle title="Searching..." />
+            <SearchResultsLoading />
           </SectionBlock>
         ) : null}
 

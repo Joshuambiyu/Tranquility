@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
 import { DailyReflectionSection } from "@/app/components/DailyReflectionSection";
 import { useToast } from "@/app/components/feedback/ToastProvider";
+import { JournalEntriesLoading } from "@/app/components/loading/PageSkeletons";
 import { JournalsHeroSection } from "@/app/components/JournalsHeroSection";
 import { Card, SectionBlock, SectionTitle } from "@/app/components/ui";
 import { reflectionPrompt } from "@/app/data/homepageData";
@@ -160,7 +161,8 @@ export default function JournalsPage() {
 
         {loading ? (
           <SectionBlock>
-            <p className="text-[var(--text-muted)]">Loading your journal entries...</p>
+            <SectionTitle title="Recent Entries" />
+            <JournalEntriesLoading />
           </SectionBlock>
         ) : error ? (
           <SectionBlock>

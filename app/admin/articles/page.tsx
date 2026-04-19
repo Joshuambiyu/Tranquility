@@ -59,9 +59,9 @@ export default async function AdminArticlesPage({ searchParams }: AdminArticlesP
     <main className="mx-auto grid min-h-[70vh] w-full min-w-0 max-w-6xl gap-6 overflow-x-hidden px-5 py-8 sm:px-8 lg:px-10">
       <ToastOnMount
         id={`articles-updated-${updated}-${articleId}`}
-        type="success"
-        title="Article updated"
-        message="Your changes were saved successfully."
+        type={duplicate === "1" ? "info" : "success"}
+        title={duplicate === "1" ? "Update already applied" : "Article updated"}
+        message={duplicate === "1" ? "Your previous update request was already processed." : "Your changes were saved successfully."}
         enabled={updated === "1"}
       />
       <ToastOnMount

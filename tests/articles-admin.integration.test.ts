@@ -293,6 +293,34 @@ function buildCreateFormData(input: {
   return formData;
 }
 
+function buildUpdateFormData(input: {
+  articleId: string;
+  submitToken: string;
+  submitIntent?: "draft" | "publish";
+  title?: string;
+  author?: string;
+  excerpt?: string;
+  contentJson?: string;
+  reflectionMoment?: string;
+  imageAlt?: string;
+  slug?: string;
+}) {
+  const formData = new FormData();
+  formData.set("articleId", input.articleId);
+  formData.set("submitToken", input.submitToken);
+  formData.set("submitIntent", input.submitIntent ?? "publish");
+  formData.set("title", input.title ?? "Updated title");
+  formData.set("author", input.author ?? "Updated author");
+  formData.set("excerpt", input.excerpt ?? "");
+  formData.set("contentJson", input.contentJson ?? paragraphDocJson("Updated publish content."));
+  formData.set("content", "");
+  formData.set("reflectionMoment", input.reflectionMoment ?? "Updated reflection is long enough.");
+  formData.set("imageSrc", "");
+  formData.set("imageAlt", input.imageAlt ?? "Updated image alt");
+  formData.set("slug", input.slug ?? "updated-title");
+  return formData;
+}
+
 beforeEach(() => {
   mockSession = {
     user: {
@@ -312,6 +340,12 @@ beforeEach(() => {
     throw new Error(`NEXT_REDIRECT:${target}`);
   });
   revalidatePathMock.mockReset();
+  mockPrisma.article.findFirst.mockClear();
+  mockPrisma.article.findUnique.mockClear();
+  mockPrisma.article.updateMany.mockClear();
+  mockPrisma.article.create.mockClear();
+  mockPrisma.article.update.mockClear();
+  mockPrisma.article.count.mockClear();
 });
 
 afterEach(() => {
@@ -324,6 +358,12 @@ afterEach(() => {
   hasAdminAccessMock.mockReset();
   redirectMock.mockReset();
   revalidatePathMock.mockReset();
+  mockPrisma.article.findFirst.mockClear();
+  mockPrisma.article.findUnique.mockClear();
+  mockPrisma.article.updateMany.mockClear();
+  mockPrisma.article.create.mockClear();
+  mockPrisma.article.update.mockClear();
+  mockPrisma.article.count.mockClear();
 });
 
 describe("admin article actions", () => {
@@ -382,6 +422,73 @@ describe("admin article actions", () => {
     expect(articleStore[0].title).toBe("Vitest Article Replay");
   });
 
+  it("treats a retried create with a new token as already processed when the article already exists", async () => {
+    const firstSubmit = buildCreateFormData({
+      submitToken: randomUUID(),
+      submitIntent: "publish",
+      title: "Retry-safe Create Article",
+      reflectionMoment: "This reflection has enough text for publishing.",
+      contentJson: paragraphDocJson("Retry-safe create body content."),
+    });
+
+    await expect(createArticleAction(firstSubmit)).rejects.toThrow("NEXT_REDIRECT:/admin/articles?created=1");
+
+    const retrySubmit = buildCreateFormData({
+      submitToken: randomUUID(),
+      submitIntent: "publish",
+      title: "Retry-safe Create Article",
+      reflectionMoment: "This reflection has enough text for publishing.",
+      contentJson: paragraphDocJson("Retry-safe create body content."),
+    });
+
+    await expect(createArticleAction(retrySubmit)).rejects.toThrow(
+      "NEXT_REDIRECT:/admin/articles?created=1&duplicate=1",
+    );
+
+    expect(articleStore).toHaveLength(1);
+    expect(articleStore[0].title).toBe("Retry-safe Create Article");
+  });
+
+  it("recovers from a concurrent create race by treating slug conflicts with matching payload as duplicate success", async () => {
+    const createSpy = mockPrisma.article.create;
+    const originalCreate = createSpy.getMockImplementation();
+
+    createSpy.mockImplementationOnce(async (args: { data: Omit<ArticleRecord, "id" | "createdAt" | "updatedAt"> }) => {
+      const now = new Date();
+
+      articleStore.push({
+        id: randomUUID(),
+        createdAt: now,
+        updatedAt: now,
+        ...args.data,
+      });
+
+      throw {
+        code: "P2002",
+        meta: { target: ["slug"] },
+      };
+    });
+
+    if (originalCreate) {
+      createSpy.mockImplementation(originalCreate);
+    }
+
+    const raceSubmit = buildCreateFormData({
+      submitToken: randomUUID(),
+      submitIntent: "publish",
+      title: "Concurrent Create Article",
+      reflectionMoment: "This reflection has enough text for publishing.",
+      contentJson: paragraphDocJson("Concurrent create body content."),
+    });
+
+    await expect(createArticleAction(raceSubmit)).rejects.toThrow(
+      "NEXT_REDIRECT:/admin/articles?created=1&duplicate=1",
+    );
+
+    expect(articleStore).toHaveLength(1);
+    expect(articleStore[0].slug).toBe("concurrent-create-article");
+  });
+
   it("updates draft article to published status with strict checks", async () => {
     const originalPublishedAt = new Date("2020-01-01T00:00:00.000Z");
 
@@ -405,22 +512,18 @@ describe("admin article actions", () => {
 
     articleStore.push(seededArticle);
 
-    const updateFormData = new FormData();
-    updateFormData.set("submitToken", randomUUID());
-    updateFormData.set("articleId", seededArticle.id);
-    updateFormData.set("submitIntent", "publish");
-    updateFormData.set("title", "Vitest Article Updated");
-    updateFormData.set("author", "Vitest Author Updated");
-    updateFormData.set("excerpt", "");
-    updateFormData.set("contentJson", paragraphDocJson("Updated publish content."));
-    updateFormData.set("content", "");
-    updateFormData.set("reflectionMoment", "Updated reflection is long enough.");
-    updateFormData.set("imageSrc", "");
-    updateFormData.set("imageAlt", "Updated image alt");
-    updateFormData.set("slug", "vitest-article-updated");
+    const updateFormData = buildUpdateFormData({
+      articleId: seededArticle.id,
+      submitToken: randomUUID(),
+      title: "Vitest Article Updated",
+      author: "Vitest Author Updated",
+      reflectionMoment: "Updated reflection is long enough.",
+      imageAlt: "Updated image alt",
+      slug: "vitest-article-updated",
+    });
 
     await expect(updateArticleAction(updateFormData)).rejects.toThrow(
-      `NEXT_REDIRECT:/admin/articles/edit/${seededArticle.id}?updated=1`,
+      `NEXT_REDIRECT:/admin/articles?updated=1&articleId=${seededArticle.id}`,
     );
 
     expect(articleStore).toHaveLength(1);
@@ -428,5 +531,114 @@ describe("admin article actions", () => {
     expect(articleStore[0].title).toBe("Vitest Article Updated");
     expect(articleStore[0].slug).toBe("vitest-article-updated");
     expect(articleStore[0].publishedAt.getTime() > originalPublishedAt.getTime()).toBe(true);
+  });
+
+  it("treats a replayed update with the same token as already processed success", async () => {
+    const seededArticle: ArticleRecord = {
+      id: randomUUID(),
+      slug: `retryable-update-${randomUUID().slice(0, 8)}`,
+      title: "Retryable Update Seed",
+      excerpt: "Seed excerpt",
+      content: JSON.parse(paragraphDocJson("Seed content")),
+      author: "Vitest Author Seed",
+      imageSrc: "",
+      imageAlt: "Seed image",
+      reflectionMoment: "Seed reflection moment text",
+      isFeatured: false,
+      status: "published",
+      publishedAt: new Date("2020-01-01T00:00:00.000Z"),
+      createdAt: new Date("2020-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2020-01-01T00:00:00.000Z"),
+      createdById: mockSession?.user.id,
+    };
+
+    articleStore.push(seededArticle);
+
+    const token = randomUUID();
+    const firstSubmit = buildUpdateFormData({
+      articleId: seededArticle.id,
+      submitToken: token,
+      title: "Retry-safe Updated Title",
+      author: "Retry-safe Updated Author",
+      reflectionMoment: "Retry-safe reflection that is long enough.",
+      imageAlt: "Retry-safe image alt",
+      slug: "retry-safe-updated-title",
+    });
+
+    await expect(updateArticleAction(firstSubmit)).rejects.toThrow(
+      `NEXT_REDIRECT:/admin/articles?updated=1&articleId=${seededArticle.id}`,
+    );
+
+    const replaySubmit = buildUpdateFormData({
+      articleId: seededArticle.id,
+      submitToken: token,
+      title: "Retry-safe Updated Title",
+      author: "Retry-safe Updated Author",
+      reflectionMoment: "Retry-safe reflection that is long enough.",
+      imageAlt: "Retry-safe image alt",
+      slug: "retry-safe-updated-title",
+    });
+
+    await expect(updateArticleAction(replaySubmit)).rejects.toThrow(
+      `NEXT_REDIRECT:/admin/articles?updated=1&articleId=${seededArticle.id}&duplicate=1`,
+    );
+
+    expect(mockPrisma.article.update).toHaveBeenCalledTimes(1);
+    expect(articleStore[0].title).toBe("Retry-safe Updated Title");
+    expect(articleStore[0].slug).toBe("retry-safe-updated-title");
+  });
+
+  it("treats a retried update with a new token as already applied when the state already matches", async () => {
+    const seededArticle: ArticleRecord = {
+      id: randomUUID(),
+      slug: `matching-update-${randomUUID().slice(0, 8)}`,
+      title: "Matching Update Seed",
+      excerpt: "Seed excerpt",
+      content: JSON.parse(paragraphDocJson("Seed content")),
+      author: "Vitest Author Seed",
+      imageSrc: "",
+      imageAlt: "Seed image",
+      reflectionMoment: "Seed reflection moment text",
+      isFeatured: false,
+      status: "published",
+      publishedAt: new Date("2020-01-01T00:00:00.000Z"),
+      createdAt: new Date("2020-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2020-01-01T00:00:00.000Z"),
+      createdById: mockSession?.user.id,
+    };
+
+    articleStore.push(seededArticle);
+
+    await expect(
+      updateArticleAction(
+        buildUpdateFormData({
+          articleId: seededArticle.id,
+          submitToken: randomUUID(),
+          title: "State Match Updated Title",
+          author: "State Match Updated Author",
+          reflectionMoment: "State match reflection that is long enough.",
+          imageAlt: "State match image alt",
+          slug: "state-match-updated-title",
+        }),
+      ),
+    ).rejects.toThrow(`NEXT_REDIRECT:/admin/articles?updated=1&articleId=${seededArticle.id}`);
+
+    await expect(
+      updateArticleAction(
+        buildUpdateFormData({
+          articleId: seededArticle.id,
+          submitToken: randomUUID(),
+          title: "State Match Updated Title",
+          author: "State Match Updated Author",
+          reflectionMoment: "State match reflection that is long enough.",
+          imageAlt: "State match image alt",
+          slug: "state-match-updated-title",
+        }),
+      ),
+    ).rejects.toThrow(`NEXT_REDIRECT:/admin/articles?updated=1&articleId=${seededArticle.id}`);
+
+    expect(mockPrisma.article.update).toHaveBeenCalledTimes(1);
+    expect(articleStore[0].title).toBe("State Match Updated Title");
+    expect(articleStore[0].author).toBe("State Match Updated Author");
   });
 });

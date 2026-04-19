@@ -32,6 +32,62 @@ type SubmitTokenEntry = {
   timestamp: number;
 };
 
+type ArticleUpdateSnapshot = {
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: unknown;
+  author: string;
+  imageSrc: string;
+  imageAlt: string;
+  reflectionMoment: string;
+  isFeatured: boolean;
+  status: string;
+  publishedAt: Date;
+};
+
+type ResolvedArticleUpdate = {
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: Prisma.InputJsonValue;
+  author: string;
+  imageSrc: string;
+  imageAlt: string;
+  reflectionMoment: string;
+  isFeatured: boolean;
+  status: string;
+  publishedAt: Date;
+};
+
+type ArticleCreateSnapshot = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: unknown;
+  author: string;
+  imageSrc: string;
+  imageAlt: string;
+  reflectionMoment: string;
+  isFeatured: boolean;
+  status: string;
+  createdAt: Date;
+  createdById?: string | null;
+};
+
+type ResolvedArticleCreate = {
+  title: string;
+  excerpt: string;
+  content: Prisma.InputJsonValue;
+  author: string;
+  imageSrc: string;
+  imageAlt: string;
+  reflectionMoment: string;
+  isFeatured: boolean;
+  status: string;
+};
+
 function toSlug(input: string) {
   return input
     .toLowerCase()
@@ -281,6 +337,51 @@ function serializeSubmitTokenCookie(entries: SubmitTokenEntry[]) {
   return entries.map((entry) => `${entry.token}:${entry.timestamp}`).join("|");
 }
 
+function doesArticleMatchResolvedUpdate(article: ArticleUpdateSnapshot, next: ResolvedArticleUpdate) {
+  return (
+    article.slug === next.slug &&
+    article.title === next.title &&
+    article.excerpt === next.excerpt &&
+    JSON.stringify(article.content) === JSON.stringify(next.content) &&
+    article.author === next.author &&
+    article.imageSrc === next.imageSrc &&
+    article.imageAlt === next.imageAlt &&
+    article.reflectionMoment === next.reflectionMoment &&
+    article.isFeatured === next.isFeatured &&
+    article.status === next.status &&
+    article.publishedAt.getTime() === next.publishedAt.getTime()
+  );
+}
+
+function doesArticleMatchResolvedCreate(article: ArticleCreateSnapshot, next: ResolvedArticleCreate, userId: string) {
+  return (
+    article.createdById === userId &&
+    article.title === next.title &&
+    article.excerpt === next.excerpt &&
+    JSON.stringify(article.content) === JSON.stringify(next.content) &&
+    article.author === next.author &&
+    article.imageSrc === next.imageSrc &&
+    article.imageAlt === next.imageAlt &&
+    article.reflectionMoment === next.reflectionMoment &&
+    article.isFeatured === next.isFeatured &&
+    article.status === next.status
+  );
+}
+
+function isSlugUniqueConstraintError(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const maybeError = error as { code?: unknown; meta?: { target?: unknown } };
+  if (maybeError.code !== "P2002") {
+    return false;
+  }
+
+  const target = maybeError.meta?.target;
+  return Array.isArray(target) ? target.includes("slug") : target === "slug";
+}
+
 async function consumeSubmitToken(formData: FormData) {
   const token = String(formData.get("submitToken") ?? "").trim();
 
@@ -347,6 +448,18 @@ export async function createArticleAction(formData: FormData) {
 
   const excerpt = requestedExcerpt || buildExcerptFallback(resolvedContent.paragraphsForExcerpt);
 
+  const resolvedCreate: ResolvedArticleCreate = {
+    title: titleForStorage,
+    excerpt,
+    content: resolvedContent.content as Prisma.InputJsonValue,
+    author: resolvedAuthor,
+    imageSrc,
+    imageAlt,
+    reflectionMoment,
+    isFeatured: isPublishIntent ? shouldFeature : false,
+    status: isPublishIntent ? "published" : "draft",
+  };
+
   const recentDuplicate = await prisma.article.findFirst({
     where: {
       createdById: user.id,
@@ -359,24 +472,22 @@ export async function createArticleAction(formData: FormData) {
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
+      slug: true,
+      title: true,
       excerpt: true,
       content: true,
       author: true,
+      imageSrc: true,
       imageAlt: true,
       reflectionMoment: true,
       isFeatured: true,
+      status: true,
+      createdAt: true,
+      createdById: true,
     },
   });
 
-  if (
-    recentDuplicate &&
-    recentDuplicate.excerpt === excerpt &&
-    recentDuplicate.author === resolvedAuthor &&
-    recentDuplicate.imageAlt === imageAlt &&
-    recentDuplicate.reflectionMoment === reflectionMoment &&
-    recentDuplicate.isFeatured === (isPublishIntent ? shouldFeature : false) &&
-    JSON.stringify(recentDuplicate.content) === JSON.stringify(resolvedContent.content)
-  ) {
+  if (recentDuplicate && doesArticleMatchResolvedCreate(recentDuplicate, resolvedCreate, user.id)) {
     redirect("/admin/articles?created=1&duplicate=1");
   }
 
@@ -391,31 +502,81 @@ export async function createArticleAction(formData: FormData) {
     baseSlug = `draft-${Date.now()}`;
   }
 
-  const slug = await resolveUniqueSlug(baseSlug);
+  const publishedAt = new Date();
+  let createdArticle;
 
-  if (shouldFeature && isPublishIntent) {
-    await prisma.article.updateMany({
-      where: { isFeatured: true },
-      data: { isFeatured: false },
+  try {
+    createdArticle = await prisma.article.create({
+      data: {
+        slug: baseSlug,
+        ...resolvedCreate,
+        isFeatured: false,
+        publishedAt,
+        createdById: user.id,
+      },
+    });
+  } catch (error) {
+    if (!isSlugUniqueConstraintError(error)) {
+      throw error;
+    }
+
+    const conflictingArticle = await prisma.article.findUnique({
+      where: { slug: baseSlug },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        excerpt: true,
+        content: true,
+        author: true,
+        imageSrc: true,
+        imageAlt: true,
+        reflectionMoment: true,
+        isFeatured: true,
+        status: true,
+        createdAt: true,
+        createdById: true,
+      },
+    });
+
+    const isRecentConflict = conflictingArticle
+      ? Date.now() - conflictingArticle.createdAt.getTime() <= 3 * 60 * 1000
+      : false;
+
+    if (
+      conflictingArticle &&
+      isRecentConflict &&
+      doesArticleMatchResolvedCreate(conflictingArticle, resolvedCreate, user.id)
+    ) {
+      redirect("/admin/articles?created=1&duplicate=1");
+    }
+
+    const slug = await resolveUniqueSlug(baseSlug);
+    createdArticle = await prisma.article.create({
+      data: {
+        slug,
+        ...resolvedCreate,
+        isFeatured: false,
+        publishedAt,
+        createdById: user.id,
+      },
     });
   }
 
-  await prisma.article.create({
-    data: {
-      slug,
-      title: titleForStorage,
-      excerpt,
-      content: resolvedContent.content as Prisma.InputJsonValue,
-      author: resolvedAuthor,
-      imageSrc,
-      imageAlt,
-      reflectionMoment,
-      isFeatured: isPublishIntent ? shouldFeature : false,
-      status: isPublishIntent ? "published" : "draft",
-      publishedAt: new Date(),
-      createdById: user.id,
-    },
-  });
+  if (resolvedCreate.isFeatured) {
+    await prisma.article.updateMany({
+      where: {
+        isFeatured: true,
+        id: { not: createdArticle.id },
+      },
+      data: { isFeatured: false },
+    });
+
+    await prisma.article.update({
+      where: { id: createdArticle.id },
+      data: { isFeatured: true },
+    });
+  }
 
   revalidateArticlePages();
   redirect("/admin/articles?created=1");
@@ -428,17 +589,20 @@ export async function updateArticleAction(formData: FormData) {
   const articleId = getArticleId(formData);
 
   const submitTokenState = await consumeSubmitToken(formData);
-  if (submitTokenState.isDuplicate) {
-    redirect(`/admin/articles/edit/${articleId}?updated=1&duplicate=1`);
-  }
 
   const existingArticle = await prisma.article.findUnique({
     where: { id: articleId },
     select: {
       id: true,
       slug: true,
+      title: true,
+      excerpt: true,
+      content: true,
       author: true,
       imageSrc: true,
+      imageAlt: true,
+      reflectionMoment: true,
+      isFeatured: true,
       publishedAt: true,
       status: true,
     },
@@ -483,7 +647,30 @@ export async function updateArticleAction(formData: FormData) {
     throw new Error("Unable to build a valid slug from title.");
   }
 
-  if (shouldFeature && isPublishIntent) {
+  const resolvedUpdate: ResolvedArticleUpdate = {
+    slug,
+    title: titleForStorage,
+    excerpt,
+    content: resolvedContent.content as Prisma.InputJsonValue,
+    author: author || existingArticle.author,
+    imageSrc,
+    imageAlt,
+    reflectionMoment,
+    isFeatured: isPublishIntent ? shouldFeature : false,
+    status: isPublishIntent ? "published" : "draft",
+    publishedAt:
+      isPublishIntent && existingArticle.status !== "published"
+        ? new Date()
+        : existingArticle.publishedAt,
+  };
+
+  if (doesArticleMatchResolvedUpdate(existingArticle, resolvedUpdate)) {
+    redirect(
+      `/admin/articles?updated=1&articleId=${articleId}${submitTokenState.isDuplicate ? "&duplicate=1" : ""}`,
+    );
+  }
+
+  if (resolvedUpdate.isFeatured) {
     await prisma.article.updateMany({
       where: {
         isFeatured: true,
@@ -495,21 +682,7 @@ export async function updateArticleAction(formData: FormData) {
 
   await prisma.article.update({
     where: { id: articleId },
-    data: {
-      slug,
-      title: titleForStorage,
-      excerpt,
-      content: resolvedContent.content as Prisma.InputJsonValue,
-      author: author || existingArticle.author,
-      imageSrc,
-      imageAlt,
-      reflectionMoment,
-      isFeatured: isPublishIntent ? shouldFeature : false,
-      status: isPublishIntent ? "published" : "draft",
-      publishedAt: isPublishIntent && existingArticle.status !== "published"
-        ? new Date()
-        : existingArticle.publishedAt,
-    },
+    data: resolvedUpdate,
   });
 
   revalidateArticlePages();

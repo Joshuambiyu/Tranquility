@@ -196,14 +196,14 @@ export async function getPublishedArticleBySlug(slug: string) {
   };
 }
 
-export async function getRelatedPublishedArticles(currentId: string, take = 2) {
+export async function getRelatedPublishedArticles(currentId: string, take?: number) {
   const related = await prisma.article.findMany({
     where: {
       status: "published",
       id: { not: currentId },
     },
     orderBy: { publishedAt: "desc" },
-    take,
+    ...(typeof take === "number" ? { take } : {}),
     select: articleSelect,
   });
 

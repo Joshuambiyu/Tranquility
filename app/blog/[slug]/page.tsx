@@ -57,7 +57,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
     notFound();
   }
 
-  const relatedArticles = await getRelatedPublishedArticles(article.id, 2);
+  const relatedArticles = await getRelatedPublishedArticles(article.id);
   const hasCoverImage = article.imageSrc.trim().length > 0 && article.imageSrc !== "/featured-reflection.svg";
 
   return (
